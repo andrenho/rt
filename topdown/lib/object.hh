@@ -3,15 +3,22 @@
 
 #include "box2d/box2d.h"
 
+#include "shapes.hh"
+
+namespace topdown {
+
 class Object {
 public:
     virtual ~Object() = default;
 
+    [[nodiscard]] std::vector<Shape> shapes() const;
+
 protected:
-    Object(b2BodyId id) : id_(id) {}
+    explicit Object(b2BodyId id) : id_(id) {}
 
     b2BodyId id_;
 };
 
+}
 
 #endif //TOPDOWN_OBJECT_HH

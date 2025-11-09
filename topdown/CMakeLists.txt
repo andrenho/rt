@@ -61,7 +61,11 @@ find_package(box2d REQUIRED)
 # library
 
 add_library(topdown STATIC
-        lib/world.hh lib/world.cc lib/vehicleconfig.hh lib/vehicle.hh lib/vehicle.cc)
+        lib/world.hh lib/world.cc
+        lib/shapes.hh
+        lib/vehicleconfig.hh
+        lib/object.hh lib/object.cc
+        lib/vehicle.hh lib/vehicle.cc)
 target_link_libraries(topdown PUBLIC box2d::box2d)
 
 # test executable
