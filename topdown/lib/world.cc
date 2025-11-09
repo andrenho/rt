@@ -14,4 +14,9 @@ World::~World()
     b2DestroyWorld(id_);
 }
 
+void World::step()
+{
+    b2World_Step(id_, 1.0f / 60.0f, 4);
+}
+
 }

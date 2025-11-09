@@ -59,7 +59,7 @@ find_package(box2d REQUIRED)
 #------------------------
 
 add_library(topdown STATIC
-        lib/world.hh lib/world.cc)
+        lib/world.hh lib/world.cc lib/vehicleconfig.hh lib/vehicle.hh lib/vehicle.cc)
 target_link_libraries(topdown PUBLIC box2d::box2d)
 
 add_executable(topdown-test EXCLUDE_FROM_ALL
