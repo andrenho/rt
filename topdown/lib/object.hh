@@ -4,8 +4,13 @@
 #include "box2d/box2d.h"
 
 class Object {
+public:
+    virtual ~Object() = default;
+
 protected:
-    Object() = default;
+    Object(b2BodyId id) : id_(id) {}
+
+    b2BodyId id_;
 };
 
 

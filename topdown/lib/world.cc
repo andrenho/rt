@@ -11,6 +11,7 @@ World::World()
 
 World::~World()
 {
+    objects_.clear();
     b2DestroyWorld(id_);
 }
 

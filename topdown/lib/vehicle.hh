@@ -3,6 +3,7 @@
 
 #include "vehicleconfig.hh"
 #include "object.hh"
+#include "world.hh"
 
 namespace topdown {
 
@@ -12,7 +13,10 @@ public:
     ~Vehicle();
 
 private:
-    b2BodyId id_;
+    VehicleConfig const& cfg_;
+    b2ShapeId shape_id_;
+
+    b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const &config);
 };
 
 }

@@ -58,11 +58,24 @@ find_package(box2d REQUIRED)
 # Main build
 #------------------------
 
+# library
+
 add_library(topdown STATIC
         lib/world.hh lib/world.cc lib/vehicleconfig.hh lib/vehicle.hh lib/vehicle.cc)
 target_link_libraries(topdown PUBLIC box2d::box2d)
 
-add_executable(topdown-test EXCLUDE_FROM_ALL
-        test/main.cc)
+# test executable
+
+add_executable(topdown-test EXCLUDE_FROM_ALL test/main.cc)
 target_include_directories(topdown-test PRIVATE lib)
 target_link_libraries(topdown-test PRIVATE topdown raylib)
+
+add_executable(topdown-test-simple EXCLUDE_FROM_ALL test/simple.cc)
+target_include_directories(topdown-test-simple PRIVATE lib)
+target_link_libraries(topdown-test-simple PRIVATE topdown)
+
+# special targets
+
+set(FINAL_TARGETS topdown-test topdown-test-simple)
+set(BASE_DIR ..)
+include(../cmake/special-targets.cmake)
