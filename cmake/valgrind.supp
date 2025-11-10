@@ -6,8 +6,64 @@
    ...
 }
 {
+   Ignore dlopen bug 2
+   Memcheck:Leak
+   ...
+   fun:dl_open_worker
+   ...
+}
+{
+   Ignore dlopen bug.
+   Memcheck:Leak
+   ...
+   fun:_dl_init
+   ...
+}
+{
    microjson bug
    Memcheck:Addr1
    fun:json_internal_read_object
    ...
+}
+{
+   raylib
+   Memcheck:Leak
+   ...
+   fun:InitPlatform
+   ...
+}
+{
+   raylib2
+   Memcheck:Leak
+   ...
+   fun:ClosePlatform
+   ...
+}
+{
+   llvm
+   Memcheck:Leak
+   ...
+   fun:LLVMParseCommandLineOptions
+   ...
+}
+{
+   glfw
+   Memcheck:Leak
+   ...
+   fun:glfwInit
+   ...
+}
+{
+   locale
+   Memcheck:Leak
+   ...
+   fun:XSupportsLocale
+   ...
+}
+{
+   mesa-gallium-reachable
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   obj:/usr/lib/libgallium-*
 }

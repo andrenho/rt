@@ -35,9 +35,10 @@ endif()
 # Libraries
 #------------------------
 
-# Raylib
 include(FetchContent)
 set(FETCHCONTENT_QUIET FALSE)
+
+# Raylib
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
 
@@ -47,22 +48,63 @@ FetchContent_Declare(
         GIT_TAG "master"
         GIT_PROGRESS TRUE
 )
-
 FetchContent_MakeAvailable(raylib)
 
-# box2d
-find_package(box2d REQUIRED)
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    target_compile_definitions(raylib PRIVATE _DARWIN_C_SOURCE)
+endif()
 
+# box2d
+set(BOX2D_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+        box2d
+        GIT_REPOSITORY "https://github.com/erincatto/box2d.git"
+        GIT_TAG "main"
+        GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(box2d)
+
+# Remove warnings for headers
+function(mark_as_system TARGET)
+    get_target_property(dirs ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+    if(dirs)
+        target_include_directories(${TARGET} SYSTEM INTERFACE ${dirs})
+    endif()
+endfunction()
+
+mark_as_system(raylib)
+mark_as_system(box2d)
 
 #-------------------------
 # Main build
 #------------------------
 
-add_library(topdown STATIC
-        lib/world.hh lib/world.cc)
-target_link_libraries(topdown PUBLIC box2d::box2d)
+# library
 
-add_executable(topdown-test EXCLUDE_FROM_ALL
-        test/main.cc)
+add_library(topdown STATIC
+        lib/world.hh lib/world.cc
+        lib/shapes.hh
+        lib/vehicleconfig.hh
+        lib/object.hh lib/object.cc
+        lib/vehicle.hh lib/vehicle.cc
+        lib/util.hh)
+target_link_libraries(topdown PUBLIC box2d)
+
+# test executable
+
+add_executable(topdown-test EXCLUDE_FROM_ALL test/main.cc)
 target_include_directories(topdown-test PRIVATE lib)
 target_link_libraries(topdown-test PRIVATE topdown raylib)
+
+add_executable(topdown-test-simple EXCLUDE_FROM_ALL test/simple.cc)
+target_include_directories(topdown-test-simple PRIVATE lib)
+target_link_libraries(topdown-test-simple PRIVATE topdown)
+
+# special targets
+
+set(FINAL_TARGETS topdown-test topdown-test-simple)
+set(BASE_DIR ..)
+include(../cmake/special-targets.cmake)

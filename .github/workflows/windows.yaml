@@ -1,0 +1,27 @@
+name: Windows (with MSVC)
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: TheMrMilchmann/setup-msvc-dev@v4
+        with:
+          arch: x64
+      - name: Build
+        run: |
+          mkdir topdown\build
+          cd topdown\build
+          cmake ..
+          msbuild topdown.sln /t:topdown
+          cd Debug
+          dir
