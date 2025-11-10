@@ -24,7 +24,10 @@ jobs:
           apt-get update
           apt-get install -y libraylib5-dev libbox2d-dev
       - name: Configure CMake
-        run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
+        run: |
+          mkdir topdown/build 
+          cd build 
+          cmake -DCMAKE_BUILD_TYPE=Debug ..
       - name: Build executable
-        working-directory: ./build
+        working-directory: ./topdown/build
         run: make
