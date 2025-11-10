@@ -22,7 +22,7 @@ jobs:
           add-apt-repository ppa:ubuntu-toolchain-r/test
           add-apt-repository ppa:texus/raylib
           apt-get update
-          apt-get install -y libraylib5-dev libbox2d-dev libx11-dev libxrandr-dev
+          apt-get install -y libraylib5-dev libbox2d-dev libx11-dev libxrandr-dev libxinerama-dev
       - name: Configure CMake
         run: |
           mkdir topdown/build 
