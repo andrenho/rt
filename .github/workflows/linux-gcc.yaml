@@ -20,8 +20,9 @@ jobs:
       - name: Install dependencies
         run: |
           add-apt-repository ppa:ubuntu-toolchain-r/test
+          sudo add-apt-repository ppa:texus/raylib
           apt-get update
-          apt-get install -y raylib box2d
+          apt-get install -y libraylib5-dev libbox2d-dev
       - name: Configure CMake
         run: mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Debug ..
       - name: Build executable
