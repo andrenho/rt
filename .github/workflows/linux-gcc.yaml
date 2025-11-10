@@ -20,9 +20,8 @@ jobs:
       - name: Install dependencies
         run: |
           add-apt-repository ppa:ubuntu-toolchain-r/test
-          add-apt-repository ppa:texus/raylib
           apt-get update
-          apt-get install -y libraylib5-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libglew-dev
+          apt-get install -y libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libglew-dev
       - name: Configure CMake
         run: |
           mkdir topdown/build 

@@ -17,7 +17,7 @@ jobs:
       - name: Build & Test
         uses: vmactions/freebsd-vm@v1
         with:
-          prepare: pkg install -y cmake gcc13 raylib
+          prepare: pkg install -y cmake gcc13
           copyback: false
           run: |
             mkdir topdown/build
