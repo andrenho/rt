@@ -17,14 +17,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: openrndr/setup-opengl@v1.1
-        run: xvfb-run glxinfo
       - name: Install dependencies
         run: |
           add-apt-repository ppa:ubuntu-toolchain-r/test
           add-apt-repository ppa:texus/raylib
           apt-get update
-          apt-get install -y libraylib5-dev libbox2d-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
+          apt-get install -y libraylib5-dev libbox2d-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libglew-dev
       - name: Configure CMake
         run: |
           mkdir topdown/build 
