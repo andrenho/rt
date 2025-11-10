@@ -26,7 +26,7 @@ jobs:
       - name: Configure CMake
         run: |
           mkdir topdown/build 
-          cd build 
+          cd topdown/build 
           cmake -DCMAKE_BUILD_TYPE=Debug ..
       - name: Build executable
         working-directory: ./topdown/build
