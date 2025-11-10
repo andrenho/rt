@@ -12,7 +12,7 @@ namespace vehicle {
     constexpr VehicleConfig Car = {
         .h = 5,
         .w = 2,
-        .acceleration = 1000.f,
+        .acceleration = 10.f,
     };
 }
 

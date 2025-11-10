@@ -50,6 +50,9 @@ int main()
 
         car->set_accelerator(IsKeyDown(KEY_UP));
         car->set_breaks(IsKeyDown(KEY_DOWN));
+
+        if (IsKeyDown(KEY_Q))
+            exit(0);
     }
 
     CloseWindow();

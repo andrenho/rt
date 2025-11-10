@@ -40,25 +40,17 @@ void Vehicle::step()
 
     // acceleration
     if (accelerator_)
-        b2Body_ApplyForce(id_, cfg_.acceleration * current_normal, b2Body_GetWorldCenterOfMass(id_), true);
+        b2Body_ApplyForce(id_, cfg_.acceleration * current_normal * 100.f, b2Body_GetWorldCenterOfMass(id_), true);
 
     // drag
     float forward_speed = b2Length(b2Normalize(f_vel));
-    b2Body_ApplyForce(id_, -2 * forward_speed * f_vel, b2Body_GetWorldCenterOfMass(id_), true);
+    b2Body_ApplyForce(id_, -cfg_.acceleration * forward_speed * f_vel, b2Body_GetWorldCenterOfMass(id_), true);
 
-    /*
-    if (accelerator_) {
-        float forward_speed = b2Length(b2Normalize(f_vel));
-        b2Body_ApplyForce(id_, -2 * forward_speed * f_vel, b2Body_GetWorldCenterOfMass(id_), true);
+    // breaks
+    if (breaks_) {
+        b2Body_ApplyForce(id_, -cfg_.acceleration * forward_speed * f_vel * 10.f, b2Body_GetWorldCenterOfMass(id_), true);
     }
-    */
 
-    /*
-    if (accelerator_) {
-        b2Vec2 impulse = b2Body_GetMass(id_) * -lateral_velocity();
-        b2Body_ApplyLinearImpulse(id_, impulse, b2Body_GetWorldCenterOfMass(id_), true);
-    }
-     */
 }
 
 }
