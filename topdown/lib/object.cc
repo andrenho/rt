@@ -34,4 +34,22 @@ std::vector <Shape> Object::shapes() const
     return shapes;
 }
 
+b2Vec2 Object::lateral_velocity() const
+{
+    b2Vec2 current_normal = b2Body_GetWorldVector(id_, { 1, 0 });
+    return b2Dot(current_normal, b2Body_GetLinearVelocity(id_)) * current_normal;
+}
+
+b2Vec2 Object::forward_velocity() const
+{
+    b2Vec2 current_normal = b2Body_GetWorldVector(id_, { 0, 1 });
+    return b2Dot(current_normal, b2Body_GetLinearVelocity(id_)) * current_normal;
+}
+
+float Object::speed() const
+{
+    b2Vec2 current_forward_normal = b2Body_GetWorldVector(id_, {0, 1 });
+    return b2Dot(forward_velocity(), current_forward_normal);
+}
+
 }

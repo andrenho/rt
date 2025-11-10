@@ -17,6 +17,8 @@ World::~World()
 
 void World::step()
 {
+    for (auto& obj: objects_)
+        obj->step();  // TODO - make this faster
     b2World_Step(id_, 1.0f / 60.0f, 4);
 }
 

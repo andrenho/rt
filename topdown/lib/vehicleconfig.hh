@@ -5,10 +5,15 @@ namespace topdown {
 
 struct VehicleConfig {
     float h, w;
+    float acceleration;
 };
 
 namespace vehicle {
-    constexpr VehicleConfig Car = { .h = 5, .w = 2 };
+    constexpr VehicleConfig Car = {
+        .h = 5,
+        .w = 2,
+        .acceleration = 1000.f,
+    };
 }
 
 }

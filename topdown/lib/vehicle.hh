@@ -12,9 +12,16 @@ public:
     Vehicle(class World const& world, b2Vec2 initial_pos, VehicleConfig const& cfg);
     ~Vehicle();
 
+    void step() override;
+
+    void set_accelerator(bool accelerator) { accelerator_ = accelerator; }
+    void set_breaks(bool breaks) { breaks_ = breaks; }
+
 private:
     VehicleConfig const& cfg_;
-    b2ShapeId shape_id_ {};
+    b2ShapeId            shape_id_ {};
+    bool                 accelerator_ = false;
+    bool                 breaks_ = false;
 
     b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const &config);
 };
