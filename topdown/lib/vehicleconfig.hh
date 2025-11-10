@@ -6,13 +6,15 @@ namespace topdown {
 struct VehicleConfig {
     float h, w;
     float acceleration;
+    float wheelbase;
 };
 
 namespace vehicle {
     constexpr VehicleConfig Car = {
-        .h = 5,
-        .w = 2,
+        .h = 5.f,
+        .w = 2.f,
         .acceleration = 10.f,
+        .wheelbase = 3.f,
     };
 }
 

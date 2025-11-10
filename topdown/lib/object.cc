@@ -2,7 +2,14 @@
 
 namespace topdown {
 
-std::vector <Shape> Object::shapes() const
+void Object::step()
+{
+    forces_ = iteration();
+    for (auto const& f: forces_)
+        b2Body_ApplyForce(id_, f.force, f.point, true);
+}
+
+std::vector<Shape> Object::shapes() const
 {
     std::vector <Shape> shapes;
 
@@ -29,6 +36,12 @@ std::vector <Shape> Object::shapes() const
             case b2_segmentShape:
                 break;
         }
+    }
+
+    for (auto const& f: forces_) {
+        float scale = 0.01f;
+        b2Vec2 C = f.point + (f.force - f.point) * scale;
+        shapes.emplace_back(std::make_pair(f.point, C), f.color);
     }
 
     return shapes;
