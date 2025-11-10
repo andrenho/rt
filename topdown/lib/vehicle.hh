@@ -14,7 +14,7 @@ public:
 
 private:
     VehicleConfig const& cfg_;
-    b2ShapeId shape_id_;
+    b2ShapeId shape_id_ {};
 
     b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const &config);
 };

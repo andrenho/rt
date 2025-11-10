@@ -30,7 +30,7 @@ public:
 
 private:
     b2WorldId id_ {};
-    std::vector<std::unique_ptr<Object>> objects_;
+    std::vector<std::unique_ptr<Object>> objects_ {};
 };
 
 }

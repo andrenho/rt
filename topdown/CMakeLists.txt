@@ -35,9 +35,10 @@ endif()
 # Libraries
 #------------------------
 
-# Raylib
 include(FetchContent)
 set(FETCHCONTENT_QUIET FALSE)
+
+# Raylib
 set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
 set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
 
@@ -47,12 +48,30 @@ FetchContent_Declare(
         GIT_TAG "master"
         GIT_PROGRESS TRUE
 )
-
 FetchContent_MakeAvailable(raylib)
 
 # box2d
-find_package(box2d REQUIRED)
+set(BOX2D_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
 
+FetchContent_Declare(
+        box2d
+        GIT_REPOSITORY "https://github.com/erincatto/box2d.git"
+        GIT_TAG "main"
+        GIT_PROGRESS TRUE
+)
+FetchContent_MakeAvailable(box2d)
+
+# Remove warnings for headers
+function(mark_as_system TARGET)
+    get_target_property(dirs ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
+    if(dirs)
+        target_include_directories(${TARGET} SYSTEM INTERFACE ${dirs})
+    endif()
+endfunction()
+
+mark_as_system(raylib)
+mark_as_system(box2d)
 
 #-------------------------
 # Main build
@@ -67,7 +86,7 @@ add_library(topdown STATIC
         lib/object.hh lib/object.cc
         lib/vehicle.hh lib/vehicle.cc
         lib/util.hh)
-target_link_libraries(topdown PUBLIC box2d::box2d)
+target_link_libraries(topdown PUBLIC box2d)
 
 # test executable
 

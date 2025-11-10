@@ -15,9 +15,7 @@ int main()
     InitWindow(1600, 900, "topdown-test");
     SetTargetFPS(60);
 
-    Camera2D camera = { 0 };
-    camera.zoom = 4.0f;
-    camera.target = { -200, -200 };
+    Camera2D camera { { 0, 0 }, { -200, -200 }, 0, 4.0f };
 
     while (!WindowShouldClose()) {
         world.step();
@@ -30,13 +28,13 @@ int main()
             for (auto const& shape: object->shapes()) {
                 std::visit(overloaded {
                     [](Polygon const& p) {
-                        for (int i = 0; i < p.size(); i++) {
+                        for (size_t i = 0; i < p.size(); i++) {
                             auto a = p[i], b = p[(i + 1) % p.size()];
                             DrawLineEx({ a.x, a.y }, { b.x, b.y }, 0.5f, RED);
                         }
                     },
                     [](Circle const& p) {
-                        DrawCircleLines(p.center.x, p.center.y, p.radius, RED);
+                        DrawCircleLines((int) p.center.x, (int) p.center.y, p.radius, RED);
                     },
                 }, shape);
             }

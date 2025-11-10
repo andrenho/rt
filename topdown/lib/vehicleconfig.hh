@@ -4,7 +4,7 @@
 namespace topdown {
 
 struct VehicleConfig {
-    unsigned int h, w;
+    float h, w;
 };
 
 namespace vehicle {
