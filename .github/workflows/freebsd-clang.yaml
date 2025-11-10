@@ -1,0 +1,26 @@
+name: FreeBSD (with Clang)
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build & Test
+        uses: vmactions/freebsd-vm@v1
+        with:
+          prepare: pkg install -y cmake gcc13 raylib
+          copyback: false
+          run: |
+            mkdir topdown/build
+            cd topdown/build
+            cmake -DCMAKE_BUILD_TYPE=Debug ..
+            make

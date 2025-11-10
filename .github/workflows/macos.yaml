@@ -1,0 +1,26 @@
+name: MacOS (with Clang)
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: macos-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+      cancel-in-progress: true
+    timeout-minutes: 8
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install make raylib
+      - name: Configure CMake
+        run: |
+          mkdir topdown/build 
+          cd topdown/build 
+          cmake -DCMAKE_BUILD_TYPE=Debug ..
+      - name: Build executable
+        working-directory: ./topdown/build
+        run: make
