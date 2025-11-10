@@ -25,6 +25,8 @@ public:
         return (T*) std::prev(objects_.end())->get();
     }
 
+    [[nodiscard]] std::vector<std::unique_ptr<Object>> const& objects() const { return objects_; }
+
 private:
     b2WorldId id_ {};
     std::vector<std::unique_ptr<Object>> objects_;

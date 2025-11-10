@@ -65,7 +65,8 @@ add_library(topdown STATIC
         lib/shapes.hh
         lib/vehicleconfig.hh
         lib/object.hh lib/object.cc
-        lib/vehicle.hh lib/vehicle.cc)
+        lib/vehicle.hh lib/vehicle.cc
+        lib/util.hh)
 target_link_libraries(topdown PUBLIC box2d::box2d)
 
 # test executable
