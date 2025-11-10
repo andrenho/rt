@@ -50,8 +50,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(raylib)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    target_compile_definitions(raylib PRIVATE _DARWIN_C_SOURCE)
+endif()
+
 # box2d
 set(BOX2D_BUILD_DOCS OFF CACHE BOOL "" FORCE)
+set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
 
 FetchContent_Declare(

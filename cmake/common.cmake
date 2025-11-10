@@ -5,7 +5,7 @@ set(WARNINGS "-Wall -Wextra -Wpedantic -Wcast-align -Wcast-qual \
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS}")
 
-add_definitions(-D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200112L -D_DEFAULT_SOURCE)
+#add_definitions(-D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200112L -D_DEFAULT_SOURCE)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++ -O0 -ggdb -fno-inline-functions -fstack-protector-strong -fno-common")
