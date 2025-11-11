@@ -18,6 +18,7 @@ World::World()
 World::~World()
 {
     dynamic_objects_.clear();
+    static_objects_.clear();
     b2DestroyBody(static_body_);
     b2DestroyWorld(id_);
 }
