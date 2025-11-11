@@ -1,7 +1,6 @@
 #include "wheel.hh"
 
-#define _USE_MATH_DEFINES
-#include <cmath>
+#include <numbers>
 
 #include "world.hh"
 
@@ -43,7 +42,7 @@ b2BodyId Wheel::build_body(World const& world)
     b2BodyDef body_def = b2DefaultBodyDef();
     body_def.type = b2_dynamicBody;
     body_def.position = { 0, 0 };
-    body_def.rotation = b2MakeRot((float) M_PI);
+    body_def.rotation = b2MakeRot((float) std::numbers::pi);
     b2BodyId body_id = b2CreateBody(world.id(), &body_def);
 
     // shape

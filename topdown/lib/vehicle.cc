@@ -1,8 +1,6 @@
 #include "vehicle.hh"
 
-#define _USE_MATH_DEFINES
-#include <cmath>
-
+#include <numbers>
 #include <stdexcept>
 
 #include "world.hh"
@@ -61,7 +59,7 @@ b2BodyId Vehicle::build_body(World const& world, b2Vec2 initial_pos, VehicleConf
     b2BodyDef body_def = b2DefaultBodyDef();
     body_def.type = b2_dynamicBody;
     body_def.position = initial_pos;
-    body_def.rotation = b2MakeRot((float) M_PI);
+    body_def.rotation = b2MakeRot((float) std::numbers::pi);
     b2BodyId body_id = b2CreateBody(world.id(), &body_def);
 
     // shape
