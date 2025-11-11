@@ -1,5 +1,8 @@
 #include "wheel.hh"
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include "world.hh"
 
 namespace topdown {

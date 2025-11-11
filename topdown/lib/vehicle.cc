@@ -1,5 +1,8 @@
 #include "vehicle.hh"
 
+#define _USE_MATH_DEFINES
+#include <cmath>
+
 #include <stdexcept>
 
 #include "world.hh"
