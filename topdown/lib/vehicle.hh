@@ -6,29 +6,27 @@
 #include "vehicleconfig.hh"
 #include "object.hh"
 #include "world.hh"
+#include "wheel.hh"
 
 namespace topdown {
 
 class Vehicle : public Object {
 public:
     Vehicle(class World const& world, b2Vec2 initial_pos, VehicleConfig const& cfg);
-    ~Vehicle() override;
 
-    void set_accelerator(bool accelerator) { accelerator_ = accelerator; }
-    void set_breaks(bool breaks) { breaks_ = breaks; }
-    void set_steering(float steering) { assert(steering >= -1.f && steering <= 1.f); steering_ = steering; }
+    void set_accelerator(bool accelerator);
+    void set_breaks(bool breaks);
+    void set_steering(float steering) { steering_ = steering; }
 
-protected:
-    [[nodiscard]] std::vector<Force> iteration() const override;
+    void step() override;
+
+    void shapes(std::vector<Shape>& shp) const override;
 
 private:
-    VehicleConfig const& cfg_;
-    bool                 accelerator_ = false;
-    bool                 breaks_ = false;
-    float                steering_ = 0;
-
-    [[nodiscard]] b2Vec2 front_wheel_vec() const;
-    [[nodiscard]] b2Vec2 rear_wheel_vec() const;
+    VehicleConfig const&                cfg_;
+    std::vector<std::unique_ptr<Wheel>> front_wheels_ {}, rear_wheels_ {};
+    std::vector<b2JointId>              front_joints_ {};
+    float                               steering_;
 
     static b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const &config);
 };

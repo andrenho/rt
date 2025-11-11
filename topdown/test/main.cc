@@ -4,6 +4,7 @@
 
 #include "util.hh"
 #include "world.hh"
+#include "wheel.hh"
 
 using namespace topdown;
 
@@ -20,7 +21,8 @@ void draw_object(Object const* object)
         }
     };
 
-    for (auto const& shape: object->shapes()) {
+    std::vector<Shape> shapes; object->shapes(shapes);
+    for (auto const& shape: shapes) {
         std::visit(overloaded {
                 [](Polygon const& p) {
                     for (size_t i = 0; i < p.size(); i++) {

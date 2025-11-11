@@ -2,23 +2,19 @@
 
 namespace topdown {
 
-void Object::step()
+Object::~Object()
 {
-    forces_ = iteration();
-    for (auto const& f: forces_)
-        b2Body_ApplyForce(id_, f.force, f.point, true);
+    b2DestroyBody(id_);
 }
 
-std::vector<Shape> Object::shapes() const
+void Object::shapes(std::vector<Shape>& shp) const
 {
-    std::vector <Shape> shapes;
-
     b2ShapeId s_ids[8];
     int n = b2Body_GetShapes(id_, s_ids, 8);
     for (int i = 0; i < n; ++i) {
         switch (b2Shape_GetType(s_ids[i])) {
             case b2_circleShape:
-                shapes.emplace_back(Circle { .center = b2Body_GetPosition(id_), .radius = b2Shape_GetCircle(s_ids[i]).radius });
+                shp.emplace_back(Circle { .center = b2Body_GetPosition(id_), .radius = b2Shape_GetCircle(s_ids[i]).radius });
                 break;
             case b2_polygonShape: {
                 Polygon pp;
@@ -27,7 +23,7 @@ std::vector<Shape> Object::shapes() const
                     b2Vec2 v = b2TransformPoint(b2Body_GetTransform(id_), poly.vertices[j]);
                     pp.push_back(v);
                 }
-                shapes.emplace_back(std::move(pp));
+                shp.emplace_back(std::move(pp));
                 break;
             }
             case b2_chainSegmentShape:
@@ -37,14 +33,6 @@ std::vector<Shape> Object::shapes() const
                 break;
         }
     }
-
-    for (auto const& f: forces_) {
-        float scale = 0.01f;
-        b2Vec2 C = f.point + (f.force - f.point) * scale;
-        shapes.emplace_back(std::make_pair(f.point, C), f.color);
-    }
-
-    return shapes;
 }
 
 b2Vec2 Object::lateral_velocity() const

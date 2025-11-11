@@ -9,31 +9,22 @@ namespace topdown {
 
 class Object {
 public:
-    virtual ~Object() = default;
+    virtual ~Object();
 
-    [[nodiscard]] std::vector<Shape> shapes() const;
+    virtual void shapes(std::vector<Shape>& shp) const;
 
-    void step();
+    virtual void step() = 0;
 
     [[nodiscard]] float speed() const;
+    [[nodiscard]] b2BodyId const& id() const { return id_; }
 
 protected:
     explicit Object(b2BodyId id) : id_(id) {}
-
-    struct Force {
-        b2Vec2 point;
-        b2Vec2 force;
-        uint8_t color = 0;
-    };
-    [[nodiscard]] virtual std::vector<Force> iteration() const = 0;
 
     [[nodiscard]] b2Vec2 lateral_velocity() const;
     [[nodiscard]] b2Vec2 forward_velocity() const;
 
     b2BodyId id_;
-
-private:
-    mutable std::vector<Force> forces_ {};
 };
 
 }

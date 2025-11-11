@@ -1,5 +1,7 @@
 #include "vehicle.hh"
 
+#include <stdexcept>
+
 #include "world.hh"
 
 namespace topdown {
@@ -7,6 +9,47 @@ namespace topdown {
 Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cfg)
     : Object(build_body(world, initial_pos, cfg)), cfg_(cfg)
 {
+    // front wheels (TODO - change according to car type)
+    front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
+    front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
+    rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
+    rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
+
+    // create joints
+    b2RevoluteJointDef joint_def = b2DefaultRevoluteJointDef();
+    joint_def.base.bodyIdA = id_;
+    joint_def.base.collideConnected = false;
+    joint_def.enableLimit = true;
+    joint_def.lowerAngle = 0;
+    joint_def.upperAngle = 0;
+    joint_def.base.localFrameB = { b2Vec2_zero, b2Rot_identity };
+
+    bool right = false;
+    for (auto const& wheel: front_wheels_) {
+        joint_def.base.bodyIdB = wheel->id();
+        joint_def.base.localFrameA = { { (right ? 1.f : -1.f) * (cfg.w - .2f), cfg.wheelbase }, b2Rot_identity };
+        front_joints_.push_back(b2CreateRevoluteJoint(world.id(), &joint_def));
+        right = true;
+    }
+
+    right = false;
+    for (auto const& wheel: rear_wheels_) {
+        joint_def.base.bodyIdB = wheel->id();
+        joint_def.base.localFrameA = { { (right ? 1.f : -1.f) * (cfg.w - .2f), -cfg.wheelbase }, b2Rot_identity };
+        b2CreateRevoluteJoint(world.id(), &joint_def);
+        right = true;
+    }
+}
+
+void Vehicle::step()
+{
+    for (auto joint: front_joints_)
+        b2RevoluteJoint_SetLimits(joint, steering_ * .2f, steering_ * .2f);
+
+    for (auto const& wheel: front_wheels_)
+        wheel->step();
+    for (auto const& wheel: rear_wheels_)
+        wheel->step();
 }
 
 b2BodyId Vehicle::build_body(World const& world, b2Vec2 initial_pos, VehicleConfig const& cfg)
@@ -28,51 +71,25 @@ b2BodyId Vehicle::build_body(World const& world, b2Vec2 initial_pos, VehicleConf
     return body_id;
 }
 
-Vehicle::~Vehicle()
+void Vehicle::set_accelerator(bool accelerator)
 {
-    b2DestroyBody(id_);
+    for (auto const& wheel: front_wheels_)
+        wheel->set_accelerator(accelerator);
 }
 
-b2Vec2 Vehicle::front_wheel_vec() const
+void Vehicle::set_breaks(bool breaks)
 {
-    return b2Body_GetWorldPoint(id_, b2Vec2 { 0, cfg_.wheelbase });
+    for (auto const& wheel: rear_wheels_)
+        wheel->set_breaks(breaks);
 }
 
-b2Vec2 Vehicle::rear_wheel_vec() const
+void Vehicle::shapes(std::vector<Shape>& shp) const
 {
-    return b2Body_GetWorldPoint(id_, b2Vec2 { 0, -cfg_.wheelbase });
-}
-
-std::vector<Vehicle::Force> Vehicle::iteration() const
-{
-    std::vector<Force> forces;
-
-    b2Vec2 current_normal = b2Body_GetWorldVector(id_, { 0, 1 });
-    b2Vec2 f_vel = forward_velocity();
-
-    // acceleration
-    if (accelerator_) {
-        b2Vec2 force = cfg_.acceleration * current_normal * 100.f;
-        force = b2RotateVector(b2MakeRot(steering_ * (float) M_PI_4), force);
-        forces.emplace_back(front_wheel_vec(), force, 1);
-    }
-
-    // drag
-    float forward_speed = b2Length(b2Normalize(f_vel));
-    forces.emplace_back(b2Body_GetWorldCenterOfMass(id_), -cfg_.acceleration * forward_speed * f_vel, 2);
-
-    // breaks
-    if (breaks_) {
-        forces.emplace_back(front_wheel_vec(), -cfg_.acceleration * forward_speed * f_vel * 10.f, 3);
-        forces.emplace_back(rear_wheel_vec(), -cfg_.acceleration * forward_speed * f_vel * 10.f, 3);
-    }
-
-    /*
-    b2Vec2 impulse = b2Body_GetMass(id_) * -lateral_velocity();
-    b2Body_ApplyLinearImpulse(id_, impulse, b2Body_GetWorldCenterOfMass(id_), true);
-     */
-
-    return forces;
+    Object::shapes(shp);
+    for (auto const& wheel: front_wheels_)
+        wheel->shapes(shp);
+    for (auto const& wheel: rear_wheels_)
+        wheel->shapes(shp);
 }
 
 }
