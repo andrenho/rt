@@ -94,6 +94,8 @@ add_library(topdown STATIC
         lib/dynamic/wheel.hh lib/dynamic/wheel.cc
         lib/dynamic/vehicle.hh lib/dynamic/vehicle.cc
         lib/static/staticobject.hh lib/static/staticobject.cc
+        lib/static/sensor.cc
+        lib/static/sensor.hh
 )
 target_link_libraries(topdown PUBLIC box2d)
 
