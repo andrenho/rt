@@ -67,6 +67,11 @@ std::vector<Vehicle::Force> Vehicle::iteration() const
         forces.emplace_back(rear_wheel_vec(), -cfg_.acceleration * forward_speed * f_vel * 10.f, 3);
     }
 
+    /*
+    b2Vec2 impulse = b2Body_GetMass(id_) * -lateral_velocity();
+    b2Body_ApplyLinearImpulse(id_, impulse, b2Body_GetWorldCenterOfMass(id_), true);
+     */
+
     return forces;
 }
 
