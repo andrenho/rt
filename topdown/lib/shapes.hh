@@ -3,10 +3,13 @@
 
 #include "box2d/box2d.h"
 
+#include <utility>
 #include <variant>
 #include <vector>
 
 namespace topdown {
+
+using Line = std::pair<b2Vec2, b2Vec2>;
 
 using Polygon = std::vector<b2Vec2>;
 
@@ -15,7 +18,10 @@ struct Circle {
     float  radius;
 };
 
-using Shape = std::variant<Polygon, Circle>;
+struct Shape {
+    std::variant<Polygon, Circle, Line> shape;
+    uint8_t color = 0;
+};
 
 }
 
