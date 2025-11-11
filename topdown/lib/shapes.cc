@@ -4,9 +4,13 @@
 
 namespace topdown {
 
-b2ShapeId create_b2shape(b2BodyId body_id, topdown::Shape const& shape)
+b2ShapeId create_b2shape(b2BodyId body_id, topdown::Shape const& shape, bool sensor)
 {
     b2ShapeDef shape_def = b2DefaultShapeDef();
+    if (sensor) {
+        shape_def.isSensor = true;
+        shape_def.enableSensorEvents = true;
+    }
 
     return std::visit(overloaded {
         [&](Polygon const& polygon) {

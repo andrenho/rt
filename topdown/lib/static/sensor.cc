@@ -5,7 +5,7 @@
 namespace topdown {
 
 Sensor::Sensor(World const& world, std::vector<Shape> const& shape)
-        : StaticObject(world, shape)
+        : StaticObject(world, shape, true)
 {
 }
 

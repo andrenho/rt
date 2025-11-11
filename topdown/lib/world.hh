@@ -10,6 +10,7 @@
 #include "dynamic/vehicle.hh"
 #include "dynamic/wheel.hh"
 #include "static/staticobject.hh"
+#include "static/sensor.hh"
 
 namespace topdown {
 

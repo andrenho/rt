@@ -65,6 +65,7 @@ b2BodyId Vehicle::build_body(World const& world, b2Vec2 initial_pos, VehicleConf
     // shape
     b2Polygon box = b2MakeBox(cfg.w, cfg.h);
     b2ShapeDef shape_def = b2DefaultShapeDef();
+    shape_def.enableSensorEvents = true;
     shape_def.density = 1.0f;
     shape_def.material.friction = 0.3f;
     b2CreatePolygonShape(body_id, &shape_def, &box);

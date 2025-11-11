@@ -4,11 +4,11 @@
 
 namespace topdown {
 
-StaticObject::StaticObject(World const& world, std::vector<Shape> const& shapes)
+StaticObject::StaticObject(World const& world, std::vector<Shape> const& shapes, bool sensor)
     : shapes_(shapes)
 {
     for (auto const& shp: shapes)
-        shape_ids_.push_back(create_b2shape(world.static_body(), shp));
+        shape_ids_.push_back(create_b2shape(world.static_body(), shp, sensor));
 }
 
 StaticObject::~StaticObject()

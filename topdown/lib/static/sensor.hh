@@ -7,9 +7,8 @@ namespace topdown {
 
 class Sensor : public StaticObject {
 public:
-    using StaticObject::StaticObject;
-
-    Sensor(class World const& world, std::vector<Shape> const& shape);
+    Sensor(class World const& world, std::vector<Shape> const& shapes);
+    Sensor(class World const& world, Shape const& shape) : Sensor(world, std::vector<Shape> { shape }) {}
 };
 
 }

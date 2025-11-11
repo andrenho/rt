@@ -8,10 +8,13 @@ namespace topdown {
 class StaticObject : public Object {
 public:
     StaticObject(class World const& world, Shape const& shape) : StaticObject(world, std::vector<Shape>{ shape }) {}
-    StaticObject(class World const& world, std::vector<Shape> const& shape);
+    StaticObject(class World const& world, std::vector<Shape> const& shapes) : StaticObject(world, shapes, false) {}
     ~StaticObject() override;
 
     void shapes(std::vector<Shape>& shp) const override;
+
+protected:
+    StaticObject(class World const& world, std::vector<Shape> const& shape, bool sensor);
 
 private:
     std::vector<Shape> shapes_ {};

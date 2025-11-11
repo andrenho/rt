@@ -32,7 +32,7 @@ int main()
 {
     World world;
     // world.add_static_shape(Circle { .center = { 15, -15 }, .radius = 3 });
-    world.add_object<StaticObject>(Circle { .center = { 15, -15 }, .radius = 3 });
+    world.add_object<Sensor>(Circle { .center = { 15, -15 }, .radius = 3 });
     auto car = world.add_object<Vehicle>(b2Vec2 { 0, 0 }, vehicle::Car);
 
     InitWindow(1600, 900, "topdown-test");
