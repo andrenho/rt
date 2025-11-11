@@ -1,26 +1,26 @@
 #include "staticobject.hh"
 
-/*
-#include "world.hh"
+#include "../world.hh"
 
 namespace topdown {
 
-StaticObjects::StaticObjects(World const& world)
-    :DynamicObject(build_body(world))
+StaticObject::StaticObject(World const& world, std::vector<Shape> const& shapes)
+    : shapes_(shapes)
 {
+    for (auto const& shp: shapes)
+        shape_ids_.push_back(create_b2shape(world.static_body(), shp));
 }
 
-b2BodyId StaticObjects::build_body(World const& world)
+StaticObject::~StaticObject()
 {
-    b2BodyDef body_def = b2DefaultBodyDef();
-    body_def.type = b2_staticBody;
-    return b2CreateBody(world.id(), &body_def);
+    for (auto id: shape_ids_)
+        b2DestroyShape(id, false);
 }
 
-void StaticObjects::add_shape(Shape const& shape)
+void StaticObject::shapes(std::vector<Shape>& shp) const
 {
-    create_b2shape(id_, shape);
+    for (auto const& s: shapes_)
+        shp.push_back(s);
 }
 
 }
- */

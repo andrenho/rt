@@ -1,22 +1,23 @@
 #ifndef TOPDOWN_STATICOBJECT_HH
 #define TOPDOWN_STATICOBJECT_HH
 
-/*
-#include "dynamic/dymamicobject.hh"
+#include "../object.hh"
 
 namespace topdown {
 
-class StaticObjects : public DynamicObject {
+class StaticObject : public Object {
 public:
-    explicit StaticObjects(class World const& world);
+    StaticObject(class World const& world, Shape const& shape) : StaticObject(world, std::vector<Shape>{ shape }) {}
+    StaticObject(class World const& world, std::vector<Shape> const& shape);
+    ~StaticObject() override;
 
-    void add_shape(Shape const& shape);
+    void shapes(std::vector<Shape>& shp) const override;
 
 private:
-    static b2BodyId build_body(topdown::World const &world);
+    std::vector<Shape> shapes_ {};
+    std::vector<b2ShapeId> shape_ids_ {};
 };
 
 }
 
 #endif //TOPDOWN_STATICOBJECT_HH
-*/

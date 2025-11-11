@@ -9,6 +9,7 @@
 
 #include "dynamic/vehicle.hh"
 #include "dynamic/wheel.hh"
+#include "static/staticobject.hh"
 
 namespace topdown {
 
@@ -28,11 +29,21 @@ public:
         return (T*) std::prev(dynamic_objects_.end())->get();
     }
 
+    template <typename T, typename ...Params> requires std::derived_from<T, StaticObject>
+    T* add_object(Params&&... params) {
+        static_objects_.emplace_back(std::make_unique<T>(*this, std::forward<Params>(params)...));
+        return (T*) std::prev(static_objects_.end())->get();
+    }
+
     [[nodiscard]] b2WorldId const& id() const { return id_; }
+    [[nodiscard]] b2BodyId const& static_body() const { return static_body_; }
     [[nodiscard]] std::vector<std::unique_ptr<DynamicObject>> const& dynamic_objects() const { return dynamic_objects_; }
+    [[nodiscard]] std::vector<std::unique_ptr<StaticObject>> const& static_objects() const { return static_objects_; }
 
 private:
     b2WorldId id_ {};
+    b2BodyId  static_body_ {};
+    std::vector<std::unique_ptr<StaticObject>> static_objects_ {};
     std::vector<std::unique_ptr<DynamicObject>> dynamic_objects_ {};
 };
 
