@@ -9,6 +9,8 @@ class StaticObjects : public Object {
 public:
     explicit StaticObjects(class World const& world);
 
+    void add_shape(Shape const& shape);
+
 private:
     static b2BodyId build_body(topdown::World const &world);
 };

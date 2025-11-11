@@ -28,7 +28,7 @@ void World::step()
 
 void World::add_static_shape(Shape const& shape)
 {
-
+    static_objects_->add_shape(shape);
 }
 
 }

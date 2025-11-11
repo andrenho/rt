@@ -94,6 +94,7 @@ add_library(topdown STATIC
         lib/vehicle/vehicle.hh lib/vehicle/vehicle.cc
         lib/staticobject.cc
         lib/staticobject.hh
+        lib/shapes.cc
 )
 target_link_libraries(topdown PUBLIC box2d)
 

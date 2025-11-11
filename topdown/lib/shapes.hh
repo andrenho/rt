@@ -20,6 +20,8 @@ struct Circle {
 
 using Shape = std::variant<Polygon, Circle, Line>;
 
+b2ShapeId create_b2shape(b2BodyId body_id, Shape const& shape);
+
 }
 
 #endif //TOPDOWN_SHAPES_HH

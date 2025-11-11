@@ -16,4 +16,9 @@ b2BodyId StaticObjects::build_body(World const& world)
     return b2CreateBody(world.id(), &body_def);
 }
 
+void StaticObjects::add_shape(Shape const& shape)
+{
+    create_b2shape(id_, shape);
+}
+
 }
