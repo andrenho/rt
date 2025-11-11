@@ -17,6 +17,9 @@ public:
     World();
     ~World();
 
+    World(World const&) = delete;
+    World& operator=(World const&) = delete;
+
     void step();
 
     template <typename T, typename ...Params> requires std::derived_from<T, Object>
@@ -32,7 +35,7 @@ public:
 
 private:
     b2WorldId id_ {};
-    class StaticObjects* static_objects_;
+    class StaticObjects* static_objects_ = nullptr;
     std::vector<std::unique_ptr<Object>> objects_ {};
 };
 

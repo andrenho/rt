@@ -9,17 +9,6 @@ using namespace topdown;
 
 void draw_object(Object const* object)
 {
-    auto color = [](uint8_t n) {
-        switch (n) {
-            case 0: return BLACK;
-            case 1: return RED;
-            case 2: return BLUE;
-            case 3: return DARKGREEN;
-            case 4: return ORANGE;
-            default: return PINK;
-        }
-    };
-
     std::vector<Shape> shapes; object->shapes(shapes);
     for (auto const& shape: shapes) {
         std::visit(overloaded {
@@ -33,9 +22,9 @@ void draw_object(Object const* object)
                     DrawCircleLines((int) p.center.x, (int) p.center.y, p.radius, BLACK);
                 },
                 [&](Line const& ln) {
-                    DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, color(shape.color));
+                    DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, BLACK);
                 },
-        }, shape.shape);
+        }, shape);
     }
 }
 
