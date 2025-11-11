@@ -14,7 +14,7 @@ void Object::shapes(std::vector<Shape>& shp) const
     for (int i = 0; i < n; ++i) {
         switch (b2Shape_GetType(s_ids[i])) {
             case b2_circleShape:
-                shp.emplace_back(Circle { .center = b2Body_GetPosition(id_), .radius = b2Shape_GetCircle(s_ids[i]).radius });
+                shp.emplace_back(Circle { .center = b2Shape_GetCircle(s_ids[i]).center, .radius = b2Shape_GetCircle(s_ids[i]).radius });
                 break;
             case b2_polygonShape: {
                 Polygon pp;

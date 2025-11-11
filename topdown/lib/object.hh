@@ -13,7 +13,7 @@ public:
 
     virtual void shapes(std::vector<Shape>& shp) const;
 
-    virtual void step() = 0;
+    virtual void step() {}
 
     [[nodiscard]] float speed() const;
     [[nodiscard]] b2BodyId const& id() const { return id_; }

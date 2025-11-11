@@ -4,23 +4,11 @@
 
 #include "util.hh"
 #include "world.hh"
-#include "wheel.hh"
 
 using namespace topdown;
 
 void draw_object(Object const* object)
 {
-    auto color = [](uint8_t n) {
-        switch (n) {
-            case 0: return BLACK;
-            case 1: return RED;
-            case 2: return BLUE;
-            case 3: return DARKGREEN;
-            case 4: return ORANGE;
-            default: return PINK;
-        }
-    };
-
     std::vector<Shape> shapes; object->shapes(shapes);
     for (auto const& shape: shapes) {
         std::visit(overloaded {
@@ -30,19 +18,20 @@ void draw_object(Object const* object)
                         DrawLineEx({ a.x, a.y }, { b.x, b.y }, 0.5f, BLACK);
                     }
                 },
-                [](Circle const& p) {
-                    DrawCircleLines((int) p.center.x, (int) p.center.y, p.radius, BLACK);
+                [](Circle const& c) {
+                    DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, BLACK);
                 },
                 [&](Line const& ln) {
-                    DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, color(shape.color));
+                    DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, BLACK);
                 },
-        }, shape.shape);
+        }, shape);
     }
 }
 
 int main()
 {
     World world;
+    world.add_static_shape(Circle { .center = { 15, -15 }, .radius = 3 });
     auto car = world.add_object<Vehicle>(b2Vec2 { 0, 0 }, vehicle::Car);
 
     InitWindow(1600, 900, "topdown-test");

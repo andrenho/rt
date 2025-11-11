@@ -18,10 +18,9 @@ struct Circle {
     float  radius;
 };
 
-struct Shape {
-    std::variant<Polygon, Circle, Line> shape;
-    uint8_t color = 0;
-};
+using Shape = std::variant<Polygon, Circle, Line>;
+
+b2ShapeId create_b2shape(b2BodyId body_id, Shape const& shape);
 
 }
 

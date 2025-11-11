@@ -4,8 +4,8 @@
 #include <cassert>
 
 #include "vehicleconfig.hh"
-#include "object.hh"
-#include "world.hh"
+#include "../object.hh"
+#include "../world.hh"
 #include "wheel.hh"
 
 namespace topdown {
@@ -26,7 +26,7 @@ private:
     VehicleConfig const&                cfg_;
     std::vector<std::unique_ptr<Wheel>> front_wheels_ {}, rear_wheels_ {};
     std::vector<b2JointId>              front_joints_ {};
-    float                               steering_;
+    float                               steering_ = 0.f;
 
     static b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const &config);
 };

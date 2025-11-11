@@ -87,12 +87,15 @@ mark_as_system(box2d)
 add_library(topdown STATIC
         lib/world.hh lib/world.cc
         lib/shapes.hh
-        lib/vehicleconfig.hh
         lib/object.hh lib/object.cc
-        lib/vehicle.hh lib/vehicle.cc
         lib/util.hh
-        lib/wheel.cc
-        lib/wheel.hh)
+        lib/vehicle/vehicleconfig.hh
+        lib/vehicle/wheel.hh lib/vehicle/wheel.cc
+        lib/vehicle/vehicle.hh lib/vehicle/vehicle.cc
+        lib/staticobject.cc
+        lib/staticobject.hh
+        lib/shapes.cc
+)
 target_link_libraries(topdown PUBLIC box2d)
 
 # test executable
