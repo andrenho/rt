@@ -3,14 +3,14 @@
 
 #include <cassert>
 
-#include "vehicleconfig.hh"
-#include "../object.hh"
+#include "../vehicleconfig.hh"
 #include "../world.hh"
+#include "dymamicobject.hh"
 #include "wheel.hh"
 
 namespace topdown {
 
-class Vehicle : public Object {
+class Vehicle : public DynamicObject {
 public:
     Vehicle(class World const& world, b2Vec2 initial_pos, VehicleConfig const& cfg);
 

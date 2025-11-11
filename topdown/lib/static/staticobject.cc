@@ -1,11 +1,12 @@
 #include "staticobject.hh"
 
+/*
 #include "world.hh"
 
 namespace topdown {
 
 StaticObjects::StaticObjects(World const& world)
-    : Object(build_body(world))
+    :DynamicObject(build_body(world))
 {
 }
 
@@ -22,3 +23,4 @@ void StaticObjects::add_shape(Shape const& shape)
 }
 
 }
+ */

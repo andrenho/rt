@@ -7,7 +7,7 @@
 namespace topdown {
 
 Wheel::Wheel(World const& world, VehicleConfig const& cfg)
-    : Object(build_body(world)), cfg_(cfg)
+    :DynamicObject(build_body(world)), cfg_(cfg)
 {
 }
 

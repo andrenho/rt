@@ -8,7 +8,7 @@
 namespace topdown {
 
 Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cfg)
-    : Object(build_body(world, initial_pos, cfg)), cfg_(cfg)
+    :DynamicObject(build_body(world, initial_pos, cfg)), cfg_(cfg)
 {
     // front wheels (TODO - change according to car type)
     front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
@@ -86,7 +86,7 @@ void Vehicle::set_breaks(bool breaks)
 
 void Vehicle::shapes(std::vector<Shape>& shp) const
 {
-    Object::shapes(shp);
+    DynamicObject::shapes(shp);
     for (auto const& wheel: front_wheels_)
         wheel->shapes(shp);
     for (auto const& wheel: rear_wheels_)

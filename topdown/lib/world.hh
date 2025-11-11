@@ -7,8 +7,8 @@
 #include <memory>
 #include <vector>
 
-#include "vehicle/vehicle.hh"
-#include "vehicle/wheel.hh"
+#include "dynamic/vehicle.hh"
+#include "dynamic/wheel.hh"
 
 namespace topdown {
 
@@ -22,21 +22,18 @@ public:
 
     void step();
 
-    template <typename T, typename ...Params> requires std::derived_from<T, Object>
+    template <typename T, typename ...Params> requires std::derived_from<T, DynamicObject>
     T* add_object(Params&&... params) {
-        objects_.emplace_back(std::make_unique<T>(*this, std::forward<Params>(params)...));
-        return (T*) std::prev(objects_.end())->get();
+        dynamic_objects_.emplace_back(std::make_unique<T>(*this, std::forward<Params>(params)...));
+        return (T*) std::prev(dynamic_objects_.end())->get();
     }
 
-    void add_static_shape(Shape const& shape);
-
     [[nodiscard]] b2WorldId const& id() const { return id_; }
-    [[nodiscard]] std::vector<std::unique_ptr<Object>> const& objects() const { return objects_; }
+    [[nodiscard]] std::vector<std::unique_ptr<DynamicObject>> const& dynamic_objects() const { return dynamic_objects_; }
 
 private:
     b2WorldId id_ {};
-    class StaticObjects* static_objects_ = nullptr;
-    std::vector<std::unique_ptr<Object>> objects_ {};
+    std::vector<std::unique_ptr<DynamicObject>> dynamic_objects_ {};
 };
 
 }

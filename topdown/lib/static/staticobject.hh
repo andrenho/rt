@@ -1,11 +1,12 @@
 #ifndef TOPDOWN_STATICOBJECT_HH
 #define TOPDOWN_STATICOBJECT_HH
 
-#include "object.hh"
+/*
+#include "dynamic/dymamicobject.hh"
 
 namespace topdown {
 
-class StaticObjects : public Object {
+class StaticObjects : public DynamicObject {
 public:
     explicit StaticObjects(class World const& world);
 
@@ -18,3 +19,4 @@ private:
 }
 
 #endif //TOPDOWN_STATICOBJECT_HH
+*/

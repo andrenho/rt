@@ -31,7 +31,7 @@ void draw_object(Object const* object)
 int main()
 {
     World world;
-    world.add_static_shape(Circle { .center = { 15, -15 }, .radius = 3 });
+    // world.add_static_shape(Circle { .center = { 15, -15 }, .radius = 3 });
     auto car = world.add_object<Vehicle>(b2Vec2 { 0, 0 }, vehicle::Car);
 
     InitWindow(1600, 900, "topdown-test");
@@ -45,7 +45,7 @@ int main()
 
         BeginMode2D(camera);
         ClearBackground(RAYWHITE);
-        for (auto const& object: world.objects())
+        for (auto const& object: world.dynamic_objects())
             draw_object(object.get());
         EndMode2D();
 

@@ -4,11 +4,14 @@
 - [x] Physics sandbox
 - [x] Basic vehicle movement
 - [x] Static obstacles
+- [ ] Sensors
+  - [ ] Modify objects
+  - [ ] Sensor < Static DynamicObject
+  - [ ] Handle collisions
 - [ ] Multiple surfaces: ice, dirt, etc
+  - [ ] Car - drive backwards
 - [ ] Multiple vehicle types: car, moped, semis, tank
 - [ ] People
-- [ ] Handle collisions
-- [ ] Sensors
 - [ ] Missles
 - [ ] Shots
 
