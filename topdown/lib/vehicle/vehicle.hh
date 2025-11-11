@@ -4,8 +4,8 @@
 #include <cassert>
 
 #include "vehicleconfig.hh"
-#include "object.hh"
-#include "world.hh"
+#include "../object.hh"
+#include "../world.hh"
 #include "wheel.hh"
 
 namespace topdown {

@@ -3,7 +3,7 @@
 
 #include <cassert>
 
-#include "object.hh"
+#include "../object.hh"
 #include "vehicleconfig.hh"
 
 namespace topdown {

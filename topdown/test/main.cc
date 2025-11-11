@@ -4,7 +4,6 @@
 
 #include "util.hh"
 #include "world.hh"
-#include "wheel.hh"
 
 using namespace topdown;
 
@@ -43,6 +42,7 @@ void draw_object(Object const* object)
 int main()
 {
     World world;
+    world.add_static_shape(Circle { .center = { 5, 5 }, .radius = 1 });
     auto car = world.add_object<Vehicle>(b2Vec2 { 0, 0 }, vehicle::Car);
 
     InitWindow(1600, 900, "topdown-test");
