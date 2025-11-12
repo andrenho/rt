@@ -40,6 +40,8 @@ Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cf
         b2CreateRevoluteJoint(world.id(), &joint_def);
         right = true;
     }
+
+    update_modifiers();
 }
 
 void Vehicle::step()
@@ -93,6 +95,38 @@ void Vehicle::shapes(std::vector<Shape>& shp) const
         wheel->shapes(shp);
     for (auto const& wheel: rear_wheels_)
         wheel->shapes(shp);
+}
+
+void Vehicle::touch_sensor(Sensor* sensor)
+{
+    DynamicObject::touch_sensor(sensor);
+    update_modifiers();
+}
+
+void Vehicle::untouch_sensor(Sensor* sensor)
+{
+    DynamicObject::untouch_sensor(sensor);
+    update_modifiers();
+}
+
+void Vehicle::update_modifiers()
+{
+    mod_ = default_modifier();
+    for (auto const& sensor: touching_sensor_) {
+        auto omod = sensor->sensor_modifier();
+        if (omod)
+            mod_ = *omod;
+    }
+
+    for (auto const& wheel: front_wheels_)
+        wheel->set_modifier(mod_);
+    for (auto const& wheel: rear_wheels_)
+        wheel->set_modifier(mod_);
+}
+
+SensorModifier Vehicle::default_modifier()
+{
+    return terrain::Dirt;
 }
 
 }

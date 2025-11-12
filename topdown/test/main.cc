@@ -31,14 +31,14 @@ void draw_object(Object const* object)
 int main()
 {
     World world;
-    // world.add_static_shape(Circle { .center = { 15, -15 }, .radius = 3 });
-    world.add_object<Sensor>(Circle { .center = { 15, -15 }, .radius = 3 });
+    world.add_object<Sensor>(Box({ -260, -260 }, { 150, 250 }), terrain::Ice);
+    world.add_object<Sensor>(Box({ 80, -260 }, { 150, 250 }), terrain::Asphalt);
     auto car = world.add_object<Vehicle>(b2Vec2 { 0, 0 }, vehicle::Car);
 
     InitWindow(1600, 900, "topdown-test");
     SetTargetFPS(60);
 
-    Camera2D camera { { 0, 0 }, { -200, -200 }, 0, 4.0f };
+    Camera2D camera { { 0, 0 }, { -280, -280 }, 0, 3.0f };
 
     while (!WindowShouldClose()) {
 
@@ -54,9 +54,13 @@ int main()
             draw_object(object.get());
         for (auto const& object: world.dynamic_objects())
             draw_object(object.get());
+        DrawText(TextFormat("Ice"), -250, -250, 2, BLACK);
+        DrawText(TextFormat("Dirt"), -100, -250, 2, BLACK);
+        DrawText(TextFormat("Asphalt"), 90, -250, 2, BLACK);
         EndMode2D();
 
         DrawText(TextFormat("Speed: %f", car->speed()), 10, 10, 20, RED);
+
         EndDrawing();
 
         //

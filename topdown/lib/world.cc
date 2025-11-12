@@ -41,20 +41,20 @@ void World::add_sensor_events(std::vector<Event>& events) const
     for (int i = 0; i < sensor_events.beginCount; ++i) {
         b2SensorBeginTouchEvent* touch = sensor_events.beginEvents + i;
         if (b2Shape_IsValid(touch->sensorShapeId) && b2Shape_IsValid(touch->visitorShapeId)) {
-            events.emplace_back(BeginSensorEvent {
-                .sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId),
-                .object = (DynamicObject *) b2Shape_GetUserData(touch->visitorShapeId),
-            });
+            Sensor* sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId);
+            DynamicObject* dynamic_object = (DynamicObject *) b2Shape_GetUserData(touch->visitorShapeId);
+            dynamic_object->touch_sensor(sensor);
+            events.emplace_back(BeginSensorEvent { sensor, dynamic_object });
         }
     }
 
     for (int i = 0; i < sensor_events.endCount; ++i) {
         b2SensorEndTouchEvent* touch = sensor_events.endEvents + i;
         if (b2Shape_IsValid(touch->sensorShapeId) && b2Shape_IsValid(touch->visitorShapeId)) {
-            events.emplace_back(EndSensorEvent {
-                    .sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId),
-                    .object = (DynamicObject *) b2Shape_GetUserData(touch->visitorShapeId),
-            });
+            Sensor* sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId);
+            DynamicObject* dynamic_object = (DynamicObject *) b2Shape_GetUserData(touch->visitorShapeId);
+            dynamic_object->untouch_sensor(sensor);
+            events.emplace_back(EndSensorEvent { sensor, dynamic_object });
         }
     }
 

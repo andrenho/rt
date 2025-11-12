@@ -21,14 +21,20 @@ public:
     void step() override;
 
     void shapes(std::vector<Shape>& shp) const override;
+    void touch_sensor(Sensor* sensor) override;
+    void untouch_sensor(Sensor* sensor) override;
 
 private:
     VehicleConfig const&                cfg_;
+    SensorModifier                      mod_ = default_modifier();
     std::vector<std::unique_ptr<Wheel>> front_wheels_ {}, rear_wheels_ {};
     std::vector<b2JointId>              front_joints_ {};
     float                               steering_ = 0.f;
 
     b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const &config);
+    void update_modifiers();
+
+    static SensorModifier default_modifier();
 };
 
 }

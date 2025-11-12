@@ -7,10 +7,10 @@
 - [x] Sensors
   - [x] Modify objects
   - [x] Sensor < Static DynamicObject
-- [ ] Multiple surfaces: ice, dirt, etc
-  - [ ] Terrain
-  - [ ] Car - drive backwards
+- [x] Multiple surfaces: ice, dirt, etc
+  - [x] Terrain
 - [ ] Multiple vehicle types: car, moped, semis, tank
+- [ ] Car - drive backwards, improve breaks
 - [ ] Handle collisions
 - [ ] People
 - [ ] Missles
