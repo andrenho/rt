@@ -42,6 +42,10 @@ int main()
 
     while (!WindowShouldClose()) {
 
+        //
+        // draw
+        //
+
         BeginDrawing();
 
         BeginMode2D(camera);
@@ -55,7 +59,17 @@ int main()
         DrawText(TextFormat("Speed: %f", car->speed()), 10, 10, 20, RED);
         EndDrawing();
 
-        world.step();
+        //
+        // world step
+        //
+
+        for (auto const& event: world.step()) {
+            printf("Event\n");
+        }
+
+        //
+        // handle keyboard
+        //
 
         car->set_accelerator(IsKeyDown(KEY_UP));
         car->set_breaks(IsKeyDown(KEY_DOWN));

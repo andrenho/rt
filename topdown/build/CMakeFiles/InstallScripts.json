@@ -1,0 +1,13 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/andre/prj/rt/topdown/build/cmake_install.cmake",
+		"/home/andre/prj/rt/topdown/build/_deps/raylib-build/cmake_install.cmake",
+		"/home/andre/prj/rt/topdown/build/_deps/raylib-build/raylib/cmake_install.cmake",
+		"/home/andre/prj/rt/topdown/build/_deps/raylib-build/raylib/external/glfw/cmake_install.cmake",
+		"/home/andre/prj/rt/topdown/build/_deps/raylib-build/raylib/external/glfw/src/cmake_install.cmake",
+		"/home/andre/prj/rt/topdown/build/_deps/box2d-build/cmake_install.cmake",
+		"/home/andre/prj/rt/topdown/build/_deps/box2d-build/src/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

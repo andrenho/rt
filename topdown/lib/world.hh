@@ -11,6 +11,7 @@
 #include "dynamic/wheel.hh"
 #include "static/staticobject.hh"
 #include "static/sensor.hh"
+#include "event.hh"
 
 namespace topdown {
 
@@ -22,7 +23,7 @@ public:
     World(World const&) = delete;
     World& operator=(World const&) = delete;
 
-    void step();
+    std::vector<Event> step();
 
     template <typename T, typename ...Params> requires std::derived_from<T, DynamicObject>
     T* add_object(Params&&... params) {
@@ -46,6 +47,8 @@ private:
     b2BodyId  static_body_ {};
     std::vector<std::unique_ptr<StaticObject>> static_objects_ {};
     std::vector<std::unique_ptr<DynamicObject>> dynamic_objects_ {};
+
+    void add_sensor_events(std::vector<Event>& event) const;
 };
 
 }

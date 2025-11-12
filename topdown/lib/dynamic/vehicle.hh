@@ -28,7 +28,7 @@ private:
     std::vector<b2JointId>              front_joints_ {};
     float                               steering_ = 0.f;
 
-    static b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const &config);
+    b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const &config);
 };
 
 }

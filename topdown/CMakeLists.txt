@@ -96,6 +96,7 @@ add_library(topdown STATIC
         lib/static/staticobject.hh lib/static/staticobject.cc
         lib/static/sensor.cc
         lib/static/sensor.hh
+        lib/event.hh
 )
 target_link_libraries(topdown PUBLIC box2d)
 

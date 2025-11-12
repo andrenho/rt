@@ -1,0 +1,7 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/andre/prj/rt/topdown/build/_deps/box2d-subbuild/cmake_install.cmake"
+	],
+	"Parallel" : false
+}

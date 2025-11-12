@@ -8,7 +8,7 @@ StaticObject::StaticObject(World const& world, std::vector<Shape> const& shapes,
     : shapes_(shapes)
 {
     for (auto const& shp: shapes)
-        shape_ids_.push_back(create_b2shape(world.static_body(), shp, sensor));
+        shape_ids_.push_back(create_b2shape(world.static_body(), shp, sensor, this));
 }
 
 StaticObject::~StaticObject()

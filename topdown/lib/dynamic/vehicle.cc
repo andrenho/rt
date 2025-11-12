@@ -68,6 +68,7 @@ b2BodyId Vehicle::build_body(World const& world, b2Vec2 initial_pos, VehicleConf
     shape_def.enableSensorEvents = true;
     shape_def.density = 1.0f;
     shape_def.material.friction = 0.3f;
+    shape_def.userData = (void *) this;
     b2CreatePolygonShape(body_id, &shape_def, &box);
 
     return body_id;
