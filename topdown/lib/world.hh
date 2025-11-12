@@ -7,8 +7,11 @@
 #include <memory>
 #include <vector>
 
-#include "vehicle/vehicle.hh"
-#include "vehicle/wheel.hh"
+#include "dynamic/vehicle.hh"
+#include "dynamic/wheel.hh"
+#include "static/staticobject.hh"
+#include "static/sensor.hh"
+#include "event.hh"
 
 namespace topdown {
 
@@ -20,23 +23,32 @@ public:
     World(World const&) = delete;
     World& operator=(World const&) = delete;
 
-    void step();
+    std::vector<Event> step();
 
-    template <typename T, typename ...Params> requires std::derived_from<T, Object>
+    template <typename T, typename ...Params> requires std::derived_from<T, DynamicObject>
     T* add_object(Params&&... params) {
-        objects_.emplace_back(std::make_unique<T>(*this, std::forward<Params>(params)...));
-        return (T*) std::prev(objects_.end())->get();
+        dynamic_objects_.emplace_back(std::make_unique<T>(*this, std::forward<Params>(params)...));
+        return (T*) std::prev(dynamic_objects_.end())->get();
     }
 
-    void add_static_shape(Shape const& shape);
+    template <typename T, typename ...Params> requires std::derived_from<T, StaticObject>
+    T* add_object(Params&&... params) {
+        static_objects_.emplace_back(std::make_unique<T>(*this, std::forward<Params>(params)...));
+        return (T*) std::prev(static_objects_.end())->get();
+    }
 
     [[nodiscard]] b2WorldId const& id() const { return id_; }
-    [[nodiscard]] std::vector<std::unique_ptr<Object>> const& objects() const { return objects_; }
+    [[nodiscard]] b2BodyId const& static_body() const { return static_body_; }
+    [[nodiscard]] std::vector<std::unique_ptr<DynamicObject>> const& dynamic_objects() const { return dynamic_objects_; }
+    [[nodiscard]] std::vector<std::unique_ptr<StaticObject>> const& static_objects() const { return static_objects_; }
 
 private:
     b2WorldId id_ {};
-    class StaticObjects* static_objects_ = nullptr;
-    std::vector<std::unique_ptr<Object>> objects_ {};
+    b2BodyId  static_body_ {};
+    std::vector<std::unique_ptr<StaticObject>> static_objects_ {};
+    std::vector<std::unique_ptr<DynamicObject>> dynamic_objects_ {};
+
+    void add_sensor_events(std::vector<Event>& event) const;
 };
 
 }

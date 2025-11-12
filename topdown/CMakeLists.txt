@@ -86,15 +86,17 @@ mark_as_system(box2d)
 
 add_library(topdown STATIC
         lib/world.hh lib/world.cc
-        lib/shapes.hh
-        lib/object.hh lib/object.cc
         lib/util.hh
-        lib/vehicle/vehicleconfig.hh
-        lib/vehicle/wheel.hh lib/vehicle/wheel.cc
-        lib/vehicle/vehicle.hh lib/vehicle/vehicle.cc
-        lib/staticobject.cc
-        lib/staticobject.hh
-        lib/shapes.cc
+        lib/shapes.hh lib/shapes.cc
+        lib/vehicleconfig.hh
+        lib/object.hh
+        lib/dynamic/dymamicobject.hh lib/dynamic/dynamicobject.cc
+        lib/dynamic/wheel.hh lib/dynamic/wheel.cc
+        lib/dynamic/vehicle.hh lib/dynamic/vehicle.cc
+        lib/static/staticobject.hh lib/static/staticobject.cc
+        lib/static/sensor.cc
+        lib/static/sensor.hh
+        lib/event.hh
 )
 target_link_libraries(topdown PUBLIC box2d)
 

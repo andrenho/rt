@@ -3,12 +3,12 @@
 
 #include <cassert>
 
-#include "../object.hh"
-#include "vehicleconfig.hh"
+#include "dymamicobject.hh"
+#include "../vehicleconfig.hh"
 
 namespace topdown {
 
-class Wheel : public Object {
+class Wheel : public DynamicObject {
 public:
     Wheel(class World const& world, VehicleConfig const& cfg);
 

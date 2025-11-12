@@ -1,13 +1,13 @@
-#include "object.hh"
+#include "dymamicobject.hh"
 
 namespace topdown {
 
-Object::~Object()
+DynamicObject::~DynamicObject()
 {
     b2DestroyBody(id_);
 }
 
-void Object::shapes(std::vector<Shape>& shp) const
+void DynamicObject::shapes(std::vector<Shape>& shp) const
 {
     b2ShapeId s_ids[8];
     int n = b2Body_GetShapes(id_, s_ids, 8);
@@ -35,19 +35,19 @@ void Object::shapes(std::vector<Shape>& shp) const
     }
 }
 
-b2Vec2 Object::lateral_velocity() const
+b2Vec2 DynamicObject::lateral_velocity() const
 {
     b2Vec2 current_normal = b2Body_GetWorldVector(id_, { 1, 0 });
     return b2Dot(current_normal, b2Body_GetLinearVelocity(id_)) * current_normal;
 }
 
-b2Vec2 Object::forward_velocity() const
+b2Vec2 DynamicObject::forward_velocity() const
 {
     b2Vec2 current_normal = b2Body_GetWorldVector(id_, { 0, 1 });
     return b2Dot(current_normal, b2Body_GetLinearVelocity(id_)) * current_normal;
 }
 
-float Object::speed() const
+float DynamicObject::speed() const
 {
     b2Vec2 current_forward_normal = b2Body_GetWorldVector(id_, {0, 1 });
     return b2Dot(forward_velocity(), current_forward_normal);

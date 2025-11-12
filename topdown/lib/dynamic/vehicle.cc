@@ -8,7 +8,7 @@
 namespace topdown {
 
 Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cfg)
-    : Object(build_body(world, initial_pos, cfg)), cfg_(cfg)
+    :DynamicObject(build_body(world, initial_pos, cfg)), cfg_(cfg)
 {
     // front wheels (TODO - change according to car type)
     front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
@@ -65,8 +65,10 @@ b2BodyId Vehicle::build_body(World const& world, b2Vec2 initial_pos, VehicleConf
     // shape
     b2Polygon box = b2MakeBox(cfg.w, cfg.h);
     b2ShapeDef shape_def = b2DefaultShapeDef();
+    shape_def.enableSensorEvents = true;
     shape_def.density = 1.0f;
     shape_def.material.friction = 0.3f;
+    shape_def.userData = (void *) this;
     b2CreatePolygonShape(body_id, &shape_def, &box);
 
     return body_id;
@@ -86,7 +88,7 @@ void Vehicle::set_breaks(bool breaks)
 
 void Vehicle::shapes(std::vector<Shape>& shp) const
 {
-    Object::shapes(shp);
+    DynamicObject::shapes(shp);
     for (auto const& wheel: front_wheels_)
         wheel->shapes(shp);
     for (auto const& wheel: rear_wheels_)

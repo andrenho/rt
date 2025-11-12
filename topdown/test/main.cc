@@ -31,7 +31,8 @@ void draw_object(Object const* object)
 int main()
 {
     World world;
-    world.add_static_shape(Circle { .center = { 15, -15 }, .radius = 3 });
+    // world.add_static_shape(Circle { .center = { 15, -15 }, .radius = 3 });
+    world.add_object<Sensor>(Circle { .center = { 15, -15 }, .radius = 3 });
     auto car = world.add_object<Vehicle>(b2Vec2 { 0, 0 }, vehicle::Car);
 
     InitWindow(1600, 900, "topdown-test");
@@ -41,18 +42,34 @@ int main()
 
     while (!WindowShouldClose()) {
 
+        //
+        // draw
+        //
+
         BeginDrawing();
 
         BeginMode2D(camera);
         ClearBackground(RAYWHITE);
-        for (auto const& object: world.objects())
+        for (auto const& object: world.static_objects())
+            draw_object(object.get());
+        for (auto const& object: world.dynamic_objects())
             draw_object(object.get());
         EndMode2D();
 
         DrawText(TextFormat("Speed: %f", car->speed()), 10, 10, 20, RED);
         EndDrawing();
 
-        world.step();
+        //
+        // world step
+        //
+
+        for (auto const& event: world.step()) {
+            printf("Event\n");
+        }
+
+        //
+        // handle keyboard
+        //
 
         car->set_accelerator(IsKeyDown(KEY_UP));
         car->set_breaks(IsKeyDown(KEY_DOWN));
@@ -64,8 +81,7 @@ int main()
             car->set_steering(0);
 
         if (IsKeyDown(KEY_Q))
-            exit(0);
-
+            break;
     }
 
     CloseWindow();
