@@ -95,4 +95,31 @@ void Vehicle::shapes(std::vector<Shape>& shp) const
         wheel->shapes(shp);
 }
 
+void Vehicle::touch_sensor(Sensor* sensor)
+{
+    DynamicObject::touch_sensor(sensor);
+    update_modifiers();
+}
+
+void Vehicle::untouch_sensor(Sensor* sensor)
+{
+    DynamicObject::untouch_sensor(sensor);
+    update_modifiers();
+}
+
+void Vehicle::update_modifiers()
+{
+    mod_ = default_modifier();
+    for (auto const& sensor: touching_sensor_) {
+        auto omod = sensor->sensor_modifier();
+        if (omod)
+            mod_ = *omod;
+    }
+}
+
+SensorModifier Vehicle::default_modifier()
+{
+    return terrain::Dirt;
+}
+
 }
