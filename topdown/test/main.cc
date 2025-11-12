@@ -7,6 +7,37 @@
 
 using namespace topdown;
 
+namespace terrain {
+
+    constexpr SensorModifier Asphalt = {
+        .acceleration = 1.f,
+        .skid = 0.f,
+    };
+
+    [[maybe_unused]] constexpr SensorModifier Dirt = {
+        .acceleration = .7f,
+        .skid = .5f,
+    };
+
+    constexpr SensorModifier Ice = {
+        .acceleration = .6f,
+        .skid = 1.2f,
+    };
+}
+
+namespace vehicle {
+
+    constexpr VehicleConfig Car = {
+        .h = 5.f,
+        .w = 2.f,
+        .acceleration = 20.f,
+        .wheelbase = 3.f,
+    };
+
+}
+
+
+
 void draw_object(Object const* object)
 {
     std::vector<Shape> shapes; object->shapes(shapes);

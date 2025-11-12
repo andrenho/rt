@@ -7,6 +7,11 @@
 
 namespace topdown {
 
+SensorModifier Vehicle::default_modifier = {
+    .acceleration = .7f,
+    .skid = .5f,
+};
+
 Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cfg)
     :DynamicObject(build_body(world, initial_pos, cfg)), cfg_(cfg)
 {
@@ -111,7 +116,7 @@ void Vehicle::untouch_sensor(Sensor* sensor)
 
 void Vehicle::update_modifiers()
 {
-    mod_ = default_modifier();
+    mod_ = default_modifier;
     for (auto const& sensor: touching_sensor_) {
         auto omod = sensor->sensor_modifier();
         if (omod)
@@ -122,11 +127,6 @@ void Vehicle::update_modifiers()
         wheel->set_modifier(mod_);
     for (auto const& wheel: rear_wheels_)
         wheel->set_modifier(mod_);
-}
-
-SensorModifier Vehicle::default_modifier()
-{
-    return terrain::Dirt;
 }
 
 }

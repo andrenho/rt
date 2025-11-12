@@ -9,15 +9,6 @@ struct VehicleConfig {
     float   wheelbase;
 };
 
-namespace vehicle {
-    constexpr VehicleConfig Car = {
-        .h = 5.f,
-        .w = 2.f,
-        .acceleration = 20.f,
-        .wheelbase = 3.f,
-    };
-}
-
 }
 
 #endif //TOPDOWN_VEHICLECONFIG_HH
