@@ -16,9 +16,11 @@ public:
 
     void set_accelerator(bool accelerator) { accelerator_ = accelerator; }
     void set_breaks(bool breaks) { breaks_ = breaks; }
+    void set_modifier(SensorModifier const& mod) { mod_ = mod; }
 
 private:
     VehicleConfig const& cfg_;
+    SensorModifier       mod_;
     bool                 accelerator_ = false;
     bool                 breaks_ = false;
 
