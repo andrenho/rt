@@ -1,2 +1,0 @@
-/usr/bin/ar qc libtopdown.a CMakeFiles/topdown.dir/lib/world.cc.o CMakeFiles/topdown.dir/lib/shapes.cc.o CMakeFiles/topdown.dir/lib/dynamic/dynamicobject.cc.o CMakeFiles/topdown.dir/lib/dynamic/wheel.cc.o CMakeFiles/topdown.dir/lib/dynamic/vehicle.cc.o CMakeFiles/topdown.dir/lib/static/staticobject.cc.o CMakeFiles/topdown.dir/lib/static/sensor.cc.o
-/usr/bin/ranlib libtopdown.a

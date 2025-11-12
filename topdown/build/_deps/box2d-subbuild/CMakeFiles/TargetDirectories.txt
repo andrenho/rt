@@ -1,3 +1,0 @@
-/home/andre/prj/rt/topdown/build/_deps/box2d-subbuild/CMakeFiles/box2d-populate.dir
-/home/andre/prj/rt/topdown/build/_deps/box2d-subbuild/CMakeFiles/edit_cache.dir
-/home/andre/prj/rt/topdown/build/_deps/box2d-subbuild/CMakeFiles/rebuild_cache.dir
