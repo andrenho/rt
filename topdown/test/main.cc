@@ -67,8 +67,7 @@ int main()
             car->set_steering(0);
 
         if (IsKeyDown(KEY_Q))
-            exit(0);
-
+            break;
     }
 
     CloseWindow();

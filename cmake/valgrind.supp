@@ -33,6 +33,27 @@
    ...
 }
 {
+   raylib
+   Memcheck:Leak
+   ...
+   fun:InitWindow
+   ...
+}
+{
+   raylib
+   Memcheck:Leak
+   ...
+   fun:_glfwCreateWindowX11
+   ...
+}
+{
+   raylib
+   Memcheck:Leak
+   ...
+   fun:driCreateNewScreen3
+   ...
+}
+{
    raylib2
    Memcheck:Leak
    ...
@@ -58,6 +79,13 @@
    Memcheck:Leak
    ...
    fun:XSupportsLocale
+   ...
+}
+{
+   aaa
+   Memcheck:Leak
+   ...
+   fun:fcntl
    ...
 }
 {
