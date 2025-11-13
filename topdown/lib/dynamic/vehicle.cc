@@ -15,11 +15,18 @@ SensorModifier Vehicle::default_modifier = {
 Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cfg)
     :DynamicObject(build_body(world, initial_pos, cfg)), cfg_(cfg)
 {
-    // front wheels (TODO - change according to car type)
-    front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
-    front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
-    rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
-    rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
+    // create wheels
+    if (cfg.n_wheels == 4) {
+        front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+        front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+        rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+        rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+    } else if (cfg.n_wheels == 2) {
+        front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+        rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+    } else {
+        throw std::runtime_error("Unsupported number of wheels.");
+    }
 
     // create joints
     b2RevoluteJointDef joint_def = b2DefaultRevoluteJointDef();
@@ -52,7 +59,7 @@ Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cf
 void Vehicle::step()
 {
     for (auto joint: front_joints_)
-        b2RevoluteJoint_SetLimits(joint, steering_ * .2f, steering_ * .2f);
+        b2RevoluteJoint_SetLimits(joint, steering_ * .2f * cfg_.steering, steering_ * .2f * cfg_.steering);
 
     for (auto const& wheel: front_wheels_)
         wheel->step();

@@ -10,7 +10,7 @@ namespace topdown {
 
 class Wheel : public DynamicObject {
 public:
-    Wheel(class World const& world, VehicleConfig const& cfg);
+    Wheel(class World const& world, VehicleConfig const& cfg, b2Vec2 initial_pos);
 
     void step() override;
 
@@ -24,7 +24,7 @@ private:
     bool                 accelerator_ = false;
     bool                 breaks_ = false;
 
-    static b2BodyId build_body(topdown::World const &world);
+    static b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos);
 };
 
 }
