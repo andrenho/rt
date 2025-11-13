@@ -15,14 +15,14 @@ public:
     void step() override;
 
     void set_accelerator(bool accelerator) { accelerator_ = accelerator; }
-    void set_breaks(bool breaks) { breaks_ = breaks; }
+    void set_reverse(bool reverse) { reverse_ = reverse; }
     void set_modifier(SensorModifier const& mod) { mod_ = mod; }
 
 private:
     VehicleConfig const& cfg_;
     SensorModifier       mod_;
     bool                 accelerator_ = false;
-    bool                 breaks_ = false;
+    bool                 reverse_ = false;
 
     static b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos);
 };

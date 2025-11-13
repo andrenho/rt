@@ -23,15 +23,16 @@ void Wheel::step()
         if (!cfg_.fixed_acceleration)
             force *= mod_.acceleration;
         b2Body_ApplyForce(id_, force, center, true);
+    } else if (reverse_) {
+        b2Vec2 force = cfg_.acceleration * current_normal * -60.f;
+        if (!cfg_.fixed_acceleration)
+            force *= mod_.acceleration;
+        b2Body_ApplyForce(id_, force, center, true);
     }
 
     // drag
     float forward_speed = b2Length(b2Normalize(f_vel));
     b2Body_ApplyForce(id_, -cfg_.acceleration * forward_speed * .5f * f_vel * cfg_.drag, center, true);
-
-    // breaks
-    if (breaks_)
-        b2Body_ApplyForce(id_, -cfg_.acceleration * forward_speed * f_vel * 1.f, center, true);
 
     // kill lateral velocity
     b2Vec2 impulse = b2Body_GetMass(id_) * (1.5f - mod_.skid - cfg_.skid) * -lateral_velocity();
