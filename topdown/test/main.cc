@@ -76,13 +76,25 @@ namespace vehicle {
     };
 
     constexpr VehicleConfig Semi = {
-        .h = 3.f,
+        .h = 5.f,
         .w = 3.f,
         .acceleration = 30.f,
-        .wheelbase = 2.5f,
+        .wheelbase = 4.5f,
         .skid = -2.0f,
-        .drag = 2.5f,
+        .drag = 0.f,
         .steering = 2.5f,
+        .fixed_acceleration = false,
+        .n_wheels = 4,
+    };
+
+    constexpr VehicleConfig TruckLoad = {
+        .h = 12.f,
+        .w = 3.f,
+        .acceleration = 20.f,
+        .wheelbase = 10.f,
+        .skid =  -2.0f,
+        .drag = 3.f,
+        .steering = 0.f,
         .fixed_acceleration = false,
         .n_wheels = 4,
     };
@@ -122,6 +134,8 @@ int main()
         world.add_object<Vehicle>(b2Vec2 { 80, 0 }, vehicle::Tank),
         world.add_object<Vehicle>(b2Vec2 { 120, 0 }, vehicle::Semi),
     };
+    Vehicle* truckload = world.add_object<Vehicle>(b2Vec2 { 120, 20 }, vehicle::TruckLoad);
+    vehicles.at(4)->attach(truckload);
     size_t current_vehicle = 0;
 
     InitWindow(1600, 900, "topdown-test");

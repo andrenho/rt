@@ -19,10 +19,13 @@ public:
     void set_steering(float steering) { steering_ = steering; }
 
     void step() override;
+    void attach(Vehicle* load);
 
     void shapes(std::vector<Shape>& shp) const override;
     void touch_sensor(Sensor* sensor) override;
     void untouch_sensor(Sensor* sensor) override;
+
+    [[nodiscard]] VehicleConfig const& config() const { return cfg_; }
 
     static SensorModifier default_modifier;
 

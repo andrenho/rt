@@ -13,7 +13,7 @@ SensorModifier Vehicle::default_modifier = {
 };
 
 Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cfg)
-    :DynamicObject(build_body(world, initial_pos, cfg)), cfg_(cfg)
+    : DynamicObject(build_body(world, initial_pos, cfg)), cfg_(cfg)
 {
     // create wheels
     if (cfg.n_wheels == 4) {
@@ -66,6 +66,21 @@ void Vehicle::step()
     for (auto const& wheel: rear_wheels_)
         wheel->step();
 }
+
+void Vehicle::attach(Vehicle* load)
+{
+    b2RevoluteJointDef joint_def = b2DefaultRevoluteJointDef();
+    joint_def.base.bodyIdA = id_;
+    joint_def.base.bodyIdB = load->id();
+    joint_def.base.collideConnected = false;
+    joint_def.enableLimit = true;
+    joint_def.lowerAngle = -2.f;
+    joint_def.upperAngle = 2.f;
+    joint_def.base.localFrameA = { { 0, -(cfg_.h) }, b2Rot_identity };
+    joint_def.base.localFrameB = { { 0, load->config().h }, b2Rot_identity };
+    b2CreateRevoluteJoint(b2Body_GetWorld(id_), &joint_def);
+}
+
 
 b2BodyId Vehicle::build_body(World const& world, b2Vec2 initial_pos, VehicleConfig const& cfg)
 {

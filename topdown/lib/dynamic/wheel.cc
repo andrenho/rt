@@ -52,6 +52,7 @@ b2BodyId Wheel::build_body(World const& world, b2Vec2 initial_pos)
     b2ShapeDef shape_def = b2DefaultShapeDef();
     shape_def.density = 1.0f;
     shape_def.material.friction = 0.3f;
+    shape_def.isSensor = true;
     b2CreatePolygonShape(body_id, &shape_def, &box);
 
     return body_id;
