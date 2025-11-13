@@ -7,6 +7,7 @@ struct VehicleConfig {
     float   h, w;
     float   acceleration;
     float   wheelbase;
+    float   skid;
 };
 
 }

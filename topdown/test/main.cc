@@ -27,33 +27,40 @@ namespace terrain {
 
 namespace vehicle {
 
+    constexpr VehicleConfig Beetle = {
+        .h = 4.f,
+        .w = 2.f,
+        .acceleration = 15.f,
+        .wheelbase = 2.f,
+        .skid = .2f,
+    };
+
     constexpr VehicleConfig Car = {
         .h = 5.f,
         .w = 2.f,
         .acceleration = 20.f,
         .wheelbase = 3.f,
+        .skid = 0.f,
     };
 
 }
 
-
-
-void draw_object(Object const* object)
+void draw_object(Object const* object, Color color=BLACK)
 {
     std::vector<Shape> shapes; object->shapes(shapes);
     for (auto const& shape: shapes) {
         std::visit(overloaded {
-                [](Polygon const& p) {
+                [&](Polygon const& p) {
                     for (size_t i = 0; i < p.size(); i++) {
                         auto a = p[i], b = p[(i + 1) % p.size()];
-                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, 0.5f, BLACK);
+                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, 0.5f, color);
                     }
                 },
-                [](Circle const& c) {
-                    DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, BLACK);
+                [&](Circle const& c) {
+                    DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, color);
                 },
                 [&](Line const& ln) {
-                    DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, BLACK);
+                    DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, color);
                 },
         }, shape);
     }
@@ -64,7 +71,11 @@ int main()
     World world;
     world.add_object<Sensor>(Box({ -260, -260 }, { 150, 250 }), terrain::Ice);
     world.add_object<Sensor>(Box({ 80, -260 }, { 150, 250 }), terrain::Asphalt);
-    auto car = world.add_object<Vehicle>(b2Vec2 { 0, 0 }, vehicle::Car);
+    std::vector<Vehicle*> vehicles = {
+        world.add_object<Vehicle>(b2Vec2 { -10, 0 }, vehicle::Beetle),
+        world.add_object<Vehicle>(b2Vec2 { 10, 0 }, vehicle::Car),
+    };
+    size_t current_vehicle = 0;
 
     InitWindow(1600, 900, "topdown-test");
     SetTargetFPS(60);
@@ -84,13 +95,14 @@ int main()
         for (auto const& object: world.static_objects())
             draw_object(object.get());
         for (auto const& object: world.dynamic_objects())
-            draw_object(object.get());
+            draw_object(object.get(), object.get() == vehicles.at(current_vehicle) ? RED : BLACK);
         DrawText(TextFormat("Ice"), -250, -250, 2, BLACK);
         DrawText(TextFormat("Dirt"), -100, -250, 2, BLACK);
         DrawText(TextFormat("Asphalt"), 90, -250, 2, BLACK);
         EndMode2D();
 
-        DrawText(TextFormat("Speed: %f", car->speed()), 10, 10, 20, RED);
+        DrawText(TextFormat("Speed: %d", (int) vehicles.at(current_vehicle)->speed()), 10, 10, 20, RED);
+        DrawText("Press TAB to switch vehicles", 10, 30, 10, RED);
 
         EndDrawing();
 
@@ -106,17 +118,23 @@ int main()
         // handle keyboard
         //
 
-        car->set_accelerator(IsKeyDown(KEY_UP));
-        car->set_breaks(IsKeyDown(KEY_DOWN));
-        if (IsKeyDown(KEY_LEFT))
-            car->set_steering(-1);
-        else if (IsKeyDown(KEY_RIGHT))
-            car->set_steering(1);
+        vehicles.at(current_vehicle)->set_accelerator(IsKeyDown(KEY_W));
+        vehicles.at(current_vehicle)->set_breaks(IsKeyDown(KEY_S));
+        if (IsKeyDown(KEY_A))
+            vehicles.at(current_vehicle)->set_steering(-1);
+        else if (IsKeyDown(KEY_D))
+            vehicles.at(current_vehicle)->set_steering(1);
         else
-            car->set_steering(0);
+            vehicles.at(current_vehicle)->set_steering(0);
 
         if (IsKeyDown(KEY_Q))
             break;
+
+        int key = GetCharPressed();
+        if (key == '\t') {
+            printf("XX\n");
+            current_vehicle = (++current_vehicle) % vehicles.size();
+        }
     }
 
     CloseWindow();
