@@ -7,14 +7,26 @@
 
 namespace topdown {
 
+SensorModifier Vehicle::default_modifier = {
+    .acceleration = .7f,
+    .skid = .5f,
+};
+
 Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cfg)
-    :DynamicObject(build_body(world, initial_pos, cfg)), cfg_(cfg)
+    : DynamicObject(build_body(world, initial_pos, cfg)), cfg_(cfg)
 {
-    // front wheels (TODO - change according to car type)
-    front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
-    front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
-    rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
-    rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg));
+    // create wheels
+    if (cfg.n_wheels == 4) {
+        front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+        front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+        rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+        rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+    } else if (cfg.n_wheels == 2) {
+        front_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+        rear_wheels_.emplace_back(std::make_unique<Wheel>(world, cfg, initial_pos));
+    } else {
+        throw std::runtime_error("Unsupported number of wheels.");
+    }
 
     // create joints
     b2RevoluteJointDef joint_def = b2DefaultRevoluteJointDef();
@@ -47,13 +59,28 @@ Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cf
 void Vehicle::step()
 {
     for (auto joint: front_joints_)
-        b2RevoluteJoint_SetLimits(joint, steering_ * .2f, steering_ * .2f);
+        b2RevoluteJoint_SetLimits(joint, steering_ * .2f * cfg_.steering, steering_ * .2f * cfg_.steering);
 
     for (auto const& wheel: front_wheels_)
         wheel->step();
     for (auto const& wheel: rear_wheels_)
         wheel->step();
 }
+
+void Vehicle::attach(Vehicle* load)
+{
+    b2RevoluteJointDef joint_def = b2DefaultRevoluteJointDef();
+    joint_def.base.bodyIdA = id_;
+    joint_def.base.bodyIdB = load->id();
+    joint_def.base.collideConnected = false;
+    joint_def.enableLimit = true;
+    joint_def.lowerAngle = -2.f;
+    joint_def.upperAngle = 2.f;
+    joint_def.base.localFrameA = { { 0, -(cfg_.h) }, b2Rot_identity };
+    joint_def.base.localFrameB = { { 0, load->config().h }, b2Rot_identity };
+    b2CreateRevoluteJoint(b2Body_GetWorld(id_), &joint_def);
+}
+
 
 b2BodyId Vehicle::build_body(World const& world, b2Vec2 initial_pos, VehicleConfig const& cfg)
 {
@@ -111,7 +138,7 @@ void Vehicle::untouch_sensor(Sensor* sensor)
 
 void Vehicle::update_modifiers()
 {
-    mod_ = default_modifier();
+    mod_ = default_modifier;
     for (auto const& sensor: touching_sensor_) {
         auto omod = sensor->sensor_modifier();
         if (omod)
@@ -122,11 +149,6 @@ void Vehicle::update_modifiers()
         wheel->set_modifier(mod_);
     for (auto const& wheel: rear_wheels_)
         wheel->set_modifier(mod_);
-}
-
-SensorModifier Vehicle::default_modifier()
-{
-    return terrain::Dirt;
 }
 
 }

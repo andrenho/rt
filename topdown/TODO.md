@@ -9,7 +9,7 @@
   - [x] Sensor < Static DynamicObject
 - [x] Multiple surfaces: ice, dirt, etc
   - [x] Terrain
-- [ ] Multiple vehicle types: car, moped, semis, tank
+- [x] Multiple vehicle types: car, moped, semis, tank
 - [ ] Car - drive backwards, improve breaks
 - [ ] Handle collisions
 - [ ] People
