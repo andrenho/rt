@@ -5,7 +5,7 @@
 #include "util.hh"
 #include "world.hh"
 
-#define DARK_MODE 1
+#define DARK_MODE 0
 
 #if DARK_MODE == 0
 #  define LIGHT   RAYWHITE
@@ -149,6 +149,8 @@ int main()
     Vehicle* truckload = world.add_object<Vehicle>(b2Vec2 { 120, 20 }, vehicle::TruckLoad);
     vehicles.at(4)->attach(truckload);
     size_t current_vehicle = 0;
+
+    Person* hero = world.add_object<Person>(b2Vec2 { -70, 0 });
 
     InitWindow(1600, 900, "topdown-test");
     SetTargetFPS(60);

@@ -9,6 +9,7 @@
 
 #include "dynamic/vehicle.hh"
 #include "dynamic/wheel.hh"
+#include "dynamic/person.hh"
 #include "static/staticobject.hh"
 #include "static/sensor.hh"
 #include "event.hh"
