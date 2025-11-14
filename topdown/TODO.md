@@ -10,7 +10,7 @@
 - [x] Multiple surfaces: ice, dirt, etc
   - [x] Terrain
 - [x] Multiple vehicle types: car, moped, semis, tank
-- [ ] Car - drive backwards, improve breaks
+- [x] Car - drive backwards, improve breaks
 - [ ] Handle collisions
 - [ ] People
 - [ ] Missles
