@@ -57,7 +57,7 @@ b2ShapeDef DynamicObject::default_shape()
 {
     b2ShapeDef shape_def = b2DefaultShapeDef();
     shape_def.enableSensorEvents = true;
-    shape_def.enableContactEvents = true;
+    shape_def.enableHitEvents = true;
     shape_def.userData = (void *) this;
     return shape_def;
 }
