@@ -13,7 +13,7 @@
 - [x] Car - drive backwards, improve breaks
 - [x] Handle collisions
 - [ ] People
-- [ ] Missles
+- [ ] Missiles
 - [ ] Shots
 
 ## world
