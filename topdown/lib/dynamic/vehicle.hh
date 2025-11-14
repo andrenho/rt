@@ -15,7 +15,7 @@ public:
     Vehicle(class World const& world, b2Vec2 initial_pos, VehicleConfig const& cfg);
 
     void set_accelerator(bool accelerator);
-    void set_breaks(bool breaks);
+    void set_reverse(bool reverse);
     void set_steering(float steering) { steering_ = steering; }
 
     void step() override;
@@ -35,6 +35,7 @@ private:
     std::vector<std::unique_ptr<Wheel>> front_wheels_ {}, rear_wheels_ {};
     std::vector<b2JointId>              front_joints_ {};
     float                               steering_ = 0.f;
+    bool                                reverse_ = false;
 
     b2BodyId build_body(topdown::World const &world, b2Vec2 initial_pos, VehicleConfig const& config);
     void update_modifiers();

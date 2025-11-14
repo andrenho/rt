@@ -58,8 +58,12 @@ Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cf
 
 void Vehicle::step()
 {
+    float limits = steering_ * .2f * cfg_.steering;
+    if (reverse_)
+        limits *= 3.f;
+
     for (auto joint: front_joints_)
-        b2RevoluteJoint_SetLimits(joint, steering_ * .2f * cfg_.steering, steering_ * .2f * cfg_.steering);
+        b2RevoluteJoint_SetLimits(joint, limits, limits);
 
     for (auto const& wheel: front_wheels_)
         wheel->step();
@@ -109,10 +113,11 @@ void Vehicle::set_accelerator(bool accelerator)
         wheel->set_accelerator(accelerator);
 }
 
-void Vehicle::set_breaks(bool breaks)
+void Vehicle::set_reverse(bool reverse)
 {
     for (auto const& wheel: rear_wheels_)
-        wheel->set_breaks(breaks);
+        wheel->set_reverse(reverse);
+    reverse_ = reverse;
 }
 
 void Vehicle::shapes(std::vector<Shape>& shp) const

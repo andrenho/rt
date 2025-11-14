@@ -5,6 +5,18 @@
 #include "util.hh"
 #include "world.hh"
 
+#define DARK_MODE 1
+
+#if DARK_MODE == 0
+#  define LIGHT   RAYWHITE
+#  define DARK    BLACK
+#  define SPECIAL RED
+#else
+#  define LIGHT   DARKGRAY
+#  define DARK    RAYWHITE
+#  define SPECIAL ORANGE
+#endif
+
 using namespace topdown;
 
 namespace terrain {
@@ -101,7 +113,7 @@ namespace vehicle {
 
 }
 
-void draw_object(Object const* object, Color color=BLACK)
+void draw_object(Object const* object, Color color=DARK)
 {
     std::vector<Shape> shapes; object->shapes(shapes);
     for (auto const& shape: shapes) {
@@ -152,18 +164,18 @@ int main()
         BeginDrawing();
 
         BeginMode2D(camera);
-        ClearBackground(RAYWHITE);
+        ClearBackground(LIGHT);
         for (auto const& object: world.static_objects())
             draw_object(object.get());
         for (auto const& object: world.dynamic_objects())
-            draw_object(object.get(), object.get() == vehicles.at(current_vehicle) ? RED : BLACK);
-        DrawText(TextFormat("Ice"), -250, -250, 2, BLACK);
-        DrawText(TextFormat("Dirt"), -100, -250, 2, BLACK);
-        DrawText(TextFormat("Asphalt"), 90, -250, 2, BLACK);
+            draw_object(object.get(), object.get() == vehicles.at(current_vehicle) ? SPECIAL : DARK);
+        DrawText(TextFormat("Ice"), -250, -250, 2, DARK);
+        DrawText(TextFormat("Dirt"), -100, -250, 2, DARK);
+        DrawText(TextFormat("Asphalt"), 90, -250, 2, DARK);
         EndMode2D();
 
-        DrawText(TextFormat("Speed: %d", (int) vehicles.at(current_vehicle)->speed()), 10, 10, 20, RED);
-        DrawText("Press TAB to switch vehicles", 10, 30, 10, RED);
+        DrawText(TextFormat("Speed: %d", (int) vehicles.at(current_vehicle)->speed()), 10, 10, 20, SPECIAL);
+        DrawText("Press TAB to switch vehicles", 10, 30, 10, SPECIAL);
 
         EndDrawing();
 
@@ -180,7 +192,7 @@ int main()
         //
 
         vehicles.at(current_vehicle)->set_accelerator(IsKeyDown(KEY_W));
-        vehicles.at(current_vehicle)->set_breaks(IsKeyDown(KEY_S));
+        vehicles.at(current_vehicle)->set_reverse(IsKeyDown(KEY_S));
         if (IsKeyDown(KEY_A))
             vehicles.at(current_vehicle)->set_steering(-1);
         else if (IsKeyDown(KEY_D))
