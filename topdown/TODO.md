@@ -15,6 +15,7 @@
 - [ ] People
 - [ ] Missiles
 - [ ] Shots
+- [ ] Create website, EMScripten version (?)
 
 ## world
 

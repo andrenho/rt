@@ -152,6 +152,8 @@ int main()
 
     Person* hero = world.add_object<Person>(b2Vec2 { -70, 0 });
 
+    world.add_object<StaticObject>(Circle { { 0, -80 }, 5 });
+
     InitWindow(1600, 900, "topdown-test");
     SetTargetFPS(60);
 
@@ -178,6 +180,8 @@ int main()
 
         DrawText(TextFormat("Speed: %d", (int) vehicles.at(current_vehicle)->speed()), 10, 10, 20, SPECIAL);
         DrawText("Press TAB to switch vehicles", 10, 30, 10, SPECIAL);
+        DrawText("Use WASD to drive vehicle", 10, 40, 10, SPECIAL);
+        DrawText("Use arrows to move unit", 10, 50, 10, SPECIAL);
 
         EndDrawing();
 

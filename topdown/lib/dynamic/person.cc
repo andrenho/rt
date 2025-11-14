@@ -14,6 +14,12 @@ void Person::step()
 {
 }
 
+void Person::set_move(float x, float y)
+{
+    move_x_ = x;
+    move_y_ = y;
+}
+
 b2BodyId Person::build_body(World const& world, b2Vec2 initial_pos)
 {
     // body
