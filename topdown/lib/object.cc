@@ -14,13 +14,13 @@ std::optional<CastHit> Object::cast(b2Vec2 target, float max_distance)
 
     b2World_CastRay(get_world_id(), get_center(), target - get_center(), {},
         [](b2ShapeId shapeId, b2Vec2 point, b2Vec2, float, void* context) {
-            auto ctx = (Context *) context;
+            auto c = (Context *) context;
             void* data = b2Shape_GetUserData(shapeId);
-            if (data && data != ctx->this_) {
-                float length = b2Length(point - ctx->target);
-                if (!ctx->hit || length < (*ctx->hit).length) {
+            if (data && data != c->this_) {
+                float length = b2Length(point - c->target);
+                if (!c->hit || length < (*c->hit).length) {
                     auto obj = (Object *) data;
-                    ctx->hit.emplace(obj, point, length);
+                    c->hit.emplace(obj, point, length);
                 }
             }
             return 1.f;

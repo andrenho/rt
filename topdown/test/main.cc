@@ -220,7 +220,7 @@ int main()
             break;
 
         // handle mouse
-        auto mouse_pos = GetMousePosition();
+        auto mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
             printf("%f %f\n", mouse_pos.x, mouse_pos.y);
         }
