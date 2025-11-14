@@ -206,11 +206,15 @@ int main()
         else
             vehicles.at(current_vehicle)->set_steering(0);
 
-        if (IsKeyDown(KEY_Q))
-            break;
-
         if (IsKeyPressed(KEY_TAB))
             current_vehicle = (++current_vehicle) % vehicles.size();
+
+        float x = IsKeyDown(KEY_LEFT) ? -1.f : (IsKeyDown(KEY_RIGHT) ? 1.f : 0.f);
+        float y = IsKeyDown(KEY_UP) ? -1.f : (IsKeyDown(KEY_DOWN) ? 1.f : 0.f);
+        hero->set_move(x, y);
+
+        if (IsKeyDown(KEY_Q))
+            break;
     }
 
     CloseWindow();
