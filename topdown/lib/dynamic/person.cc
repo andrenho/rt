@@ -58,13 +58,10 @@ b2BodyId Person::build_body(World const& world, b2Vec2 initial_pos)
 
     // shape
     b2Circle circle = { .center = { 0, 0 }, .radius = 1 };
-    b2Polygon box = b2MakeRoundedBox(1, 1, 1);
-    //b2Polygon box = b2MakeBox(1, 1);
     b2ShapeDef shape_def = default_shape();
     shape_def.density = 0.02f;
     shape_def.material.friction = 0.3f;
     b2CreateCircleShape(body_id, &shape_def, &circle);
-    //b2CreatePolygonShape(body_id, &shape_def, &box);
 
     return body_id;
 }

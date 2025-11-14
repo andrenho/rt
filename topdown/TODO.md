@@ -13,7 +13,7 @@
 - [x] Car - drive backwards, improve breaks
 - [x] Handle collisions
 - [x] People
-- [ ] Pushable object
+- [x] Pushable object
 - [ ] Missiles
 - [ ] Shots
 - [ ] Documentation
