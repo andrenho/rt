@@ -222,7 +222,11 @@ int main()
         // handle mouse
         auto mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-            printf("%f %f\n", mouse_pos.x, mouse_pos.y);
+            auto hit = hero->cast({ mouse_pos.x, mouse_pos.y });
+            if (!hit)
+                printf("No hit!\n");
+            else
+                printf("Object %p hit at %f, %f (distance %f)!\n", (void *) hit->object, hit->location.x, hit->location.y, hit->length);
         }
 
     }
