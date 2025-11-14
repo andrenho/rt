@@ -23,7 +23,13 @@ struct HitEvent {
     float   approach_speed;
 };
 
-using Event = std::variant<BeginSensorEvent, EndSensorEvent, HitEvent>;
+struct ShotEvent {
+    Object* fired_by;
+    Object* object_hit;
+    b2Vec2  point_hit;
+};
+
+using Event = std::variant<BeginSensorEvent, EndSensorEvent, HitEvent, ShotEvent>;
 
 }
 

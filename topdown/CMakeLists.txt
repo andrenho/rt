@@ -101,6 +101,7 @@ add_library(topdown STATIC
         lib/dynamic/person.hh
         lib/dynamic/pushableobject.cc
         lib/dynamic/pushableobject.hh
+        lib/object.cc
 )
 target_link_libraries(topdown PUBLIC box2d)
 
