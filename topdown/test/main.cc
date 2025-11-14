@@ -5,7 +5,7 @@
 #include "util.hh"
 #include "world.hh"
 
-#define DARK_MODE 1
+#define DARK_MODE 0
 
 #if DARK_MODE == 0
 #  define LIGHT   RAYWHITE
@@ -125,7 +125,7 @@ void draw_object(Object const* object, Color color=DARK)
                     }
                 },
                 [&](Circle const& c) {
-                    DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, color);
+                    DrawCircleLinesV({ c.center.x, c.center.y }, c.radius, color);
                 },
                 [&](Line const& ln) {
                     DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, color);
@@ -149,6 +149,12 @@ int main()
     Vehicle* truckload = world.add_object<Vehicle>(b2Vec2 { 120, 20 }, vehicle::TruckLoad);
     vehicles.at(4)->attach(truckload);
     size_t current_vehicle = 0;
+
+    Person* hero = world.add_object<Person>(b2Vec2 { -70, 0 });
+    world.add_object<PushableObject>(Box({ -70, -20 }, { 4, 4 }), 1.f);
+    world.add_object<PushableObject>(Box({ -90, -20 }, { 4, 4 }), 100.f);
+
+    world.add_object<StaticObject>(Circle { { 0, -80 }, 5 });
 
     InitWindow(1600, 900, "topdown-test");
     SetTargetFPS(60);
@@ -176,6 +182,8 @@ int main()
 
         DrawText(TextFormat("Speed: %d", (int) vehicles.at(current_vehicle)->speed()), 10, 10, 20, SPECIAL);
         DrawText("Press TAB to switch vehicles", 10, 30, 10, SPECIAL);
+        DrawText("Use WASD to drive vehicle", 10, 40, 10, SPECIAL);
+        DrawText("Use arrows to move unit", 10, 50, 10, SPECIAL);
 
         EndDrawing();
 
@@ -200,11 +208,15 @@ int main()
         else
             vehicles.at(current_vehicle)->set_steering(0);
 
-        if (IsKeyDown(KEY_Q))
-            break;
-
         if (IsKeyPressed(KEY_TAB))
             current_vehicle = (++current_vehicle) % vehicles.size();
+
+        float x = IsKeyDown(KEY_LEFT) ? -1.f : (IsKeyDown(KEY_RIGHT) ? 1.f : 0.f);
+        float y = IsKeyDown(KEY_UP) ? -1.f : (IsKeyDown(KEY_DOWN) ? 1.f : 0.f);
+        hero->set_move(x, y);
+
+        if (IsKeyDown(KEY_Q))
+            break;
     }
 
     CloseWindow();
