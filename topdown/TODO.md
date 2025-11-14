@@ -14,8 +14,9 @@
 - [x] Handle collisions
 - [x] People
 - [x] Pushable object
-- [ ] Missiles
 - [ ] Shots
+- [ ] Explosions
+- [ ] Missiles
 - [ ] Documentation
 - [ ] Create website, EMScripten version (?)
 
