@@ -12,9 +12,11 @@
 - [x] Multiple vehicle types: car, moped, semis, tank
 - [x] Car - drive backwards, improve breaks
 - [x] Handle collisions
-- [ ] People
+- [x] People
+- [ ] Pushable object
 - [ ] Missiles
 - [ ] Shots
+- [ ] Documentation
 - [ ] Create website, EMScripten version (?)
 
 ## world

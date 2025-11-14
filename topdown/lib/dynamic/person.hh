@@ -16,6 +16,8 @@ public:
 private:
     b2BodyId build_body(class World const& world, b2Vec2 initial_pos);
     float move_x_ = 0.f, move_y_ = 0.f;
+
+    static constexpr float SPEED = 15.f;
 };
 
 }

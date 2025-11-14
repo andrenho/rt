@@ -12,7 +12,7 @@ Person::Person(World const& world, b2Vec2 initial_pos)
 
 void Person::step()
 {
-
+    b2Body_SetLinearVelocity(id_, { move_x_ * SPEED, move_y_ * SPEED });
     /*
     b2Vec2 vel = body_->GetLinearVelocity();
 
@@ -57,13 +57,14 @@ b2BodyId Person::build_body(World const& world, b2Vec2 initial_pos)
     b2BodyId body_id = b2CreateBody(world.id(), &body_def);
 
     // shape
-    // b2Circle circle = { .center = initial_pos, .radius = 1 };
-    b2Polygon box = b2MakeBox(1, 1);
+    b2Circle circle = { .center = { 0, 0 }, .radius = 1 };
+    b2Polygon box = b2MakeRoundedBox(1, 1, 1);
+    //b2Polygon box = b2MakeBox(1, 1);
     b2ShapeDef shape_def = default_shape();
-    shape_def.density = 1.0f;
+    shape_def.density = 0.02f;
     shape_def.material.friction = 0.3f;
-    // b2CreateCircleShape(body_id, &shape_def, &circle);
-    b2CreatePolygonShape(body_id, &shape_def, &box);
+    b2CreateCircleShape(body_id, &shape_def, &circle);
+    //b2CreatePolygonShape(body_id, &shape_def, &box);
 
     return body_id;
 }

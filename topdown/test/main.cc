@@ -125,7 +125,7 @@ void draw_object(Object const* object, Color color=DARK)
                     }
                 },
                 [&](Circle const& c) {
-                    DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, color);
+                    DrawCircleLinesV({ c.center.x, c.center.y }, c.radius, color);
                 },
                 [&](Line const& ln) {
                     DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, color);
