@@ -12,6 +12,33 @@ Person::Person(World const& world, b2Vec2 initial_pos)
 
 void Person::step()
 {
+
+    /*
+    b2Vec2 vel = body_->GetLinearVelocity();
+
+    b2Vec2 vel_change = speed_ - vel;
+    b2Vec2 impulse = body_->GetMass() * vel_change;
+
+    body_->ApplyLinearImpulse(impulse, body_->GetWorldCenter(), true);
+     */
+
+    /*
+    // create target body
+    target = cpBodyNew(INFINITY, INFINITY);
+    cpBodySetPos(target, cpv(x, y));
+
+    // create joint
+    joint = cpSpaceAddConstraint(space,
+            cpPivotJointNew2(target, body, cpvzero, cpvzero));
+    joint->maxBias = 15.0f;
+    joint->maxForce = 30000.0f;
+
+    void
+    Person::SetTarget(Point const& p)
+    {
+    cpBodySetPos(target, cpv(p.X(), p.Y()));
+    }
+    */
 }
 
 void Person::set_move(float x, float y)
