@@ -180,7 +180,7 @@ int main()
         //
 
         vehicles.at(current_vehicle)->set_accelerator(IsKeyDown(KEY_W));
-        vehicles.at(current_vehicle)->set_breaks(IsKeyDown(KEY_S));
+        vehicles.at(current_vehicle)->set_reverse(IsKeyDown(KEY_S));
         if (IsKeyDown(KEY_A))
             vehicles.at(current_vehicle)->set_steering(-1);
         else if (IsKeyDown(KEY_D))

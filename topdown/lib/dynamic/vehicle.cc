@@ -116,7 +116,7 @@ void Vehicle::set_accelerator(bool accelerator)
 void Vehicle::set_reverse(bool reverse)
 {
     for (auto const& wheel: rear_wheels_)
-        wheel->set_breaks(reverse);
+        wheel->set_reverse(reverse);
     reverse_ = reverse;
 }
 
