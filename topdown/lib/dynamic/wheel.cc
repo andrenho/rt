@@ -7,7 +7,7 @@
 namespace topdown {
 
 Wheel::Wheel(World const& world, VehicleConfig const& cfg, b2Vec2 initial_pos)
-    :DynamicObject(build_body(world, initial_pos)), cfg_(cfg)
+    :DynamicObject(build_body(world, initial_pos)), cfg_(cfg), mod_(Vehicle::default_modifier)
 {
 }
 

@@ -28,11 +28,13 @@ public:
 protected:
     explicit DynamicObject(b2BodyId id) :id_(id) {}
 
+    b2BodyId id_;
+    std::unordered_set<Sensor*> touching_sensor_ {};
+
     [[nodiscard]] b2Vec2 lateral_velocity() const;
     [[nodiscard]] b2Vec2 forward_velocity() const;
 
-    b2BodyId id_;
-    std::unordered_set<Sensor*> touching_sensor_ {};
+    [[nodiscard]] b2ShapeDef default_shape();
 };
 
 }
