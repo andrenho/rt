@@ -49,6 +49,7 @@ private:
     std::vector<std::unique_ptr<DynamicObject>> dynamic_objects_ {};
 
     void add_sensor_events(std::vector<Event>& event) const;
+    void add_hit_events(std::vector<Event>& event) const;
 };
 
 }
