@@ -25,6 +25,8 @@ public:
     virtual void touch_sensor(Sensor* sensor) { touching_sensor_.insert(sensor); }
     virtual void untouch_sensor(Sensor* sensor) { touching_sensor_.erase(sensor); }
 
+
+
 protected:
     explicit DynamicObject(b2BodyId id) :id_(id) {}
 

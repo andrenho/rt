@@ -218,6 +218,13 @@ int main()
 
         if (IsKeyDown(KEY_Q))
             break;
+
+        // handle mouse
+        auto mouse_pos = GetMousePosition();
+        if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
+            printf("%f %f\n", mouse_pos.x, mouse_pos.y);
+        }
+
     }
 
     CloseWindow();

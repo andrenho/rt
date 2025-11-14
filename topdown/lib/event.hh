@@ -2,7 +2,8 @@
 #define TOPDOWN_EVENT_HH
 
 #include <variant>
-#include "object.hh"
+
+#include "dynamic/dymamicobject.hh"
 #include "static/sensor.hh"
 
 namespace topdown {
@@ -23,13 +24,7 @@ struct HitEvent {
     float   approach_speed;
 };
 
-struct ShotEvent {
-    Object* fired_by;
-    Object* object_hit;
-    b2Vec2  point_hit;
-};
-
-using Event = std::variant<BeginSensorEvent, EndSensorEvent, HitEvent, ShotEvent>;
+using Event = std::variant<BeginSensorEvent, EndSensorEvent, HitEvent>;
 
 }
 
