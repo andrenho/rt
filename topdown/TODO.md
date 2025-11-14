@@ -11,7 +11,7 @@
   - [x] Terrain
 - [x] Multiple vehicle types: car, moped, semis, tank
 - [x] Car - drive backwards, improve breaks
-- [ ] Handle collisions
+- [x] Handle collisions
 - [ ] People
 - [ ] Missles
 - [ ] Shots

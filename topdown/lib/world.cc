@@ -31,6 +31,7 @@ std::vector<Event> World::step()
 
     std::vector<Event> events;
     add_sensor_events(events);
+    add_hit_events(events);
     return events;
 }
 
@@ -58,6 +59,20 @@ void World::add_sensor_events(std::vector<Event>& events) const
         }
     }
 
+}
+
+void World::add_hit_events(std::vector<Event>& events) const
+{
+    b2ContactEvents contactEvents = b2World_GetContactEvents(id_);
+
+    for (int i = 0; i < contactEvents.hitCount; ++i) {
+        b2ContactHitEvent* hit_event = contactEvents.hitEvents + i;
+        if (b2Shape_IsValid(hit_event->shapeIdA) && b2Shape_IsValid(hit_event->shapeIdB)) {
+            Object* object_1 = (Object *) b2Shape_GetUserData(hit_event->shapeIdA);
+            Object* object_2 = (Object *) b2Shape_GetUserData(hit_event->shapeIdB);
+            events.emplace_back(HitEvent { object_1, object_2, hit_event->approachSpeed });
+        }
+    }
 }
 
 }

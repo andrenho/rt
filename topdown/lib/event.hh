@@ -17,7 +17,13 @@ struct EndSensorEvent {
     DynamicObject* object;
 };
 
-using Event = std::variant<BeginSensorEvent, EndSensorEvent>;
+struct HitEvent {
+    Object* object1;
+    Object* object2;
+    float   approach_speed;
+};
+
+using Event = std::variant<BeginSensorEvent, EndSensorEvent, HitEvent>;
 
 }
 
