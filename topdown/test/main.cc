@@ -258,7 +258,7 @@ int main()
         if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
             vehicles.at(current_vehicle)->fire_missile({ mouse_pos.x, mouse_pos.y }, {});
         }
-        if (IsKeyDown(KEY_M)) {
+        if (IsKeyPressed(KEY_M)) {
             vehicles.at(current_vehicle)->place_explosive({});
         }
 
