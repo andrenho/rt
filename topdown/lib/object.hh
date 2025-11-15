@@ -5,6 +5,7 @@
 #include <optional>
 
 #include "shapes.hh"
+#include "explosivedef.hh"
 
 namespace topdown {
 
@@ -26,11 +27,11 @@ public:
 
     [[nodiscard]] Cast cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity()) const;
 
-    class Explosive* fire_missile(b2Vec2 target, float power);
-    class Explosive* place_landmine(float power);
+    class Explosive* fire_missile(b2Vec2 target, ExplosiveDef const& explosive_def);
+    class Explosive* place_explosive(ExplosiveDef const& explosive_def);
 
     [[nodiscard]] virtual bool is_sensor() const { return false; }
-    [[nodiscard]] virtual bool is_missile() const { return false; }
+    [[nodiscard]] virtual bool is_explosive() const { return false; }
     [[nodiscard]] virtual b2Vec2 center() const = 0;
 
     [[nodiscard]] class World& world();

@@ -51,14 +51,14 @@ Cast Object::cast(b2Vec2 target, float max_distance) const
     return cast;
 }
 
-Explosive* Object::fire_missile(b2Vec2 target, float power)
+Explosive* Object::fire_missile(b2Vec2 target, ExplosiveDef const& explosive_def)
 {
-    return world().add_object<Explosive>(this, target, power);
+    return world().add_object<Missile>(this, target, explosive_def);
 }
 
-Explosive* Object::place_landmine(float power)
+Explosive* Object::place_explosive(ExplosiveDef const& explosive_def)
 {
-    return world().add_object<Explosive>(this, power);
+    return world().add_object<Explosive>(this, explosive_def);
 }
 
 World& Object::world()

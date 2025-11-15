@@ -48,7 +48,7 @@ void World::add_sensor_events(std::vector<Event>& events) const
             if (sensor->is_sensor()) {
                 dynamic_object->touch_sensor((Sensor *) sensor);
                 events.emplace_back(BeginSensorEvent { (Sensor *) sensor, dynamic_object });
-            } else if (sensor->is_missile() && dynamic_object != ((Explosive *) sensor)->originator()) {
+            } else if (sensor->is_explosive() && dynamic_object != ((Explosive *) sensor)->originator()) {
                 ((Explosive *) sensor)->explode();
             }
         }

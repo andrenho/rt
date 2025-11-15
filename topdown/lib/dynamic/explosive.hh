@@ -7,17 +7,18 @@ namespace topdown {
 
 class Explosive : public DynamicObject {
 public:
-    Explosive(class World const& world, Object* originator, float power);                 // landmine
-    Explosive(class World const& world, Object* originator, b2Vec2 target, float power);  // missile
+    Explosive(class World const& world, Object* originator, ExplosiveDef const& explosive_def);
 
-    [[nodiscard]] bool is_missile() const override { return true; }
+    [[nodiscard]] bool is_explosive() const override { return true; }
     [[nodiscard]] Object* originator() const { return originator_; }
 
     void explode();
 
+protected:
+    ExplosiveDef explosive_def_;
+
 private:
     Object* originator_;
-    float power_;
 
     b2BodyId build_body(class World const& world, b2Vec2 initial_pos);
 };

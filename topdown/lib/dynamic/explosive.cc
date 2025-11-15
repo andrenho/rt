@@ -4,13 +4,8 @@
 
 namespace topdown {
 
-Explosive::Explosive(class World const& world, Object* originator, float power)
-        : DynamicObject(build_body(world, originator->center())), originator_(originator), power_(power)
-{
-}
-
-Explosive::Explosive(World const& world, Object* originator, b2Vec2 target, float power)
-    : DynamicObject(build_body(world, originator->center())), originator_(originator), power_(power)
+Explosive::Explosive(World const& world, Object* originator, ExplosiveDef const& explosive_def)
+        : DynamicObject(build_body(world, originator->center())), explosive_def_(explosive_def), originator_(originator)
 {
 }
 

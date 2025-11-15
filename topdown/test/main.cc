@@ -256,10 +256,10 @@ int main()
             last_cast = cast;
         }
         if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
-            vehicles.at(current_vehicle)->fire_missile({ mouse_pos.x, mouse_pos.y }, 100.f);
+            vehicles.at(current_vehicle)->fire_missile({ mouse_pos.x, mouse_pos.y }, {});
         }
         if (IsKeyDown(KEY_M)) {
-            vehicles.at(current_vehicle)->place_landmine(100.f);
+            vehicles.at(current_vehicle)->place_explosive({});
         }
 
     }
