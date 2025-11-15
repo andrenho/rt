@@ -134,6 +134,15 @@ void draw_object(Object const* object, Color color=DARK)
     }
 }
 
+static void draw_points()
+{
+    for (float x = -300; x < 300; x += 20.f)
+        for (float y = -300; y < 300; y += 20.f)
+            DrawLineEx( { x, y }, { x+.3f, y+.3f }, 0.5f, GREEN);
+    DrawLineEx({ 0, 2 }, { 0, -2 }, 1.f, DARKGREEN);
+    DrawLineEx({ 2, 0 }, { -2, 0 }, 1.f, DARKGREEN);
+}
+
 int main()
 {
     World world;
@@ -156,6 +165,7 @@ int main()
 
     world.add_object<StaticObject>(Circle { { 0, -80 }, 5 });
 
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1600, 900, "topdown-test");
     SetTargetFPS(60);
 
@@ -171,6 +181,7 @@ int main()
 
         BeginMode2D(camera);
         ClearBackground(LIGHT);
+        draw_points();
         for (auto const& object: world.static_objects())
             draw_object(object.get());
         for (auto const& object: world.dynamic_objects())
@@ -209,8 +220,10 @@ int main()
         else
             vehicles.at(current_vehicle)->set_steering(0);
 
-        if (IsKeyPressed(KEY_TAB))
-            current_vehicle = (++current_vehicle) % vehicles.size();
+        if (IsKeyPressed(KEY_TAB)) {
+            ++current_vehicle;
+            current_vehicle %= vehicles.size();
+        }
 
         float x = IsKeyDown(KEY_LEFT) ? -1.f : (IsKeyDown(KEY_RIGHT) ? 1.f : 0.f);
         float y = IsKeyDown(KEY_UP) ? -1.f : (IsKeyDown(KEY_DOWN) ? 1.f : 0.f);
@@ -222,7 +235,8 @@ int main()
         // handle mouse
         auto mouse_pos = GetScreenToWorld2D(GetMousePosition(), camera);
         if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
-            auto hit = hero->cast({ mouse_pos.x, mouse_pos.y });
+            auto cast = hero->cast({ mouse_pos.x, mouse_pos.y });
+            auto hit = cast.hit;
             if (!hit)
                 printf("No hit!\n");
             else

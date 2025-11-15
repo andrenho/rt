@@ -8,10 +8,14 @@
 
 namespace topdown {
 
-struct CastHit {
-    class Object* object;
-    b2Vec2        location;
-    float         length;
+struct Cast {
+    struct Hit {
+        class Object* object;
+        b2Vec2        location;
+        float         length;
+    };
+    std::optional<Hit> hit {};
+    b2Vec2             final_point {};
 };
 
 class Object {
@@ -19,7 +23,9 @@ public:
     virtual ~Object() = default;
     virtual void shapes(std::vector<Shape>& shp) const = 0;
 
-    std::optional<CastHit> cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity());
+    Cast cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity());
+
+    [[nodiscard]] virtual bool is_sensor() const { return false; }
 
 protected:
     Object() = default;

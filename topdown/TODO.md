@@ -17,6 +17,7 @@
 - [ ] Shots
 - [ ] Explosions
 - [ ] Missiles
+- [ ] Add debugging/serialization info
 - [ ] Documentation
 - [ ] Create website, EMScripten version (?)
 

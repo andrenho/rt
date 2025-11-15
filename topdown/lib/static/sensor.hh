@@ -17,6 +17,8 @@ public:
 
     [[nodiscard]] std::optional<SensorModifier> const& sensor_modifier() const { return sensor_modifier_; }
 
+    [[nodiscard]] bool is_sensor() const override { return true; }
+
 private:
     std::optional<SensorModifier> sensor_modifier_;
 };
