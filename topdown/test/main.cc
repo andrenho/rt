@@ -205,6 +205,7 @@ int main()
         DrawText("Use WASD to drive vehicle", 10, 40, 10, SPECIAL);
         DrawText("Use arrows to move unit", 10, 50, 10, SPECIAL);
         DrawText("Use right click to fire a shot", 10, 60, 10, SPECIAL);
+        DrawText("Use middle click to fire a missile", 10, 70, 10, SPECIAL);
 
         EndDrawing();
 
