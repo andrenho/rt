@@ -27,7 +27,7 @@ Cast Object::cast(b2Vec2 target, float max_distance)
             void* data = b2Shape_GetUserData(shapeId);
 
             if (!data)
-                return 1.f;  // invalid shape
+                return 1.f;  // shape doesn't have a user pointer
             if (data == c->this_)
                 return 1.f;  // shape hit is the generator of the ray
             auto obj = (Object *) data;
