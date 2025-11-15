@@ -7,6 +7,7 @@ World::World()
     // world
     b2WorldDef world_def = b2DefaultWorldDef();
     world_def.gravity = b2Vec2 {0.0f, 0.0f};
+    world_def.userData = this;
     id_ = b2CreateWorld(&world_def);
 
     // static body

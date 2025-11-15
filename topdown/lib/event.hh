@@ -2,7 +2,8 @@
 #define TOPDOWN_EVENT_HH
 
 #include <variant>
-#include "object.hh"
+
+#include "dynamic/dymamicobject.hh"
 #include "static/sensor.hh"
 
 namespace topdown {

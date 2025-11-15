@@ -16,9 +16,13 @@ public:
 protected:
     StaticObject(class World const& world, std::vector<Shape> const& shape, bool sensor);
 
+    [[nodiscard]] b2WorldId get_world_id() const override;
+    [[nodiscard]] b2Vec2 get_center() const override;
+
 private:
     std::vector<Shape> shapes_ {};
     std::vector<b2ShapeId> shape_ids_ {};
+    b2Vec2 center_ { 0, 0 };
 };
 
 }

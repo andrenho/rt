@@ -26,6 +26,10 @@ public:
     virtual void untouch_sensor(Sensor* sensor) { touching_sensor_.erase(sensor); }
 
 protected:
+    [[nodiscard]] b2WorldId get_world_id() const override;
+    [[nodiscard]] b2Vec2 get_center() const override;
+
+protected:
     explicit DynamicObject(b2BodyId id) :id_(id) {}
 
     b2BodyId id_;
