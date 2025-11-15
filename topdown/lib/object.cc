@@ -9,7 +9,8 @@ Cast Object::cast(b2Vec2 target, float max_distance)
     // TODO - adjust target by the max distance
     float length = b2Length(get_center() - target);
     if (length > max_distance) {
-        // TODO - adjust target by the max distance
+        b2Vec2 dir = b2Normalize(target - get_center());
+        target = get_center() + max_distance * dir;
     }
 
     cast.originator = this;
@@ -40,6 +41,9 @@ Cast Object::cast(b2Vec2 target, float max_distance)
 
             return 1.f;
         }, &ctx);
+
+    if (cast.hit)
+        cast.final_point = cast.hit->location;
 
     return cast;
 }
