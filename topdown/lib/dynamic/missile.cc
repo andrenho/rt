@@ -24,6 +24,7 @@ b2BodyId Missile::build_body(World const& world, b2Vec2 initial_pos)
     b2ShapeDef shape_def = default_shape();
     shape_def.density = 1.f;
     shape_def.material.friction = 0.3f;
+    shape_def.isSensor = true;
     b2CreateCircleShape(body_id, &shape_def, &circle);
 
     return body_id;
