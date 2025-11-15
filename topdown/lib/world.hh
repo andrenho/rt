@@ -13,6 +13,7 @@
 #include "dynamic/pushableobject.hh"
 #include "static/staticobject.hh"
 #include "static/sensor.hh"
+#include "dynamic/explosive.hh"
 #include "event.hh"
 
 namespace topdown {

@@ -206,6 +206,8 @@ int main()
         DrawText("Use arrows to move unit", 10, 50, 10, SPECIAL);
         DrawText("Use right click to fire a shot", 10, 60, 10, SPECIAL);
         DrawText("Use middle click to fire a missile", 10, 70, 10, SPECIAL);
+        DrawText("Press M to place a landmine", 10, 80, 10, SPECIAL);
+
 
         EndDrawing();
 
@@ -255,6 +257,9 @@ int main()
         }
         if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
             vehicles.at(current_vehicle)->fire_missile({ mouse_pos.x, mouse_pos.y }, 100.f);
+        }
+        if (IsKeyDown(KEY_M)) {
+            vehicles.at(current_vehicle)->place_landmine(100.f);
         }
 
     }

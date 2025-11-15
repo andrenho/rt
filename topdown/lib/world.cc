@@ -43,10 +43,14 @@ void World::add_sensor_events(std::vector<Event>& events) const
     for (int i = 0; i < sensor_events.beginCount; ++i) {
         b2SensorBeginTouchEvent* touch = sensor_events.beginEvents + i;
         if (b2Shape_IsValid(touch->sensorShapeId) && b2Shape_IsValid(touch->visitorShapeId)) {
-            Sensor* sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId);
+            Object* sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId);
             DynamicObject* dynamic_object = (DynamicObject *) b2Shape_GetUserData(touch->visitorShapeId);
-            dynamic_object->touch_sensor(sensor);
-            events.emplace_back(BeginSensorEvent { sensor, dynamic_object });
+            if (sensor->is_sensor()) {
+                dynamic_object->touch_sensor((Sensor *) sensor);
+                events.emplace_back(BeginSensorEvent { (Sensor *) sensor, dynamic_object });
+            } else if (sensor->is_missile() && dynamic_object != ((Explosive *) sensor)->originator()) {
+                ((Explosive *) sensor)->explode();
+            }
         }
     }
 
@@ -55,8 +59,10 @@ void World::add_sensor_events(std::vector<Event>& events) const
         if (b2Shape_IsValid(touch->sensorShapeId) && b2Shape_IsValid(touch->visitorShapeId)) {
             Sensor* sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId);
             DynamicObject* dynamic_object = (DynamicObject *) b2Shape_GetUserData(touch->visitorShapeId);
-            dynamic_object->untouch_sensor(sensor);
-            events.emplace_back(EndSensorEvent { sensor, dynamic_object });
+            if (sensor->is_sensor()) {
+                dynamic_object->untouch_sensor(sensor);
+                events.emplace_back(EndSensorEvent { sensor, dynamic_object });
+            }
         }
     }
 

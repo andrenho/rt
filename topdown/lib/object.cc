@@ -1,7 +1,7 @@
 #include "object.hh"
 
 #include "world.hh"
-#include "dynamic/missile.hh"
+#include "dynamic/explosive.hh"
 
 namespace topdown {
 
@@ -51,9 +51,14 @@ Cast Object::cast(b2Vec2 target, float max_distance) const
     return cast;
 }
 
-Missile* Object::fire_missile(b2Vec2 target, float power)
+Explosive* Object::fire_missile(b2Vec2 target, float power)
 {
-    return world().add_object<Missile>(this, target, power);
+    return world().add_object<Explosive>(this, target, power);
+}
+
+Explosive* Object::place_landmine(float power)
+{
+    return world().add_object<Explosive>(this, power);
 }
 
 World& Object::world()

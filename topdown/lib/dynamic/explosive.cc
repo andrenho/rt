@@ -1,16 +1,20 @@
-#include "missile.hh"
+#include "explosive.hh"
 
 #include "../world.hh"
 
 namespace topdown {
 
-Missile::Missile(World const& world, Object* originator, b2Vec2 target, float power)
-    : DynamicObject(build_body(world, originator->center()))
+Explosive::Explosive(class World const& world, Object* originator, float power)
+        : DynamicObject(build_body(world, originator->center())), originator_(originator), power_(power)
 {
-
 }
 
-b2BodyId Missile::build_body(World const& world, b2Vec2 initial_pos)
+Explosive::Explosive(World const& world, Object* originator, b2Vec2 target, float power)
+    : DynamicObject(build_body(world, originator->center())), originator_(originator), power_(power)
+{
+}
+
+b2BodyId Explosive::build_body(World const& world, b2Vec2 initial_pos)
 {
     // body
     b2BodyDef body_def = b2DefaultBodyDef();
@@ -28,6 +32,11 @@ b2BodyId Missile::build_body(World const& world, b2Vec2 initial_pos)
     b2CreateCircleShape(body_id, &shape_def, &circle);
 
     return body_id;
+}
+
+void Explosive::explode()
+{
+    printf("Boom!!!!\n");
 }
 
 }

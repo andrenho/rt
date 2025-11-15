@@ -102,8 +102,8 @@ add_library(topdown STATIC
         lib/dynamic/pushableobject.cc
         lib/dynamic/pushableobject.hh
         lib/object.cc
-        lib/dynamic/missile.cc
-        lib/dynamic/missile.hh
+        lib/dynamic/explosive.cc
+        lib/dynamic/explosive.hh
 )
 target_link_libraries(topdown PUBLIC box2d)
 
