@@ -145,6 +145,8 @@ static void draw_points()
 
 int main()
 {
+    std::optional<Cast> last_cast {};
+
     World world;
     world.add_object<Sensor>(Box({ -260, -260 }, { 150, 250 }), terrain::Ice);
     world.add_object<Sensor>(Box({ 80, -260 }, { 150, 250 }), terrain::Asphalt);
@@ -186,6 +188,13 @@ int main()
             draw_object(object.get());
         for (auto const& object: world.dynamic_objects())
             draw_object(object.get(), object.get() == vehicles.at(current_vehicle) ? SPECIAL : DARK);
+        if (last_cast) {
+            DrawLineEx(
+                    { last_cast->originator->get_center().x, last_cast->originator->get_center().y },
+                    { last_cast->final_point.x, last_cast->final_point.y },
+                    1.0f, RED);
+            last_cast = {};
+        }
         DrawText(TextFormat("Ice"), -250, -250, 2, DARK);
         DrawText(TextFormat("Dirt"), -100, -250, 2, DARK);
         DrawText(TextFormat("Asphalt"), 90, -250, 2, DARK);
@@ -241,6 +250,7 @@ int main()
                 printf("No hit!\n");
             else
                 printf("Object %p hit at %f, %f (distance %f)!\n", (void *) hit->object, hit->location.x, hit->location.y, hit->length);
+            last_cast = cast;
         }
 
     }

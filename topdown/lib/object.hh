@@ -15,6 +15,7 @@ struct Cast {
         float         length;
     };
     std::optional<Hit> hit {};
+    Object*            originator = nullptr;
     b2Vec2             final_point {};
 };
 
@@ -27,11 +28,12 @@ public:
 
     [[nodiscard]] virtual bool is_sensor() const { return false; }
 
+    [[nodiscard]] virtual b2Vec2 get_center() const = 0;
+
 protected:
     Object() = default;
 
-    virtual b2WorldId get_world_id() = 0;
-    virtual b2Vec2    get_center() = 0;
+    virtual b2WorldId get_world_id() const = 0;
 };
 
 }

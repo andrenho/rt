@@ -34,12 +34,12 @@ void StaticObject::shapes(std::vector<Shape>& shp) const
         shp.push_back(s);
 }
 
-b2WorldId StaticObject::get_world_id()
+b2WorldId StaticObject::get_world_id() const
 {
     return b2Shape_GetWorld(shape_ids_.at(0));
 }
 
-b2Vec2 StaticObject::get_center()
+b2Vec2 StaticObject::get_center() const
 {
     return center_;
 }

@@ -62,12 +62,12 @@ b2ShapeDef DynamicObject::default_shape()
     return shape_def;
 }
 
-b2WorldId DynamicObject::get_world_id()
+b2WorldId DynamicObject::get_world_id() const
 {
     return b2Body_GetWorld(id_);
 }
 
-b2Vec2 DynamicObject::get_center()
+b2Vec2 DynamicObject::get_center() const
 {
     return b2Body_GetPosition(id_);
 }

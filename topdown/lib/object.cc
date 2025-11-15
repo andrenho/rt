@@ -11,6 +11,8 @@ Cast Object::cast(b2Vec2 target, float max_distance)
     if (length > max_distance) {
         // TODO - adjust target by the max distance
     }
+
+    cast.originator = this;
     cast.final_point = target;
 
     // cast ray
