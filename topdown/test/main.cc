@@ -190,7 +190,7 @@ int main()
             draw_object(object.get(), object.get() == vehicles.at(current_vehicle) ? SPECIAL : DARK);
         if (last_cast) {
             DrawLineEx(
-                    { last_cast->originator->get_center().x, last_cast->originator->get_center().y },
+                    {last_cast->originator->center().x, last_cast->originator->center().y },
                     { last_cast->final_point.x, last_cast->final_point.y },
                     1.0f, RED);
             last_cast = {};
@@ -252,6 +252,9 @@ int main()
             else
                 printf("Object %p hit at %f, %f (distance %f)!\n", (void *) hit->object, hit->location.x, hit->location.y, hit->length);
             last_cast = cast;
+        }
+        if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+            vehicles.at(current_vehicle)->fire_missile({ mouse_pos.x, mouse_pos.y }, 100.f);
         }
 
     }

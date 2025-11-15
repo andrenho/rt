@@ -10,12 +10,12 @@ namespace topdown {
 
 struct Cast {
     struct Hit {
-        class Object* object;
-        b2Vec2        location;
-        float         length;
+        const class Object* object;
+        b2Vec2              location;
+        float               length;
     };
     std::optional<Hit> hit {};
-    Object*            originator = nullptr;
+    const Object*      originator = nullptr;
     b2Vec2             final_point {};
 };
 
@@ -24,16 +24,20 @@ public:
     virtual ~Object() = default;
     virtual void shapes(std::vector<Shape>& shp) const = 0;
 
-    Cast cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity());
+    [[nodiscard]] Cast cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity()) const;
+
+    class Missile* fire_missile(b2Vec2 target, float power);
 
     [[nodiscard]] virtual bool is_sensor() const { return false; }
+    [[nodiscard]] virtual b2Vec2 center() const = 0;
 
-    [[nodiscard]] virtual b2Vec2 get_center() const = 0;
+    [[nodiscard]] class World& world();
+    [[nodiscard]] class World const& world() const;
 
 protected:
     Object() = default;
 
-    virtual b2WorldId get_world_id() const = 0;
+    [[nodiscard]] virtual b2WorldId world_id() const = 0;
 };
 
 }
