@@ -1,5 +1,6 @@
 #include "world.hh"
 
+#include <algorithm>
 #include <stdexcept>
 
 namespace topdown {
@@ -28,6 +29,8 @@ World::~World()
 
 std::vector<Event> World::step()
 {
+    remove_objects_scheduled_for_deletion();
+
     for (auto& obj: dynamic_objects_)
         obj->step();  // TODO - make this faster
     b2World_Step(id_, 1.0f / 60.0f, 4);
@@ -95,6 +98,29 @@ void World::add_hit_events(std::vector<Event>& events) const
             Object* object_1 = (Object *) b2Shape_GetUserData(hit_event->shapeIdA);
             Object* object_2 = (Object *) b2Shape_GetUserData(hit_event->shapeIdB);
             events.emplace_back(HitEvent { object_1, object_2, hit_event->approachSpeed });
+        }
+    }
+}
+
+void World::remove_objects_scheduled_for_deletion()
+{
+    for (auto obj: scheduled_for_deletion_) {
+        auto dobj = dynamic_cast<DynamicObject *>(obj);
+        if (dobj) {
+            auto it = std::find_if(dynamic_objects_.begin(), dynamic_objects_.end(),
+                    [dobj](const std::unique_ptr<DynamicObject>& p) { return p.get() == dobj; });
+            if (it != dynamic_objects_.end())
+                dynamic_objects_.erase(it);
+            continue;
+        }
+
+        auto sobj = dynamic_cast<StaticObject *>(obj);
+        if (sobj) {
+            auto it = std::find_if(static_objects_.begin(), static_objects_.end(),
+                    [sobj](const std::unique_ptr<StaticObject>& p) { return p.get() == sobj; });
+            if (it != static_objects_.end())
+                static_objects_.erase(it);
+            continue;
         }
     }
 }

@@ -27,6 +27,7 @@ public:
     virtual void shapes(std::vector<Shape>& shp) const = 0;
 
     virtual void setup() = 0;
+    virtual void schedule_myself_for_deletion();
 
     [[nodiscard]] Cast cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity()) const;
 

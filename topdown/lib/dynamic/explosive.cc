@@ -33,6 +33,7 @@ b2BodyId Explosive::build_body(World const& world, b2Vec2 initial_pos)
 void Explosive::explode()
 {
     printf("Boom!!!!\n");
+    schedule_myself_for_deletion();
 }
 
 }

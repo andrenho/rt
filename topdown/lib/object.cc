@@ -82,4 +82,9 @@ void Object::setup_collisions(b2ShapeId shape)
     b2Shape_SetFilter(shape, filter);
 }
 
+void Object::schedule_myself_for_deletion()
+{
+    world().schedule_for_deletion(this);
+}
+
 }
