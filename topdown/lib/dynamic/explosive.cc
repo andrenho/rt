@@ -1,5 +1,7 @@
 #include "explosive.hh"
 
+#include <numbers>
+
 #include "../world.hh"
 
 namespace topdown {
