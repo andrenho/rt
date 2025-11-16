@@ -27,7 +27,7 @@ public:
 
     [[nodiscard]] Cast cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity()) const;
 
-    class Explosive* fire_missile(b2Vec2 target, ExplosiveDef const& explosive_def);
+    class Explosive* fire_missile(b2Vec2 target, float speed, ExplosiveDef const& explosive_def);
     class Explosive* place_explosive(ExplosiveDef const& explosive_def);
 
     [[nodiscard]] virtual bool is_sensor() const { return false; }

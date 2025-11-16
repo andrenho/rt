@@ -252,11 +252,11 @@ int main()
             if (!hit)
                 printf("No hit!\n");
             else
-                printf("Object %p hit at %f, %f (distance %f)!\n", (void *) hit->object, hit->location.x, hit->location.y, hit->length);
+                printf("Object %p hit at %f, %f (distance %f)!\n", (void const *) hit->object, hit->location.x, hit->location.y, hit->length);
             last_cast = cast;
         }
         if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
-            vehicles.at(current_vehicle)->fire_missile({ mouse_pos.x, mouse_pos.y }, {});
+            vehicles.at(current_vehicle)->fire_missile({ mouse_pos.x, mouse_pos.y }, 3.5f, {});
         }
         if (IsKeyPressed(KEY_M)) {
             vehicles.at(current_vehicle)->place_explosive({});

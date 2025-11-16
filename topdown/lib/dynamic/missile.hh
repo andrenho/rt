@@ -7,7 +7,7 @@ namespace topdown {
 
 class Missile : public Explosive {
 public:
-    Missile(class World const& world, Object* originator, b2Vec2 target, ExplosiveDef const& explosive_def);
+    Missile(class World const& world, Object* originator, b2Vec2 target, float speed, ExplosiveDef const& explosive_def);
 
 private:
     b2Vec2 target_;

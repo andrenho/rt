@@ -14,9 +14,11 @@
 - [x] Handle collisions
 - [x] People
 - [x] Pushable object
-- [ ] Shots
-- [ ] Explosions
-- [ ] Missiles
+- [x] Shots
+- [ ] Explosions, missiles
+  - [ ] Filter unwanted contacts (ex: missile with sensor)
+  - [ ] Explode hitting the length
+  - [ ] Actual explosion
 - [ ] Add debugging/serialization info
 - [ ] Documentation
 - [ ] Create website, EMScripten version (?)
