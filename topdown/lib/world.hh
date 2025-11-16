@@ -13,6 +13,7 @@
 #include "dynamic/pushableobject.hh"
 #include "dynamic/explosive.hh"
 #include "dynamic/missile.hh"
+#include "dynamic/shrapnel.hh"
 #include "static/staticobject.hh"
 #include "static/sensor.hh"
 #include "event.hh"

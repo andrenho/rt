@@ -32,8 +32,14 @@ b2BodyId Explosive::build_body(World const& world, b2Vec2 initial_pos)
 
 void Explosive::explode()
 {
-    printf("Boom!!!!\n");
     schedule_myself_for_deletion();
+
+    const float N_RAYS = 30;
+    b2Vec2 center_ = center();
+    for (float i = 0; i < N_RAYS; i++) {
+        float angle = (i / N_RAYS) * 360.f * ((float) std::numbers::pi / 180.f);
+        world().add_object<Shrapnel>(center_, angle, explosive_def_);
+    }
 }
 
 }

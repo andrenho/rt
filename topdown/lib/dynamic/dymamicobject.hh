@@ -31,7 +31,7 @@ protected:
     [[nodiscard]] b2Vec2 center() const override;
 
     [[nodiscard]] Category category() const override { return Category::Dynamic; }
-    [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Dynamic, Category::Solid, Category::Missile, Category::Sensor }; }
+    [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Dynamic, Category::Solid, Category::Missile, Category::Sensor, Category::Shrapnel }; }
 
 protected:
     explicit DynamicObject(b2BodyId id);

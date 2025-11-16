@@ -22,7 +22,7 @@ protected:
     [[nodiscard]] b2Vec2 center() const override;
 
     [[nodiscard]] Category category() const override { return Category::Solid; }
-    [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Missile, Category::Dynamic }; }
+    [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Missile, Category::Dynamic, Category::Shrapnel }; }
 
 private:
     std::vector<Shape> shapes_ {};

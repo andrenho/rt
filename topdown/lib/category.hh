@@ -9,6 +9,7 @@ enum class Category : uint64_t {
     Wheel    = 0b0000100,
     Dynamic  = 0b0001000,
     Missile  = 0b0010000,
+    Shrapnel = 0b0100000,
 };
 
 #endif //TOPDOWN_CATEGORY_HH
