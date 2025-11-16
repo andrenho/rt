@@ -12,8 +12,12 @@ public:
     [[nodiscard]] Category category() const override { return Category::Missile; }
     [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Dynamic, Category::Solid }; }
 
+    void step() override;
+
 private:
     b2Vec2 target_;
+    b2Vec2 initial_pos_;
+    float  distance_sq_target_;
 };
 
 }
