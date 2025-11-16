@@ -5,7 +5,8 @@
 namespace topdown {
 
 Shrapnel::Shrapnel(World const& world, b2Vec2 initial_pos, float angle, ExplosiveDef const& def)
-        : DynamicObject(build_body(world, initial_pos, angle, def))
+        : DynamicObject(build_body(world, initial_pos, angle, def)), initial_pos_(b2Body_GetWorldCenterOfMass(id_)),
+          max_distance_sq_(def.radius_sq * def.radius_sq)
 {
 
 }
@@ -30,6 +31,15 @@ b2BodyId Shrapnel::build_body(World const& world, b2Vec2 initial_pos, float angl
     b2CreateCircleShape(body_id, &shape_def, &circle);
 
     return body_id;
+}
+
+void Shrapnel::step()
+{
+    DynamicObject::step();
+
+    float distance_sq = b2LengthSquared(b2Body_GetWorldCenterOfMass(id_) - initial_pos_);
+    if (distance_sq >= max_distance_sq_)
+        schedule_myself_for_deletion();
 }
 
 }

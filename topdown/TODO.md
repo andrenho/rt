@@ -17,10 +17,10 @@
 - [x] Shots
 - [ ] Explosions, missiles
   - [x] Filter unwanted contacts (ex: missile with sensor)
-  - [ ] Explode hitting the length
-  - [ ] Actual explosion
-    - [ ] Create particules
-    - [ ] Kill particules
+  - [x] Explode hitting the length
+  - [x] Actual explosion
+    - [x] Create particules
+    - [x] Kill particules
     - [ ] Event
 - [ ] Add debugging/serialization info
 - [ ] Documentation

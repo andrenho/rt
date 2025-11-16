@@ -17,8 +17,10 @@ void Missile::step()
     DynamicObject::step();
 
     float distance = b2LengthSquared(b2Body_GetWorldCenterOfMass(id_) - initial_pos_);
-    if (distance > distance_sq_target_)
+    if (distance > distance_sq_target_) {
+        explode();
         schedule_myself_for_deletion();
+    }
 }
 
 }
