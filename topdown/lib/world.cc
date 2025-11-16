@@ -123,6 +123,8 @@ void World::remove_objects_scheduled_for_deletion()
             continue;
         }
     }
+
+    scheduled_for_deletion_.clear();
 }
 
 }
