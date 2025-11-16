@@ -164,6 +164,7 @@ int main()
     Person* hero = world.add_object<Person>(b2Vec2 { -70, 0 });
     world.add_object<PushableObject>(Box({ -70, -20 }, { 4, 4 }), 1.f);
     world.add_object<PushableObject>(Box({ -90, -20 }, { 4, 4 }), 100.f);
+    hero->set_data("Hero");
 
     world.add_object<StaticObject>(Circle { { 0, -80 }, 5 });
 

@@ -95,9 +95,17 @@ void World::add_hit_events(std::vector<Event>& events) const
     for (int i = 0; i < contactEvents.hitCount; ++i) {
         b2ContactHitEvent* hit_event = contactEvents.hitEvents + i;
         if (b2Shape_IsValid(hit_event->shapeIdA) && b2Shape_IsValid(hit_event->shapeIdB)) {
-            Object* object_1 = (Object *) b2Shape_GetUserData(hit_event->shapeIdA);
-            Object* object_2 = (Object *) b2Shape_GetUserData(hit_event->shapeIdB);
-            events.emplace_back(HitEvent { object_1, object_2, hit_event->approachSpeed });
+            auto object_1 = (Object *) b2Shape_GetUserData(hit_event->shapeIdA);
+            auto object_2 = (Object *) b2Shape_GetUserData(hit_event->shapeIdB);
+            auto shrapnel_1 = dynamic_cast<Shrapnel *>(object_1);
+            auto shrapnel_2 = dynamic_cast<Shrapnel *>(object_2);
+            if (shrapnel_1) {
+                events.emplace_back(ExplosionEvent { object_2, hit_event->approachSpeed });
+            } else if (shrapnel_2) {
+                events.emplace_back(ExplosionEvent { object_1, hit_event->approachSpeed });
+            } else {
+                events.emplace_back(HitEvent { object_1, object_2, hit_event->approachSpeed });
+            }
         }
     }
 }

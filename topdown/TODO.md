@@ -21,9 +21,9 @@
   - [x] Actual explosion
     - [x] Create particules
     - [x] Kill particules
-    - [ ] Event
-- [ ] Add debugging/serialization info
+    - [x] Event
 - [ ] Documentation
+- [ ] Add debugging/serialization info
 - [ ] Create website, EMScripten version (?)
 
 ## world

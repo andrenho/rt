@@ -21,6 +21,8 @@ struct Cast {
     b2Vec2             final_point {};
 };
 
+class Explosive;
+
 class Object {
 public:
     virtual ~Object() = default;
@@ -29,10 +31,20 @@ public:
     virtual void setup() = 0;
     virtual void schedule_myself_for_deletion();
 
-    [[nodiscard]] Cast cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity()) const;
+    Explosive* fire_missile(b2Vec2 target, float speed, ExplosiveDef const& explosive_def);
+    Explosive* place_explosive(ExplosiveDef const& explosive_def);
 
-    class Explosive* fire_missile(b2Vec2 target, float speed, ExplosiveDef const& explosive_def);
-    class Explosive* place_explosive(ExplosiveDef const& explosive_def);
+    template <typename T>
+    void set_data(T* data) {
+        data_ = (void *) data;
+    }
+
+    template <typename T>
+    T* data() {
+        return (T*) data_;
+    }
+
+    [[nodiscard]] Cast cast(b2Vec2 target, float max_distance=std::numeric_limits<float>::infinity()) const;
 
     [[nodiscard]] virtual b2Vec2 center() const = 0;
 
@@ -49,6 +61,9 @@ protected:
 
     [[nodiscard]] virtual b2WorldId world_id() const = 0;
     [[nodiscard]] virtual std::vector<Category> categories_contact() const = 0;
+
+private:
+    void* data_ = nullptr;
 };
 
 }

@@ -21,10 +21,15 @@ struct EndSensorEvent {
 struct HitEvent {
     Object* object1;
     Object* object2;
-    float   approach_speed;
+    float   force;
 };
 
-using Event = std::variant<BeginSensorEvent, EndSensorEvent, HitEvent>;
+struct ExplosionEvent {
+    Object* object;
+    float   force;
+};
+
+using Event = std::variant<BeginSensorEvent, EndSensorEvent, HitEvent, ExplosionEvent>;
 
 }
 
