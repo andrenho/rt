@@ -17,10 +17,11 @@ void DynamicObject::setup()
 {
     // setup collisions
     int count = b2Body_GetShapeCount(id_);
-    b2ShapeId shapes[count];
+    auto* shapes = new b2ShapeId[count];
     b2Body_GetShapes(id_, shapes, count);
     for (int i = 0; i < count; ++i)
         setup_collisions(shapes[i]);
+    delete[] shapes;
 }
 
 void DynamicObject::shapes(std::vector<Shape>& shp) const

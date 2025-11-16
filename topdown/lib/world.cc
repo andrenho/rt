@@ -115,25 +115,28 @@ void World::remove_objects_scheduled_for_deletion()
     // fast removal algorithm
 
     for (auto obj: scheduled_for_deletion_) {
-        StaticObject* sobj;
-        DynamicObject* dobj = dynamic_cast<DynamicObject *>(obj);
-        if (dobj) {
-            for (size_t i = 0; i < dynamic_objects_.size(); ++i) {
-                if (dynamic_objects_.at(i).get() == dobj) {
-                    dynamic_objects_[i] = std::move(dynamic_objects_.back());
-                    dynamic_objects_.pop_back();
-                    goto next;
+        {
+            DynamicObject* dobj = dynamic_cast<DynamicObject *>(obj);
+            if (dobj) {
+                for (size_t i = 0; i < dynamic_objects_.size(); ++i) {
+                    if (dynamic_objects_.at(i).get() == dobj) {
+                        dynamic_objects_[i] = std::move(dynamic_objects_.back());
+                        dynamic_objects_.pop_back();
+                        goto next;
+                    }
                 }
             }
         }
 
-        sobj = dynamic_cast<StaticObject *>(obj);
-        if (sobj) {
-            for (size_t i = 0; i < static_objects_.size(); ++i) {
-                if (static_objects_.at(i).get() == sobj) {
-                    static_objects_[i] = std::move(static_objects_.back());
-                    static_objects_.pop_back();
-                    goto next;
+        {
+            StaticObject* sobj = dynamic_cast<StaticObject *>(obj);
+            if (sobj) {
+                for (size_t i = 0; i < static_objects_.size(); ++i) {
+                    if (static_objects_.at(i).get() == sobj) {
+                        static_objects_[i] = std::move(static_objects_.back());
+                        static_objects_.pop_back();
+                        goto next;
+                    }
                 }
             }
         }
