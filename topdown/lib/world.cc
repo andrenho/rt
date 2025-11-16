@@ -104,24 +104,32 @@ void World::add_hit_events(std::vector<Event>& events) const
 
 void World::remove_objects_scheduled_for_deletion()
 {
+    // fast removal algorithm
+
     for (auto obj: scheduled_for_deletion_) {
-        auto dobj = dynamic_cast<DynamicObject *>(obj);
+        StaticObject* sobj;
+        DynamicObject* dobj = dynamic_cast<DynamicObject *>(obj);
         if (dobj) {
-            auto it = std::find_if(dynamic_objects_.begin(), dynamic_objects_.end(),
-                    [dobj](const std::unique_ptr<DynamicObject>& p) { return p.get() == dobj; });
-            if (it != dynamic_objects_.end())
-                dynamic_objects_.erase(it);
-            continue;
+            for (size_t i = 0; i < dynamic_objects_.size(); ++i) {
+                if (dynamic_objects_.at(i).get() == dobj) {
+                    dynamic_objects_[i] = std::move(dynamic_objects_.back());
+                    dynamic_objects_.pop_back();
+                    goto next;
+                }
+            }
         }
 
-        auto sobj = dynamic_cast<StaticObject *>(obj);
+        sobj = dynamic_cast<StaticObject *>(obj);
         if (sobj) {
-            auto it = std::find_if(static_objects_.begin(), static_objects_.end(),
-                    [sobj](const std::unique_ptr<StaticObject>& p) { return p.get() == sobj; });
-            if (it != static_objects_.end())
-                static_objects_.erase(it);
-            continue;
+            for (size_t i = 0; i < static_objects_.size(); ++i) {
+                if (static_objects_.at(i).get() == sobj) {
+                    static_objects_[i] = std::move(static_objects_.back());
+                    static_objects_.pop_back();
+                    goto next;
+                }
+            }
         }
+next:
     }
 
     scheduled_for_deletion_.clear();
