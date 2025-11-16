@@ -5,6 +5,7 @@ namespace topdown {
 
 struct ExplosiveDef {
     float speed;
+    float radius_sq;
 };
 
 } // topdown

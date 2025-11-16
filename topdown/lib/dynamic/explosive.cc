@@ -34,7 +34,7 @@ void Explosive::explode()
 {
     schedule_myself_for_deletion();
 
-    const float N_RAYS = 30;
+    const float N_RAYS = 60;
     b2Vec2 center_ = center();
     for (float i = 0; i < N_RAYS; i++) {
         float angle = (i / N_RAYS) * 360.f * ((float) std::numbers::pi / 180.f);
