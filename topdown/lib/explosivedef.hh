@@ -4,7 +4,7 @@
 namespace topdown {
 
 struct ExplosiveDef {
-
+    float blast_power;
 };
 
 } // topdown
