@@ -17,7 +17,8 @@ public:
 
     [[nodiscard]] std::optional<SensorModifier> const& sensor_modifier() const { return sensor_modifier_; }
 
-    [[nodiscard]] bool is_sensor() const override { return true; }
+    [[nodiscard]] Category category() const override { return Category::Sensor; }
+    [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Dynamic }; }
 
 private:
     std::optional<SensorModifier> sensor_modifier_;

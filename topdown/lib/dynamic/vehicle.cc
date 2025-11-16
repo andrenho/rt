@@ -39,6 +39,7 @@ Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cf
 
     bool right = false;
     for (auto const& wheel: front_wheels_) {
+        wheel->setup();
         joint_def.base.bodyIdB = wheel->id();
         joint_def.base.localFrameA = { { (right ? 1.f : -1.f) * (cfg.w - .2f), cfg.wheelbase }, b2Rot_identity };
         front_joints_.push_back(b2CreateRevoluteJoint(world.id(), &joint_def));
@@ -47,6 +48,7 @@ Vehicle::Vehicle(World const &world, b2Vec2 initial_pos, VehicleConfig const &cf
 
     right = false;
     for (auto const& wheel: rear_wheels_) {
+        wheel->setup();
         joint_def.base.bodyIdB = wheel->id();
         joint_def.base.localFrameA = { { (right ? 1.f : -1.f) * (cfg.w - .2f), -cfg.wheelbase }, b2Rot_identity };
         b2CreateRevoluteJoint(world.id(), &joint_def);

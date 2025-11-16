@@ -1,5 +1,7 @@
 #include "world.hh"
 
+#include <stdexcept>
+
 namespace topdown {
 
 World::World()
@@ -43,26 +45,41 @@ void World::add_sensor_events(std::vector<Event>& events) const
     for (int i = 0; i < sensor_events.beginCount; ++i) {
         b2SensorBeginTouchEvent* touch = sensor_events.beginEvents + i;
         if (b2Shape_IsValid(touch->sensorShapeId) && b2Shape_IsValid(touch->visitorShapeId)) {
-            Object* sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId);
-            DynamicObject* dynamic_object = (DynamicObject *) b2Shape_GetUserData(touch->visitorShapeId);
-            if (sensor->is_sensor()) {
-                dynamic_object->touch_sensor((Sensor *) sensor);
-                events.emplace_back(BeginSensorEvent { (Sensor *) sensor, dynamic_object });
-            } else if (sensor->is_explosive() && dynamic_object != ((Explosive *) sensor)->originator()) {
-                ((Explosive *) sensor)->explode();
+            auto sensor = (Object *) b2Shape_GetUserData(touch->sensorShapeId);
+            auto object = (Object *) b2Shape_GetUserData(touch->visitorShapeId);
+
+            // check for explosive
+            if (sensor->explodes_on_contact()) {
+                if (object == ((Explosive *) sensor)->originator())
+                    continue;
+                auto explosive = dynamic_cast<Explosive *>(sensor);
+                if (!explosive)
+                    throw std::logic_error("Error: non-explosive exploding");
+                explosive->explode();
+                continue;
             }
+
+            // check for sensor
+            auto dynamic_object = dynamic_cast<DynamicObject *>(object);
+            if (!dynamic_object)
+                continue;
+            auto psensor = dynamic_cast<Sensor *>(sensor);
+            if (!psensor)
+                throw std::logic_error("Error: explosive as sensor");
+            dynamic_object->touch_sensor(psensor);
+            events.emplace_back(BeginSensorEvent { psensor, dynamic_object });
         }
     }
 
     for (int i = 0; i < sensor_events.endCount; ++i) {
         b2SensorEndTouchEvent* touch = sensor_events.endEvents + i;
         if (b2Shape_IsValid(touch->sensorShapeId) && b2Shape_IsValid(touch->visitorShapeId)) {
-            Sensor* sensor = (Sensor *) b2Shape_GetUserData(touch->sensorShapeId);
-            DynamicObject* dynamic_object = (DynamicObject *) b2Shape_GetUserData(touch->visitorShapeId);
-            if (sensor->is_sensor()) {
-                dynamic_object->untouch_sensor(sensor);
-                events.emplace_back(EndSensorEvent { sensor, dynamic_object });
-            }
+            auto sensor = dynamic_cast<Sensor *>((Object *) b2Shape_GetUserData(touch->sensorShapeId));
+            auto dynamic_object = dynamic_cast<DynamicObject *>((Object *) b2Shape_GetUserData(touch->visitorShapeId));
+            if (!dynamic_object || !sensor)
+                continue;
+            dynamic_object->untouch_sensor(sensor);
+            events.emplace_back(EndSensorEvent { sensor, dynamic_object });
         }
     }
 

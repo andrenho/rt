@@ -9,6 +9,9 @@ class Missile : public Explosive {
 public:
     Missile(class World const& world, Object* originator, b2Vec2 target, float speed, ExplosiveDef const& explosive_def);
 
+    [[nodiscard]] Category category() const override { return Category::Missile; }
+    [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Dynamic, Category::Solid }; }
+
 private:
     b2Vec2 target_;
 };

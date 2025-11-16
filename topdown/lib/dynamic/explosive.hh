@@ -9,7 +9,7 @@ class Explosive : public DynamicObject {
 public:
     Explosive(class World const& world, Object* originator, ExplosiveDef const& explosive_def);
 
-    [[nodiscard]] bool is_explosive() const override { return true; }
+    [[nodiscard]] bool explodes_on_contact() const override { return true; }
     [[nodiscard]] Object* originator() const { return originator_; }
 
     void explode();

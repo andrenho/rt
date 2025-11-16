@@ -18,6 +18,10 @@ public:
     void set_reverse(bool reverse) { reverse_ = reverse; }
     void set_modifier(SensorModifier const& mod) { mod_ = mod; }
 
+protected:
+    [[nodiscard]] Category category() const override { return Category::Wheel; }
+    [[nodiscard]] std::vector<Category> categories_contact() const override { return {}; }
+
 private:
     VehicleConfig const& cfg_;
     SensorModifier       mod_;

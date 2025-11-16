@@ -13,7 +13,7 @@ b2BodyId Explosive::build_body(World const& world, b2Vec2 initial_pos)
 {
     // body
     b2BodyDef body_def = b2DefaultBodyDef();
-    body_def.type = b2_kinematicBody;
+    body_def.type = b2_dynamicBody;
     body_def.position = initial_pos;
     body_def.motionLocks = { false, false, true };
     b2BodyId body_id = b2CreateBody(world.id(), &body_def);
@@ -24,6 +24,7 @@ b2BodyId Explosive::build_body(World const& world, b2Vec2 initial_pos)
     shape_def.density = 0.1f;
     shape_def.material.friction = 0.3f;
     shape_def.isSensor = true;
+    shape_def.enableSensorEvents = true;
     b2CreateCircleShape(body_id, &shape_def, &circle);
 
     return body_id;

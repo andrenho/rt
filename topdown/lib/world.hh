@@ -31,13 +31,17 @@ public:
 
     template <typename T, typename ...Params> requires std::derived_from<T, DynamicObject>
     T* add_object(Params&&... params) {
-        dynamic_objects_.emplace_back(std::make_unique<T>(*this, std::forward<Params>(params)...));
+        auto obj = std::make_unique<T>(*this, std::forward<Params>(params)...);
+        obj->setup();
+        dynamic_objects_.emplace_back(std::move(obj));
         return (T*) std::prev(dynamic_objects_.end())->get();
     }
 
     template <typename T, typename ...Params> requires std::derived_from<T, StaticObject>
     T* add_object(Params&&... params) {
-        static_objects_.emplace_back(std::make_unique<T>(*this, std::forward<Params>(params)...));
+        auto obj = std::make_unique<T>(*this, std::forward<Params>(params)...);
+        obj->setup();
+        static_objects_.emplace_back(std::move(obj));
         return (T*) std::prev(static_objects_.end())->get();
     }
 

@@ -28,6 +28,12 @@ StaticObject::~StaticObject()
         b2DestroyShape(id, false);
 }
 
+void StaticObject::setup()
+{
+    for (auto const& shape_id: shape_ids_)
+        setup_collisions(shape_id);
+}
+
 void StaticObject::shapes(std::vector<Shape>& shp) const
 {
     for (auto const& s: shapes_)

@@ -35,7 +35,7 @@ Cast Object::cast(b2Vec2 target, float max_distance) const
             if (data == c->this_)
                 return 1.f;  // shape hit is the generator of the ray
             auto obj = (Object *) data;
-            if (obj->is_sensor())
+            if (obj->category() == Category::Sensor)
                 return 1.f;  // ignore sensors
 
             if (!c->hit || hit_length < (*c->hit).length) {  // if there wasn't a previous hit, or hit is closer
@@ -69,6 +69,17 @@ World& Object::world()
 World const& Object::world() const
 {
     return *(World *) b2World_GetUserData(world_id());
+}
+
+void Object::setup_collisions(b2ShapeId shape)
+{
+    b2Filter filter = b2Shape_GetFilter(shape);
+    filter.categoryBits = (uint64_t) category();
+    uint64_t mask = 0;
+    for (auto const& c: categories_contact())
+        mask |= (uint64_t) c;
+    filter.maskBits = mask;
+    b2Shape_SetFilter(shape, filter);
 }
 
 }

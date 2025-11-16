@@ -107,6 +107,7 @@ add_library(topdown STATIC
         lib/dynamic/missile.cc
         lib/dynamic/missile.hh
         lib/explosivedef.hh
+        lib/category.hh
 )
 target_link_libraries(topdown PUBLIC box2d)
 

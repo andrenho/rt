@@ -2,9 +2,25 @@
 
 namespace topdown {
 
+DynamicObject::DynamicObject(b2BodyId id)
+    : id_(id)
+{
+}
+
+
 DynamicObject::~DynamicObject()
 {
     b2DestroyBody(id_);
+}
+
+void DynamicObject::setup()
+{
+    // setup collisions
+    int count = b2Body_GetShapeCount(id_);
+    b2ShapeId shapes[count];
+    b2Body_GetShapes(id_, shapes, count);
+    for (int i = 0; i < count; ++i)
+        setup_collisions(shapes[i]);
 }
 
 void DynamicObject::shapes(std::vector<Shape>& shp) const
