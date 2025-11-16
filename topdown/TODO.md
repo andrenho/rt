@@ -16,7 +16,7 @@
 - [x] Pushable object
 - [x] Shots
 - [ ] Explosions, missiles
-  - [ ] Filter unwanted contacts (ex: missile with sensor)
+  - [x] Filter unwanted contacts (ex: missile with sensor)
   - [ ] Explode hitting the length
   - [ ] Actual explosion
 - [ ] Add debugging/serialization info
