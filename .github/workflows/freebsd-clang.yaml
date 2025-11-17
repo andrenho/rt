@@ -20,7 +20,7 @@ jobs:
           prepare: pkg install -y cmake gcc13 git xorg
           copyback: false
           run: |
-            mkdir topdown/build
-            cd topdown/build
+            mkdir build
+            cd build
             cmake -DCMAKE_BUILD_TYPE=Debug ..
             make

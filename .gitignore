@@ -40,4 +40,4 @@
 # debug information files
 *.dwo
 cmake-build-*
-topdown/build
+build/
