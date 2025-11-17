@@ -32,13 +32,22 @@ elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
 endif()
 
 #-------------------------
+# Libraries
+#------------------------
+
+include(../cmake/box2d.cmake)
+
+#-------------------------
 # Main build
 #------------------------
 
 # library
 
 add_library(rt-map STATIC
-    lib/map.hh lib/map.cc)
+        lib/map.hh lib/map.cc
+        lib/geo/point.hh
+        lib/geo/shapes.hh
+        lib/features.hh)
 
 # test executable
 
