@@ -15,18 +15,20 @@ using namespace map;
 
 static std::string svg_shape(Map const& map, Shape const& shape, std::string const& color)
 {
-    return std::visit(overloaded {
+    std::string tag = std::visit(overloaded {
         [&](Polygon const& polygon) {
             std::string s = "  <polygon points=\"";
             for (auto const& p: polygon)
                 s += std::format("{}, {} ", p.x, p.y);
-            return s + "\" />\n";
+            return s + "\"";
         },
         [&](Circle const& circle) {
-            return std::format(R"(  <circle cx="{}" cy="{}" r="{}" />)",
-                circle.center.x, circle.center.y, circle.radius) + "\n";
+            return std::format(R"(  <circle cx="{}" cy="{}" r="{}")",
+                circle.center.x, circle.center.y, circle.radius);
         }
     }, shape);
+
+    return std::format("{} fill=\"{}\" />", tag, color);
 }
 
 static std::string terrain_color(Terrain::Type terrain_type)
