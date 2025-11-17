@@ -18,6 +18,8 @@ classDiagram
     Explosive <|-- Missile
     DynamicObject <|-- Sharpnel
     Explosive ..> Sharpnel
+    DynamicObject <|-- Wheel
+    Vehicle "1" --> "2/4" Wheel
     
     <<abstract>> Object
 ```
