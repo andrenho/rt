@@ -16,6 +16,7 @@ public:
     ~DynamicObject() override;
 
     virtual void step() {}
+    void setup() override;
 
     void shapes(std::vector<Shape>& shp) const override;
 
@@ -26,11 +27,14 @@ public:
     virtual void untouch_sensor(Sensor* sensor) { touching_sensor_.erase(sensor); }
 
 protected:
-    [[nodiscard]] b2WorldId get_world_id() const override;
-    [[nodiscard]] b2Vec2 get_center() const override;
+    [[nodiscard]] b2WorldId world_id() const override;
+    [[nodiscard]] b2Vec2 center() const override;
+
+    [[nodiscard]] Category category() const override { return Category::Dynamic; }
+    [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Dynamic, Category::Solid, Category::Missile, Category::Sensor, Category::Shrapnel }; }
 
 protected:
-    explicit DynamicObject(b2BodyId id) :id_(id) {}
+    explicit DynamicObject(b2BodyId id);
 
     b2BodyId id_;
     std::unordered_set<Sensor*> touching_sensor_ {};

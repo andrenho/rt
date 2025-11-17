@@ -7,3 +7,9 @@ set(SPECIFIC_WARNINGS "-Wduplicated-branches -Wduplicated-cond -Wformat-signedne
 #if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 #    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fanalyzer")
 #endif()
+
+# add address sanitizer
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
+    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -fsanitize=address")
+endif()

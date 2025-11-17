@@ -11,13 +11,18 @@ public:
     StaticObject(class World const& world, std::vector<Shape> const& shapes) : StaticObject(world, shapes, false) {}
     ~StaticObject() override;
 
+    void setup() override;
+
     void shapes(std::vector<Shape>& shp) const override;
 
 protected:
     StaticObject(class World const& world, std::vector<Shape> const& shape, bool sensor);
 
-    [[nodiscard]] b2WorldId get_world_id() const override;
-    [[nodiscard]] b2Vec2 get_center() const override;
+    [[nodiscard]] b2WorldId world_id() const override;
+    [[nodiscard]] b2Vec2 center() const override;
+
+    [[nodiscard]] Category category() const override { return Category::Solid; }
+    [[nodiscard]] std::vector<Category> categories_contact() const override { return { Category::Missile, Category::Dynamic, Category::Shrapnel }; }
 
 private:
     std::vector<Shape> shapes_ {};

@@ -9,8 +9,8 @@ b2ShapeId create_b2shape(b2BodyId body_id, topdown::Shape const& shape, bool sen
     b2ShapeDef shape_def = b2DefaultShapeDef();
     if (sensor) {
         shape_def.isSensor = true;
-        shape_def.enableSensorEvents = true;
     }
+    shape_def.enableSensorEvents = true;
     shape_def.userData = user_data;
 
     return std::visit(overloaded {

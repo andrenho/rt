@@ -2,9 +2,26 @@
 
 namespace topdown {
 
+DynamicObject::DynamicObject(b2BodyId id)
+    : id_(id)
+{
+}
+
+
 DynamicObject::~DynamicObject()
 {
     b2DestroyBody(id_);
+}
+
+void DynamicObject::setup()
+{
+    // setup collisions
+    int count = b2Body_GetShapeCount(id_);
+    auto* shapes = new b2ShapeId[count];
+    b2Body_GetShapes(id_, shapes, count);
+    for (int i = 0; i < count; ++i)
+        setup_collisions(shapes[i]);
+    delete[] shapes;
 }
 
 void DynamicObject::shapes(std::vector<Shape>& shp) const
@@ -62,12 +79,12 @@ b2ShapeDef DynamicObject::default_shape()
     return shape_def;
 }
 
-b2WorldId DynamicObject::get_world_id() const
+b2WorldId DynamicObject::world_id() const
 {
     return b2Body_GetWorld(id_);
 }
 
-b2Vec2 DynamicObject::get_center() const
+b2Vec2 DynamicObject::center() const
 {
     return b2Body_GetPosition(id_);
 }

@@ -28,18 +28,24 @@ StaticObject::~StaticObject()
         b2DestroyShape(id, false);
 }
 
+void StaticObject::setup()
+{
+    for (auto const& shape_id: shape_ids_)
+        setup_collisions(shape_id);
+}
+
 void StaticObject::shapes(std::vector<Shape>& shp) const
 {
     for (auto const& s: shapes_)
         shp.push_back(s);
 }
 
-b2WorldId StaticObject::get_world_id() const
+b2WorldId StaticObject::world_id() const
 {
     return b2Shape_GetWorld(shape_ids_.at(0));
 }
 
-b2Vec2 StaticObject::get_center() const
+b2Vec2 StaticObject::center() const
 {
     return center_;
 }

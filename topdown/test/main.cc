@@ -164,6 +164,7 @@ int main()
     Person* hero = world.add_object<Person>(b2Vec2 { -70, 0 });
     world.add_object<PushableObject>(Box({ -70, -20 }, { 4, 4 }), 1.f);
     world.add_object<PushableObject>(Box({ -90, -20 }, { 4, 4 }), 100.f);
+    hero->set_data("Hero");
 
     world.add_object<StaticObject>(Circle { { 0, -80 }, 5 });
 
@@ -190,7 +191,7 @@ int main()
             draw_object(object.get(), object.get() == vehicles.at(current_vehicle) ? SPECIAL : DARK);
         if (last_cast) {
             DrawLineEx(
-                    { last_cast->originator->get_center().x, last_cast->originator->get_center().y },
+                    {last_cast->originator->center().x, last_cast->originator->center().y },
                     { last_cast->final_point.x, last_cast->final_point.y },
                     1.0f, RED);
             last_cast = {};
@@ -205,6 +206,9 @@ int main()
         DrawText("Use WASD to drive vehicle", 10, 40, 10, SPECIAL);
         DrawText("Use arrows to move unit", 10, 50, 10, SPECIAL);
         DrawText("Use right click to fire a shot", 10, 60, 10, SPECIAL);
+        DrawText("Use middle click to fire a missile", 10, 70, 10, SPECIAL);
+        DrawText("Press M to place a landmine", 10, 80, 10, SPECIAL);
+
 
         EndDrawing();
 
@@ -249,8 +253,14 @@ int main()
             if (!hit)
                 printf("No hit!\n");
             else
-                printf("Object %p hit at %f, %f (distance %f)!\n", (void *) hit->object, hit->location.x, hit->location.y, hit->length);
+                printf("Object %p hit at %f, %f (distance %f)!\n", (void const *) hit->object, hit->location.x, hit->location.y, hit->length);
             last_cast = cast;
+        }
+        if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE)) {
+            vehicles.at(current_vehicle)->fire_missile({ mouse_pos.x, mouse_pos.y }, 3.5f, { 20.f, 15.f });
+        }
+        if (IsKeyPressed(KEY_M)) {
+            vehicles.at(current_vehicle)->place_explosive({ 20.f, 15.f });
         }
 
     }
