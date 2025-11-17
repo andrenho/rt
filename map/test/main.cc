@@ -8,7 +8,34 @@
 #define SVG_W 1000
 #define SVG_H 1000
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+
 using namespace map;
+
+static std::string svg_shape(Map const& map, Shape const& shape, std::string const& color)
+{
+    return std::visit(overloaded {
+        [&](Polygon const& polygon) {
+            std::string s = "  <polygon points=\"";
+            for (auto const& p: polygon)
+                s += std::format("{}, {} ", p.x, p.y);
+            return s + "\" />\n";
+        },
+        [&](Circle const& circle) {
+            return std::format(R"(  <circle cx="{}" cy="{}" r="{}" />)",
+                circle.center.x, circle.center.y, circle.radius) + "\n";
+        }
+    }, shape);
+}
+
+static std::string terrain_color(Terrain::Type terrain_type)
+{
+    switch (terrain_type) {
+        case Terrain::Type::Dirt:  return "#ffff00";
+        default: return "#000000";
+    }
+}
 
 static void generate_simple_map(map::Map const& map)
 {
@@ -17,10 +44,14 @@ static void generate_simple_map(map::Map const& map)
     if (!f.is_open())
         return;
 
-    auto px = [&map](float x) { return SVG_W / (map.bounds().bottom_right.x - map.bounds().top_left.x) * x; };
-    auto py = [&map](float y) { return SVG_H / (map.bounds().bottom_right.y - map.bounds().top_left.y) * y; };
+    f << std::format("<svg width=\"{}\" height=\"{}\" viewBox=\"{} {} {} {}\" xmlns=\"http://www.w3.org/2000/svg\">\n",
+        SVG_W, SVG_H, map.bounds().top_left.x, map.bounds().top_left.y,
+        map.bounds().bottom_right.x - map.bounds().top_left.x, map.bounds().bottom_right.y - map.bounds().top_left.y);
 
-    f << std::format("<svg width=\"{}\" height=\"{}\" xmlns=\"http://www.w3.org/2000/svg\">\n", SVG_W, SVG_H);
+    // terrains
+    for (auto const& terrain: map.terrains())
+        f << svg_shape(map, terrain.shape, terrain_color(terrain.type));
+
     f << "</svg>";
 
     f.close();
