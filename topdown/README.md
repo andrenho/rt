@@ -17,8 +17,7 @@ classDiagram
     DynamicObject <|-- Explosive
     Explosive <|-- Missile
     DynamicObject <|-- Sharpnel
-    Explosive ..> Sharpnel
-    DynamicObject <|-- Wheel
+    Explosive ..> Sharpnel : produces
     Vehicle "1" --> "2/4" Wheel
     
     <<abstract>> Object
