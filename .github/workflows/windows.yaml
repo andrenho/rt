@@ -22,4 +22,5 @@ jobs:
           mkdir build
           cd build
           cmake ..
+          msbuild rt.sln
           tree /f
