@@ -19,9 +19,9 @@ jobs:
           arch: x64
       - name: Build
         run: |
-          mkdir topdown\build
-          cd topdown\build
+          mkdir build
+          cd build
           cmake ..
-          msbuild topdown.sln /t:topdown
+          msbuild rt.sln /t:rt
           cd Debug
           dir
