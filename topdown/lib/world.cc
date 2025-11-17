@@ -140,7 +140,7 @@ void World::remove_objects_scheduled_for_deletion()
                 }
             }
         }
-next:
+next: ;
     }
 
     scheduled_for_deletion_.clear();
