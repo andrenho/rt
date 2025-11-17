@@ -22,6 +22,6 @@ jobs:
           mkdir build
           cd build
           cmake ..
-          msbuild rt.sln /t:rt
+          msbuild rt.sln
           cd Debug
           dir
