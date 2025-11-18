@@ -13,5 +13,6 @@ include(cmake/common.cmake)
 # Build submodules
 #------------------------
 
+add_subdirectory(common)
 add_subdirectory(topdown)
 #add_subdirectory(map)
