@@ -1,6 +1,8 @@
 ## Map generation
 
 - [ ] UI + render
+  - [ ] Create rt-common
+  - [ ] raylib + imgui interface
 - [ ] Voronoi
 - [ ] Island
 - [ ] Rivers
