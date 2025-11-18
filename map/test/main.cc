@@ -3,7 +3,7 @@
 #include <format>
 #include <string>
 #include <fstream>
-#include <iostream>
+#include <optional>
 
 #define SVG_W 1000
 #define SVG_H 1000
@@ -13,7 +13,7 @@ template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
 
 using namespace map;
 
-static std::string svg_shape(Map const& map, Shape const& shape, std::string const& color)
+static std::string svg_shape(Map const& map, Shape const& shape, std::string const& color, std::optional<std::string> const& stroke={})
 {
     std::string tag = std::visit(overloaded {
         [&](Polygon const& polygon) {
@@ -28,7 +28,11 @@ static std::string svg_shape(Map const& map, Shape const& shape, std::string con
         }
     }, shape);
 
-    return std::format("{} fill=\"{}\" />", tag, color);
+    tag += " fill=\"" + color + "\"";
+    if (stroke)
+        tag += " stroke=\"" + *stroke + "\" stroke-width=\"60\"";
+
+    return tag + " />";
 }
 
 static std::string terrain_color(Terrain::Type terrain_type)
@@ -52,21 +56,12 @@ static void generate_simple_map(map::Map const& map)
 
     // terrains
     for (auto const& terrain: map.terrains())
-        f << svg_shape(map, terrain.shape, terrain_color(terrain.type));
+        f << svg_shape(map, terrain.shape, terrain_color(terrain.type), "black");
 
     f << "</svg>";
 
     f.close();
-}
-
-static void generate_detailed_map(map::Map const& map)
-{
-    std::ofstream f;
-    f.open("detailed.svg");
-    if (!f.is_open())
-        return;
-
-    f.close();
+    std::puts("Generated simple.svg.");
 }
 
 int main()
@@ -75,7 +70,4 @@ int main()
     Map map(cfg);
 
     generate_simple_map(map);
-    generate_detailed_map(map);
-
-    std::cout << "Generated files `simple.svg` and `detailed.svg`.\n";
 }
