@@ -16,6 +16,7 @@ include(../cmake/common.cmake)
 include(../common/include-common-lib.cmake)
 
 include(../cmake/libs/raylib.cmake)
+include(../cmake/libs/imgui.cmake)
 
 #-------------------------
 # Main build
@@ -32,7 +33,7 @@ target_link_libraries(rt-map PUBLIC rt-common)
 
 add_executable(rt-map-test EXCLUDE_FROM_ALL test/main.cc)
 target_include_directories(rt-map-test PRIVATE rt-map)
-target_link_libraries(rt-map-test PRIVATE rt-map raylib)
+target_link_libraries(rt-map-test PRIVATE rt-map raylib imgui_raylib)
 
 # special targets
 
