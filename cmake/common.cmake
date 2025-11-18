@@ -1,15 +1,26 @@
-set(WARNINGS "-Wall -Wextra -Wpedantic -Wcast-align -Wcast-qual \
-    -Wconversion -Wfloat-equal -Wnull-dereference -Wshadow -Wstack-protector -Wswitch-enum \
-    -Wundef -Wno-vla -Wno-sign-conversion -Wmissing-field-initializers -Wnull-dereference -Wcast-align \
-    ${SPECIFIC_WARNINGS}")
+#-------------------------
+# General configuration
+#------------------------
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS}")
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#add_definitions(-D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200112L -D_DEFAULT_SOURCE)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -ggdb -fno-inline-functions -fstack-protector-strong -fno-common")
-else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Os -ffast-math -march=native -flto -D_FORTIFY_SOURCE=2 -fstack-protector-strong -fno-common")
-    set(CMAKE_CXX_LINK_FLAGS "${CMAKE_CXX_LINK_FLAGS} -flto=auto")
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
+    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+endif()
+
+#-------------------------
+# Compiler specific code
+#------------------------
+
+if(MSVC)
+    include(${CMAKE_CURRENT_LIST_DIR}/envs/msvc.cmake)
+elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
+    include(${CMAKE_CURRENT_LIST_DIR}/envs/clang.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/envs/common.cmake)
+elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    include(${CMAKE_CURRENT_LIST_DIR}/envs/gcc.cmake)
+    include(${CMAKE_CURRENT_LIST_DIR}/envs/common.cmake)
 endif()

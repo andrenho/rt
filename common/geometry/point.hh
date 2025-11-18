@@ -1,10 +1,10 @@
 #ifndef POINT_HH
 #define POINT_HH
 
-namespace map {
+namespace geo {
 
 struct Point {
-    Point(float x, float y) : x(x), y(y) {}
+    Point(float x_, float y_) : x(x_), y(y_) {}
     explicit operator struct Size() const;
 
     Point operator+(Point const& a) const { return { x + a.x, y + a.y }; }
@@ -13,7 +13,7 @@ struct Point {
 };
 
 struct Size {
-    Size(float w, float h) : w(w), h(h) {}
+    Size(float w_, float h_) : w(w_), h(h_) {}
     explicit operator Point() const { return { w, h }; };
 
     const float w, h;
@@ -22,7 +22,7 @@ struct Size {
 inline Point::operator Size() const { return { x, y }; }
 
 struct Bounds {
-    Bounds(Point top_left, Point bottom_right) : top_left(top_left), bottom_right(bottom_right) {}
+    Bounds(Point top_left_, Point bottom_right_) : top_left(top_left_), bottom_right(bottom_right_) {}
 
     Point top_left;
     Point bottom_right;

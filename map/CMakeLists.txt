@@ -3,39 +3,19 @@
 #------------------------
 
 cmake_minimum_required(VERSION 3.25)
-project(topdown
-        VERSION 0.0.2
-        DESCRIPTION "Create maps for rt"
+project(rt-map
+        DESCRIPTION "Map generation lib for rt"
         LANGUAGES C CXX)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
-    set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
-endif()
-
-#-------------------------
-# Compiler specific code
-#------------------------
-
-if(MSVC)
-    include(../cmake/msvc.cmake)
-elseif(CMAKE_C_COMPILER_ID MATCHES "Clang")
-    include(../cmake/clang.cmake)
-    include(../cmake/common.cmake)
-elseif(CMAKE_C_COMPILER_ID STREQUAL "GNU")
-    include(../cmake/gcc.cmake)
-    include(../cmake/common.cmake)
-endif()
+include(../cmake/common.cmake)
 
 #-------------------------
 # Libraries
 #------------------------
 
-include(../cmake/box2d.cmake)
+include(../common/include-common-lib.cmake)
+
+include(../cmake/libs/imgui.cmake)
 
 #-------------------------
 # Main build
@@ -44,16 +24,15 @@ include(../cmake/box2d.cmake)
 # library
 
 add_library(rt-map STATIC
-        lib/map.hh lib/map.cc
-        lib/geo/point.hh
-        lib/geo/shapes.hh
-        lib/features.hh)
+        map/map.hh map/map.cc
+)
+target_link_libraries(rt-map PUBLIC rt-common)
 
 # test executable
 
 add_executable(rt-map-test EXCLUDE_FROM_ALL test/main.cc)
-target_include_directories(rt-map-test PRIVATE lib)
-target_link_libraries(rt-map-test PRIVATE rt-map)
+target_include_directories(rt-map-test PRIVATE rt-map)
+target_link_libraries(rt-map-test PRIVATE rt-map raylib imgui_raylib)
 
 # special targets
 

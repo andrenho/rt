@@ -1,5 +1,5 @@
-#ifndef TOPDOWN_SHAPES_HH
-#define TOPDOWN_SHAPES_HH
+#ifndef GEO_SHAPES_HH
+#define GEO_SHAPES_HH
 
 #include <utility>
 #include <variant>
@@ -7,7 +7,7 @@
 
 #include "point.hh"
 
-namespace map {
+namespace geo {
 
 using Polygon = std::vector<Point>;
 

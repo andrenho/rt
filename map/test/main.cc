@@ -1,73 +1,50 @@
-#include "map.hh"
+#include <raylib.h>
 
-#include <format>
-#include <string>
-#include <fstream>
-#include <optional>
+#include "rlImGui.h"
+#include "imgui.h"
 
-#define SVG_W 1000
-#define SVG_H 1000
+#include "map/map.hh"
 
-template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
-template<class... Ts> overloaded(Ts...) -> overloaded<Ts...>;
+bool show_demo_window = true;
 
-using namespace map;
-
-static std::string svg_shape(Map const& map, Shape const& shape, std::string const& color, std::optional<std::string> const& stroke={})
+static void draw_map(map::Map const& map)
 {
-    std::string tag = std::visit(overloaded {
-        [&](Polygon const& polygon) {
-            std::string s = "  <polygon points=\"";
-            for (auto const& p: polygon)
-                s += std::format("{}, {} ", p.x, p.y);
-            return s + "\"";
-        },
-        [&](Circle const& circle) {
-            return std::format(R"(  <circle cx="{}" cy="{}" r="{}")",
-                circle.center.x, circle.center.y, circle.radius);
-        }
-    }, shape);
-
-    tag += " fill=\"" + color + "\"";
-    if (stroke)
-        tag += " stroke=\"" + *stroke + "\" stroke-width=\"60\"";
-
-    return tag + " />";
 }
 
-static std::string terrain_color(Terrain::Type terrain_type)
+void draw_ui()
 {
-    switch (terrain_type) {
-        case Terrain::Type::Dirt:  return "#ffff00";
-        default: return "#000000";
-    }
-}
-
-static void generate_simple_map(map::Map const& map)
-{
-    std::ofstream f;
-    f.open("simple.svg");
-    if (!f.is_open())
-        return;
-
-    f << std::format("<svg width=\"{}\" height=\"{}\" viewBox=\"{} {} {} {}\" xmlns=\"http://www.w3.org/2000/svg\">\n",
-        SVG_W, SVG_H, map.bounds().top_left.x, map.bounds().top_left.y,
-        map.bounds().bottom_right.x - map.bounds().top_left.x, map.bounds().bottom_right.y - map.bounds().top_left.y);
-
-    // terrains
-    for (auto const& terrain: map.terrains())
-        f << svg_shape(map, terrain.shape, terrain_color(terrain.type), "black");
-
-    f << "</svg>";
-
-    f.close();
-    std::puts("Generated simple.svg.");
+    rlImGuiBegin();
+    if (show_demo_window)
+        ImGui::ShowDemoWindow(&show_demo_window);
+    rlImGuiEnd();
 }
 
 int main()
 {
-    MapConfig cfg {};
-    Map map(cfg);
+    map::Map map;
 
-    generate_simple_map(map);
+    SetConfigFlags(FLAG_MSAA_4X_HINT);
+    InitWindow(1600, 900, "rt-map-test");
+    SetTargetFPS(60);
+
+    rlImGuiSetup(true);
+    Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
+
+    while (!WindowShouldClose()) {
+
+        BeginDrawing();
+        ClearBackground(WHITE);
+
+        BeginMode2D(camera);
+        draw_map(map);
+        draw_ui();
+        EndMode2D();
+
+        EndDrawing();
+
+        if (IsKeyDown(KEY_Q))
+            break;
+    }
+
+    rlImGuiEnd();
 }

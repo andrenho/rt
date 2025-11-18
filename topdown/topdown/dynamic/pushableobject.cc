@@ -2,12 +2,12 @@
 
 #include "../world.hh"
 
-topdown::PushableObject::PushableObject(World const& world, topdown::Shape const& shape, float mass)
+topdown::PushableObject::PushableObject(World const& world, geo::Shape const& shape, float mass)
         : DynamicObject(build_body(world, shape, mass))
 {
 }
 
-b2BodyId topdown::PushableObject::build_body(topdown::World const& world, topdown::Shape const& shape, float mass)
+b2BodyId topdown::PushableObject::build_body(topdown::World const& world, geo::Shape const& shape, float mass)
 {
     // body
     b2BodyDef body_def = b2DefaultBodyDef();

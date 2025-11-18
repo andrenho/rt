@@ -24,21 +24,21 @@ void DynamicObject::setup()
     delete[] shapes;
 }
 
-void DynamicObject::shapes(std::vector<Shape>& shp) const
+void DynamicObject::shapes(std::vector<geo::Shape>& shp) const
 {
     b2ShapeId s_ids[8];
     int n = b2Body_GetShapes(id_, s_ids, 8);
     for (int i = 0; i < n; ++i) {
         switch (b2Shape_GetType(s_ids[i])) {
             case b2_circleShape:
-                shp.emplace_back(Circle { .center = b2Shape_GetCircle(s_ids[i]).center + b2Body_GetPosition(id_), .radius = b2Shape_GetCircle(s_ids[i]).radius });
+                shp.emplace_back(geo::Circle { .center = point(b2Shape_GetCircle(s_ids[i]).center + b2Body_GetPosition(id_)), .radius = b2Shape_GetCircle(s_ids[i]).radius });
                 break;
             case b2_polygonShape: {
-                Polygon pp;
+                geo::Polygon pp;
                 b2Polygon poly = b2Shape_GetPolygon(s_ids[i]);
                 for (int j = 0; j < poly.count; ++j) {
                     b2Vec2 v = b2TransformPoint(b2Body_GetTransform(id_), poly.vertices[j]);
-                    pp.push_back(v);
+                    pp.push_back(point(v));
                 }
                 shp.emplace_back(std::move(pp));
                 break;

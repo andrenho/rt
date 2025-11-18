@@ -26,7 +26,7 @@ class Explosive;
 class Object {
 public:
     virtual ~Object() = default;
-    virtual void shapes(std::vector<Shape>& shp) const = 0;
+    virtual void shapes(std::vector<geo::Shape>& shp) const = 0;
 
     virtual void setup() = 0;
     virtual void schedule_myself_for_deletion();
