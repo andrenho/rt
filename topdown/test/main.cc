@@ -115,20 +115,17 @@ namespace vehicle {
 
 void draw_object(Object const* object, Color color=DARK)
 {
-    std::vector<Shape> shapes; object->shapes(shapes);
+    std::vector<geo::Shape> shapes; object->shapes(shapes);
     for (auto const& shape: shapes) {
         std::visit(overloaded {
-                [&](Polygon const& p) {
+                [&](geo::Polygon const& p) {
                     for (size_t i = 0; i < p.size(); i++) {
                         auto a = p[i], b = p[(i + 1) % p.size()];
                         DrawLineEx({ a.x, a.y }, { b.x, b.y }, 0.5f, color);
                     }
                 },
-                [&](Circle const& c) {
+                [&](geo::Circle const& c) {
                     DrawCircleLinesV({ c.center.x, c.center.y }, c.radius, color);
-                },
-                [&](Line const& ln) {
-                    DrawLineEx({ ln.first.x, ln.first.y }, { ln.second.x, ln.second.y }, 0.3f, color);
                 },
         }, shape);
     }
@@ -148,8 +145,8 @@ int main()
     std::optional<Cast> last_cast {};
 
     World world;
-    world.add_object<Sensor>(Box({ -260, -260 }, { 150, 250 }), terrain::Ice);
-    world.add_object<Sensor>(Box({ 80, -260 }, { 150, 250 }), terrain::Asphalt);
+    world.add_object<Sensor>(geo::Box({ -260, -260 }, { 150, 250 }), terrain::Ice);
+    world.add_object<Sensor>(geo::Box({ 80, -260 }, { 150, 250 }), terrain::Asphalt);
     std::vector<Vehicle*> vehicles = {
         world.add_object<Vehicle>(b2Vec2 { -50, 0 }, vehicle::Beetle),
         world.add_object<Vehicle>(b2Vec2 { -10, 0 }, vehicle::Car),
@@ -162,11 +159,11 @@ int main()
     size_t current_vehicle = 0;
 
     Person* hero = world.add_object<Person>(b2Vec2 { -70, 0 });
-    world.add_object<PushableObject>(Box({ -70, -20 }, { 4, 4 }), 1.f);
-    world.add_object<PushableObject>(Box({ -90, -20 }, { 4, 4 }), 100.f);
+    world.add_object<PushableObject>(geo::Box({ -70, -20 }, { 4, 4 }), 1.f);
+    world.add_object<PushableObject>(geo::Box({ -90, -20 }, { 4, 4 }), 100.f);
     hero->set_data("Hero");
 
-    world.add_object<StaticObject>(Circle { { 0, -80 }, 5 });
+    world.add_object<StaticObject>(geo::Circle { { 0, -80 }, 5 });
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1600, 900, "topdown-test");

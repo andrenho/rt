@@ -21,7 +21,7 @@ public:
     void step() override;
     void attach(Vehicle* load);
 
-    void shapes(std::vector<Shape>& shp) const override;
+    void shapes(std::vector<geo::Shape>& shp) const override;
     void touch_sensor(Sensor* sensor) override;
     void untouch_sensor(Sensor* sensor) override;
 

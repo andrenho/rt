@@ -4,7 +4,17 @@
 
 namespace topdown {
 
-b2ShapeId create_b2shape(b2BodyId body_id, topdown::Shape const& shape, bool sensor, void* user_data)
+b2Vec2 b2vec(geo::Point const& p)
+{
+    return { p.x, p.y };
+}
+
+geo::Point point(b2Vec2 const& v)
+{
+    return { v.x, v.y };
+}
+
+b2ShapeId create_b2shape(b2BodyId body_id, geo::Shape const& shape, bool sensor, void* user_data)
 {
     b2ShapeDef shape_def = b2DefaultShapeDef();
     if (sensor) {
@@ -14,7 +24,7 @@ b2ShapeId create_b2shape(b2BodyId body_id, topdown::Shape const& shape, bool sen
     shape_def.userData = user_data;
 
     return std::visit(overloaded {
-        [&](Polygon const& polygon) {
+        [&](geo::Polygon const& polygon) {
             std::vector<b2Vec2> vecs;
             for (auto p: polygon)
                 vecs.emplace_back(p.x, p.y);
@@ -22,15 +32,9 @@ b2ShapeId create_b2shape(b2BodyId body_id, topdown::Shape const& shape, bool sen
             b2Polygon poly = b2MakePolygon(&hull, 0);
             return b2CreatePolygonShape(body_id, &shape_def, &poly);
         },
-        [&](Circle const& circle) {
+        [&](geo::Circle const& circle) {
             b2Circle c { { circle.center.x, circle.center.y }, circle.radius };
             return b2CreateCircleShape(body_id, &shape_def, &c);
-        },
-        [&](Line const& ln) {
-            b2Vec2 vecs[4] = { ln.first, ln.second, ln.first + b2Vec2 { 0, .01f }, ln.second + b2Vec2 { 0, .01f } };
-            b2Hull hull = b2ComputeHull(vecs, 4);
-            b2Polygon poly = b2MakePolygon(&hull, 0);
-            return b2CreatePolygonShape(body_id, &shape_def, &poly);
         },
     }, shape);
 }

@@ -18,7 +18,7 @@ public:
     virtual void step() {}
     void setup() override;
 
-    void shapes(std::vector<Shape>& shp) const override;
+    void shapes(std::vector<geo::Shape>& shp) const override;
 
     [[nodiscard]] float speed() const;
     [[nodiscard]] b2BodyId const& id() const { return id_; }

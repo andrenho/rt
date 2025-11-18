@@ -120,7 +120,7 @@ void Vehicle::set_reverse(bool reverse)
     reverse_ = reverse;
 }
 
-void Vehicle::shapes(std::vector<Shape>& shp) const
+void Vehicle::shapes(std::vector<geo::Shape>& shp) const
 {
     DynamicObject::shapes(shp);
     for (auto const& wheel: front_wheels_)

@@ -4,7 +4,7 @@
 
 namespace topdown {
 
-StaticObject::StaticObject(World const& world, std::vector<Shape> const& shapes, bool sensor)
+StaticObject::StaticObject(World const& world, std::vector<geo::Shape> const& shapes, bool sensor)
     : shapes_(shapes)
 {
     for (auto const& shp: shapes)
@@ -34,7 +34,7 @@ void StaticObject::setup()
         setup_collisions(shape_id);
 }
 
-void StaticObject::shapes(std::vector<Shape>& shp) const
+void StaticObject::shapes(std::vector<geo::Shape>& shp) const
 {
     for (auto const& s: shapes_)
         shp.push_back(s);
