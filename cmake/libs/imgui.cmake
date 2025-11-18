@@ -32,5 +32,5 @@ target_include_directories(imgui_raylib
         ${CMAKE_CURRENT_BINARY_DIR}/rlimgui-src
 )
 
-target_link_libraries(imgui_raylib PUBLIC ${OPENGL_LIBRARIES})
+target_link_libraries(imgui_raylib PUBLIC ${OPENGL_LIBRARIES} raylib)
 
