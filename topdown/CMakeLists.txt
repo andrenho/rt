@@ -13,7 +13,7 @@ include(../cmake/common.cmake)
 # Libraries
 #------------------------
 
-include(../common/include-common.cmake)
+include(../common/include-common-lib.cmake)
 
 include(../cmake/libs/box2d.cmake)
 include(../cmake/libs/raylib.cmake)
