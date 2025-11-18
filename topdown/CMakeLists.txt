@@ -35,48 +35,8 @@ endif()
 # Libraries
 #------------------------
 
-include(FetchContent)
-set(FETCHCONTENT_QUIET FALSE)
-
-# Raylib
-set(BUILD_EXAMPLES OFF CACHE BOOL "" FORCE) # don't build the supplied examples
-set(BUILD_GAMES    OFF CACHE BOOL "" FORCE) # don't build the supplied example games
-
-FetchContent_Declare(
-        raylib
-        GIT_REPOSITORY "https://github.com/raysan5/raylib.git"
-        GIT_TAG "master"
-        GIT_PROGRESS TRUE
-)
-FetchContent_MakeAvailable(raylib)
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    target_compile_definitions(raylib PRIVATE _DARWIN_C_SOURCE)
-endif()
-
-# box2d
-set(BOX2D_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
-set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
-
-FetchContent_Declare(
-        box2d
-        GIT_REPOSITORY "https://github.com/erincatto/box2d.git"
-        GIT_TAG "main"
-        GIT_PROGRESS TRUE
-)
-FetchContent_MakeAvailable(box2d)
-
-# Remove warnings for headers
-function(mark_as_system TARGET)
-    get_target_property(dirs ${TARGET} INTERFACE_INCLUDE_DIRECTORIES)
-    if(dirs)
-        target_include_directories(${TARGET} SYSTEM INTERFACE ${dirs})
-    endif()
-endfunction()
-
-mark_as_system(raylib)
-mark_as_system(box2d)
+include(../cmake/box2d.cmake)
+include(../cmake/raylib.cmake)
 
 #-------------------------
 # Main build
