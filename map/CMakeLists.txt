@@ -4,7 +4,6 @@
 
 cmake_minimum_required(VERSION 3.25)
 project(topdown
-        VERSION 0.0.2
         DESCRIPTION "Create maps for rt"
         LANGUAGES C CXX)
 

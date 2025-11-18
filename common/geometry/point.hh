@@ -1,7 +1,7 @@
 #ifndef POINT_HH
 #define POINT_HH
 
-namespace map {
+namespace geo {
 
 struct Point {
     Point(float x, float y) : x(x), y(y) {}

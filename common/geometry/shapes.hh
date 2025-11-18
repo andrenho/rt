@@ -7,7 +7,7 @@
 
 #include "point.hh"
 
-namespace map {
+namespace geo {
 
 using Polygon = std::vector<Point>;
 
