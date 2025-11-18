@@ -1,3 +1,5 @@
+include(${CMAKE_CURRENT_LIST_DIR}/raylib.cmake)
+
 set(OpenGL_GL_PREFERENCE "LEGACY")
 find_package(OpenGL 2 REQUIRED)
 
@@ -19,7 +21,6 @@ add_library(imgui_raylib STATIC
         imgui/imgui_demo.cpp
         imgui/imgui_tables.cpp
         imgui/imgui_widgets.cpp
-
         imgui/backends/imgui_impl_opengl2.cpp
         rlimgui-src/rlImGui.cpp
 )
