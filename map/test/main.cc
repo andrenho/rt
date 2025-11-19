@@ -25,8 +25,10 @@ static map::Map map_;
 
 struct State {
     bool show_points;
+    bool show_polygons;
 } state = {
     .show_points = true,
+    .show_polygons = true,
 };
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
@@ -50,7 +52,7 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                 if (line_color) {
                     for (size_t i = 0; i < p.size(); i++) {
                         auto a = p[i], b = p[(i + 1) % p.size()];
-                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, 1.f, *line_color);
+                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, 1.f / camera.zoom, *line_color);
                     }
                 }
             },
@@ -67,6 +69,12 @@ static void draw_points()
 {
     for (auto const& p: map_.polygon_points)
         draw_shape(geo::Circle { p, 40.f }, BLACK, VIOLET);
+}
+
+static void draw_polygons()
+{
+    for (auto const& pp: map_.polygons)
+        draw_shape(pp, BLACK);
 }
 
 void draw_ui()
@@ -94,6 +102,11 @@ void draw_ui()
             ImGui::SeparatorText("Generate map");
             if (ImGui::Button("Generate map"))
                 map_.initialize(map_config);
+            ImGui::SameLine();
+            if (ImGui::Button("Generate map with new seed")) {
+                map_config.seed = rand();
+                map_.initialize(map_config);
+            }
 
             ImGui::EndTabItem();
         }
@@ -101,6 +114,7 @@ void draw_ui()
         if (ImGui::BeginTabItem("Visualization")) {
             ImGui::SeparatorText("Visualization");
             ImGui::Checkbox("Show center points", &state.show_points);
+            ImGui::Checkbox("Show polygons", &state.show_polygons);
             ImGui::EndTabItem();
         }
 
@@ -126,6 +140,9 @@ static void handle_events()
 {
     if (IsKeyDown(KEY_Q))
         exit(EXIT_SUCCESS);
+
+    if (IsKeyDown(KEY_G))
+        map_.initialize(map_config);
 
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
     {
@@ -171,6 +188,8 @@ int main()
         BeginMode2D(camera);
         if (state.show_points)
             draw_points();
+        if (state.show_polygons)
+            draw_polygons();
         EndMode2D();
 
         draw_ui();

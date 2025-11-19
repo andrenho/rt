@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "geometry/point.hh"
+#include "geometry/shapes.hh"
 
 namespace map {
 
@@ -23,12 +24,14 @@ public:
     [[nodiscard]] geo::Size size() const { return { (float) cfg_.map_w, (float) cfg_.map_h }; }
 
     std::vector<geo::Point> polygon_points {};
+    std::vector<geo::Polygon> polygons {};
 
 private:
     MapConfig cfg_;
     std::mt19937 rng_;
 
     void generate_points();
+    void generate_polygons();
 };
 
 } // map
