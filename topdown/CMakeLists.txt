@@ -25,7 +25,6 @@ include(../cmake/libs/raylib.cmake)
 # library
 
 add_library(topdown STATIC
-        topdown/util.hh
         topdown/vehicleconfig.hh
         topdown/event.hh
         topdown/explosivedef.hh
