@@ -87,6 +87,10 @@ void draw_ui()
             ImGui::InputInt("Map width", &map_config.map_w);
             ImGui::InputInt("Map height", &map_config.map_h);
 
+            ImGui::SeparatorText("Polygons");
+            ImGui::SliderInt("Point density", &map_config.point_density, 300, 1500);
+
+            ImGui::SeparatorText("Generate map");
             if (ImGui::Button("Generate map"))
                 map_.initialize(map_config);
 

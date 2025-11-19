@@ -9,6 +9,9 @@ void Map::initialize(MapConfig const& cfg)
     cfg_ = cfg;
 
     rng_ = std::mt19937(cfg.seed);
+
+    polygon_points.clear();
+
     generate_points();
 }
 
