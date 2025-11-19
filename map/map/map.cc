@@ -17,7 +17,15 @@ void Map::initialize(MapConfig const& cfg)
     polygons.clear();
 
     generate_points();
+
+    int relaxations = cfg_.polygon_relaxation_steps;
+generate_polygons_again:
     generate_polygons();
+    if (relaxations > 0) {
+        --relaxations;
+        relax_points();
+        goto generate_polygons_again;
+    }
 }
 
 void Map::generate_points()
@@ -40,6 +48,8 @@ void Map::generate_points()
 
 void Map::generate_polygons()
 {
+    polygons.clear();
+
     jcv_diagram diagram {};
     std::vector<jcv_point> jcv_points; jcv_points.reserve(polygon_points.size());
     for (auto const& p: polygon_points)
@@ -64,5 +74,13 @@ void Map::generate_polygons()
 
     jcv_diagram_free(&diagram);
 }
+
+void Map::relax_points()
+{
+    polygon_points.clear();
+    for (auto const& pp: polygons)
+        polygon_points.emplace_back(pp.center());
+}
+
 
 } // map

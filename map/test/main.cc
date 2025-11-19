@@ -20,6 +20,7 @@ static map::MapConfig map_config {
     .map_h = 20000,
     .point_density = 500,
     .point_randomness = .7f,
+    .polygon_relaxation_steps = 1,
 };
 static map::Map map_;
 
@@ -98,6 +99,7 @@ void draw_ui()
             ImGui::SeparatorText("Polygons");
             ImGui::SliderInt("Point density", &map_config.point_density, 300, 1500);
             ImGui::SliderFloat("Point randomness", &map_config.point_randomness, 0.0f, 1.0f, "%.3f");
+            ImGui::SliderInt("Relaxation steps", &map_config.polygon_relaxation_steps, 0, 10);
 
             ImGui::SeparatorText("Generate map");
             if (ImGui::Button("Generate map"))

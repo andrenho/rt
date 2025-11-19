@@ -15,6 +15,7 @@ struct MapConfig {
     int    map_h;
     int    point_density;
     float  point_randomness;
+    int    polygon_relaxation_steps;
 };
 
 class Map {
@@ -27,11 +28,12 @@ public:
     std::vector<geo::Polygon> polygons {};
 
 private:
-    MapConfig cfg_;
+    MapConfig cfg_ {};
     std::mt19937 rng_;
 
     void generate_points();
     void generate_polygons();
+    void relax_points();
 };
 
 } // map
