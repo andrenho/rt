@@ -11,7 +11,7 @@
 #include "map/map.hh"
 #include "geometry/shapes.hh"
 
-static bool show_demo_window = true;
+static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::Map map_({
     .size = { 20000, 20000 },
@@ -58,6 +58,15 @@ static void draw_map()
 void draw_ui()
 {
     rlImGuiBegin();
+
+    ImGui::Begin("Map");
+    ImGui::SeparatorText("Other");
+    if(ImGui::Button("Reset zoom"))
+        show_full_map();
+    if (ImGui::Button("Show demo window"))
+        show_demo_window = true;
+    ImGui::End();
+
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
     rlImGuiEnd();
