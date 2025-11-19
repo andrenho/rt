@@ -7,9 +7,16 @@
 
 #include "point.hh"
 
+template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
+
 namespace geo {
 
-using Polygon = std::vector<Point>;
+class Polygon : public std::vector<Point> {
+public:
+    using std::vector<Point>::vector;
+
+    [[nodiscard]] Point center() const;
+};
 
 inline Polygon Box(Point const& p, Point const& sz)
 {

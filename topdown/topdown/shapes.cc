@@ -1,7 +1,5 @@
 #include "shapes.hh"
 
-#include "util.hh"
-
 namespace topdown {
 
 b2Vec2 b2vec(geo::Point const& p)

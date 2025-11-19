@@ -16,6 +16,7 @@ include(../cmake/common.cmake)
 include(../common/include-common-lib.cmake)
 
 include(../cmake/libs/imgui.cmake)
+include(../cmake/libs/voronoi.cmake)
 
 #-------------------------
 # Main build
@@ -26,6 +27,8 @@ include(../cmake/libs/imgui.cmake)
 add_library(rt-map STATIC
         map/map.hh map/map.cc
 )
+message(${jc_voronoi_SOURCE_DIR})
+target_include_directories(rt-map PUBLIC ${jc_voronoi_SOURCE_DIR}/src)
 target_link_libraries(rt-map PUBLIC rt-common)
 
 # test executable

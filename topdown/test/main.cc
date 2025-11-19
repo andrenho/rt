@@ -2,7 +2,6 @@
 
 #include <raylib.h>
 
-#include "util.hh"
 #include "world.hh"
 
 #define DARK_MODE 0

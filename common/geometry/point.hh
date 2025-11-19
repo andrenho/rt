@@ -9,14 +9,15 @@ struct Point {
 
     Point operator+(Point const& a) const { return { x + a.x, y + a.y }; }
 
-    const float x, y;
+    float x, y;
 };
 
 struct Size {
+    Size() : w(0), h(0) {}
     Size(float w_, float h_) : w(w_), h(h_) {}
     explicit operator Point() const { return { w, h }; };
 
-    const float w, h;
+    float w, h;
 };
 
 inline Point::operator Size() const { return { x, y }; }
