@@ -19,7 +19,7 @@ static map::MapConfig map_config {
     .map_w = 20000,
     .map_h = 20000,
     .point_density = 500,
-    .point_randomness = .5f,
+    .point_randomness = .7f,
 };
 static map::Map map_;
 
