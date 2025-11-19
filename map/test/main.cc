@@ -89,6 +89,7 @@ void draw_ui()
 
             ImGui::SeparatorText("Polygons");
             ImGui::SliderInt("Point density", &map_config.point_density, 300, 1500);
+            ImGui::SliderFloat("Point randomness", &map_config.point_randomness, 0.0f, 1.0f, "%.3f");
 
             ImGui::SeparatorText("Generate map");
             if (ImGui::Button("Generate map"))
