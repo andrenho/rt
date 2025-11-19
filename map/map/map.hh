@@ -6,14 +6,15 @@
 namespace map {
 
 struct MapConfig {
-    geo::Size size;
+    int map_w;
+    int map_h;
 };
 
 class Map {
 public:
-    explicit Map(MapConfig const& cfg) : cfg_(cfg) {}
+    void initialize(MapConfig const& cfg);
 
-    [[nodiscard]] geo::Size size() const { return cfg_.size; }
+    [[nodiscard]] geo::Size size() const { return { (float) cfg_.map_w, (float) cfg_.map_h }; }
 
 private:
     MapConfig cfg_;

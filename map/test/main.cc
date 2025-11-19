@@ -13,9 +13,17 @@
 
 static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
-static map::Map map_({
-    .size = { 20000, 20000 },
-});
+static map::MapConfig map_config {
+    .map_w = 20000,
+    .map_h = 20000,
+};
+static map::Map map_;
+
+struct State {
+    bool show_points;
+} state = {
+    .show_points = true,
+};
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
@@ -60,11 +68,23 @@ void draw_ui()
     rlImGuiBegin();
 
     ImGui::Begin("Map");
+
+    ImGui::SeparatorText("Map definition");
+    ImGui::InputInt("Map width", &map_config.map_w);
+    ImGui::InputInt("Map height", &map_config.map_h);
+
+    if (ImGui::Button("Generate map"))
+        map_.initialize(map_config);
+
+    ImGui::SeparatorText("Visualization");
+    ImGui::Checkbox("Show center points", &state.show_points);
+
     ImGui::SeparatorText("Other");
     if(ImGui::Button("Reset zoom"))
         show_full_map();
     if (ImGui::Button("Show demo window"))
         show_demo_window = true;
+
     ImGui::End();
 
     if (show_demo_window)
@@ -98,6 +118,8 @@ static void handle_events()
 
 int main()
 {
+    map_.initialize(map_config);
+
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1600, 900, "rt-map-test");
     SetTargetFPS(60);
