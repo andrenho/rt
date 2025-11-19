@@ -1,13 +1,19 @@
 #ifndef MAP_HH
 #define MAP_HH
 
+#include <random>
+#include <vector>
+
 #include "geometry/point.hh"
 
 namespace map {
 
 struct MapConfig {
-    int map_w;
-    int map_h;
+    int    seed;
+    int    map_w;
+    int    map_h;
+    int    point_density;
+    float  point_randomness;
 };
 
 class Map {
@@ -16,8 +22,13 @@ public:
 
     [[nodiscard]] geo::Size size() const { return { (float) cfg_.map_w, (float) cfg_.map_h }; }
 
+    std::vector<geo::Point> polygon_points {};
+
 private:
     MapConfig cfg_;
+    std::mt19937 rng_;
+
+    void generate_points();
 };
 
 } // map

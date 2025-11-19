@@ -1,4 +1,5 @@
-#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 #include <optional>
 
@@ -14,8 +15,11 @@
 static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::MapConfig map_config {
+    .seed = 0,
     .map_w = 20000,
     .map_h = 20000,
+    .point_density = 500,
+    .point_randomness = .5f,
 };
 static map::Map map_;
 
@@ -59,8 +63,10 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
     }, shape);
 }
 
-static void draw_map()
+static void draw_points()
 {
+    for (auto const& p: map_.polygon_points)
+        draw_shape(geo::Circle { p, 40.f }, BLACK, VIOLET);
 }
 
 void draw_ui()
@@ -69,26 +75,45 @@ void draw_ui()
 
     ImGui::Begin("Map");
 
-    ImGui::SeparatorText("Map definition");
-    ImGui::InputInt("Map width", &map_config.map_w);
-    ImGui::InputInt("Map height", &map_config.map_h);
+    ImGuiTabBarFlags tab_bar_flags = ImGuiTabBarFlags_None;
+    if (ImGui::BeginTabBar("MyTabBar", tab_bar_flags)) {
 
-    if (ImGui::Button("Generate map"))
-        map_.initialize(map_config);
+        if (ImGui::BeginTabItem("Map generation")) {
 
-    ImGui::SeparatorText("Visualization");
-    ImGui::Checkbox("Show center points", &state.show_points);
+            ImGui::SeparatorText("Map definition");
+            ImGui::InputInt("Seed", &map_config.seed); ImGui::SameLine();
+            if (ImGui::Button("New seed"))
+                map_config.seed = rand();
+            ImGui::InputInt("Map width", &map_config.map_w);
+            ImGui::InputInt("Map height", &map_config.map_h);
 
-    ImGui::SeparatorText("Other");
-    if(ImGui::Button("Reset zoom"))
-        show_full_map();
-    if (ImGui::Button("Show demo window"))
-        show_demo_window = true;
+            if (ImGui::Button("Generate map"))
+                map_.initialize(map_config);
 
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Visualization")) {
+            ImGui::SeparatorText("Visualization");
+            ImGui::Checkbox("Show center points", &state.show_points);
+            ImGui::EndTabItem();
+        }
+
+        if (ImGui::BeginTabItem("Other")) {
+            if(ImGui::Button("Reset zoom"))
+                show_full_map();
+            if (ImGui::Button("Show demo window"))
+                show_demo_window = true;
+            ImGui::EndTabItem();
+        }
+
+        ImGui::EndTabBar();
+    }
     ImGui::End();
 
     if (show_demo_window)
         ImGui::ShowDemoWindow(&show_demo_window);
+
     rlImGuiEnd();
 }
 
@@ -118,6 +143,9 @@ static void handle_events()
 
 int main()
 {
+    srand(time(nullptr));
+    map_config.seed = rand();
+
     map_.initialize(map_config);
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
@@ -136,7 +164,8 @@ int main()
         ClearBackground(WHITE);
 
         BeginMode2D(camera);
-        draw_map();
+        if (state.show_points)
+            draw_points();
         EndMode2D();
 
         draw_ui();
