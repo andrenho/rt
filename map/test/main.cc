@@ -13,9 +13,18 @@
 
 static bool show_demo_window = true;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
-static map::Map map_;
+static map::Map map_({
+    .size = { 20000, 20000 },
+});
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
+
+static void show_full_map()
+{
+    camera.target = { 0, 0 };
+    camera.offset = { 0, 0 };
+    camera.zoom = (float) GetScreenWidth() / map_.size().w;
+}
 
 static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color={}, std::optional<Color> bg_color={})
 {
@@ -59,7 +68,7 @@ static void handle_events()
     if (IsKeyDown(KEY_Q))
         exit(EXIT_SUCCESS);
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_LEFT))
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
     {
         Vector2 delta = GetMouseDelta();
         delta = Vector2Scale(delta, -1.0f/camera.zoom);
@@ -74,18 +83,19 @@ static void handle_events()
         camera.target = mouseWorldPos;
 
         float scale = 0.2f*wheel;
-        camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0.125f / (256 * 256), 64.0f);
+        camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0, 4.0f);
     }
 }
 
 int main()
 {
-
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1600, 900, "rt-map-test");
     SetTargetFPS(60);
 
     rlImGuiSetup(true);
+
+    show_full_map();
 
     while (!WindowShouldClose()) {
 
@@ -95,7 +105,6 @@ int main()
         ClearBackground(WHITE);
 
         BeginMode2D(camera);
-        draw_shape(geo::Circle({ 100, 100 }, 50.f), BLACK, YELLOW);
         draw_map();
         EndMode2D();
 
