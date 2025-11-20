@@ -22,7 +22,6 @@ static map::MapConfig map_config {
     .point_randomness = .7f,
     .polygon_relaxation_steps = 1,
 };
-static map::Map map_;
 
 struct State {
     enum PolygonFill : int { None, Height };
@@ -35,13 +34,23 @@ struct State {
     .polygon_fill = State::PolygonFill::None,
 };
 
+map::MapOutput map_;
+map::MapTemp tmp;
+
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
+
+static void reset_map()
+{
+    auto [m, t] = map::create_with_temp(map_config);
+    map_ = m;
+    tmp = t;
+}
 
 static void show_full_map()
 {
     camera.target = { 0, 0 };
     camera.offset = { 0, 0 };
-    camera.zoom = (float) GetScreenWidth() / map_.size().w;
+    camera.zoom = (float) GetScreenWidth() / (float) map_.w;
 }
 
 static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color={}, std::optional<Color> bg_color={})
@@ -71,20 +80,20 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
 
 static void draw_points()
 {
-    for (auto const& p: map_.polygon_points)
+    for (auto const& p: tmp.polygon_points)
         draw_shape(geo::Circle { p, 40.f }, BLACK, VIOLET);
 }
 
 static void draw_polygons()
 {
-    for (size_t i = 0; i < map_.polygons.size(); ++i) {
-        geo::Polygon const& polygon = map_.polygons.at(i);
+    for (size_t i = 0; i < tmp.polygons.size(); ++i) {
+        geo::Polygon const& polygon = tmp.polygons.at(i);
         switch (state.polygon_fill) {
             case State::PolygonFill::None:
                 draw_shape(polygon, BLACK);
                 break;
             case State::PolygonFill::Height: {
-                float height = map_.polygon_heights.at(i);
+                float height = tmp.polygon_heights.at(i);
                 draw_shape(polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * height) });
                 break;
             }
@@ -117,11 +126,11 @@ void draw_ui()
 
             ImGui::SeparatorText("Generate map");
             if (ImGui::Button("Generate map"))
-                map_.initialize(map_config);
+                reset_map();
             ImGui::SameLine();
             if (ImGui::Button("Generate map with new seed")) {
                 map_config.seed = rand();
-                map_.initialize(map_config);
+                reset_map();
             }
 
             ImGui::EndTabItem();
@@ -160,7 +169,7 @@ static void handle_events()
         exit(EXIT_SUCCESS);
 
     if (IsKeyDown(KEY_G))
-        map_.initialize(map_config);
+        reset_map();
 
     if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
     {
@@ -186,7 +195,7 @@ int main()
     srand(time(nullptr));
     map_config.seed = rand();
 
-    map_.initialize(map_config);
+    reset_map();
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1600, 900, "rt-map-test");

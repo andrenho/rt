@@ -1,6 +1,7 @@
 #ifndef MAP_HH
 #define MAP_HH
 
+#include <utility>
 #include <random>
 #include <vector>
 
@@ -18,25 +19,18 @@ struct MapConfig {
     int    polygon_relaxation_steps;
 };
 
-class Map {
-public:
-    void initialize(MapConfig const& cfg);
-
-    [[nodiscard]] geo::Size size() const { return { (float) cfg_.map_w, (float) cfg_.map_h }; }
-
-    std::vector<geo::Point> polygon_points {};
+struct MapTemp {
+    std::vector<geo::Point>   polygon_points {};
     std::vector<geo::Polygon> polygons {};
-    std::vector<float> polygon_heights {};
-
-private:
-    MapConfig cfg_ {};
-    std::mt19937 rng_;
-
-    void generate_points();
-    void generate_polygons();
-    void relax_points();
-    void generate_polygon_heights();
+    std::vector<float>        polygon_heights {};
 };
+
+struct MapOutput {
+    size_t w = 0, h = 0;
+};
+
+MapOutput create(MapConfig const& cfg);
+std::pair<MapOutput, MapTemp> create_with_temp(MapConfig const& cfg);
 
 } // map
 
