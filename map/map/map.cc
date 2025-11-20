@@ -95,6 +95,17 @@ void update_biome_elevation(std::vector<Biome>& biomes, MapConfig const& cfg)
     }
 }
 
+void update_biome_moisture(std::vector<Biome>& biomes, MapConfig const& cfg)
+{
+    const siv::PerlinNoise::seed_type seed = cfg.seed + 1;
+    const siv::PerlinNoise perlin(seed);
+
+    for (auto& biome: biomes) {
+        auto p = biome.center_point;
+        biome.moisture = (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4);
+    }
+}
+
 void update_biome_ocean(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
     for (auto& biome: biomes)
@@ -104,7 +115,7 @@ void update_biome_ocean(std::vector<Biome>& biomes, MapConfig const& cfg)
 
 void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
-    const siv::PerlinNoise::seed_type seed = cfg.seed;
+    const siv::PerlinNoise::seed_type seed = cfg.seed + 2;
     const siv::PerlinNoise perlin(seed);
 
     for (auto& biome: biomes) {
@@ -136,6 +147,8 @@ generate_polygons_again:
     }
 
     update_biome_elevation(biomes, cfg);
+    update_biome_moisture(biomes, cfg);
+
     update_biome_ocean(biomes, cfg);
     add_lakes(biomes, cfg);
 
