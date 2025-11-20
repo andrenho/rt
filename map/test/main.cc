@@ -14,24 +14,17 @@
 
 static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
-static map::MapConfig map_config {
-    .seed = 0,
-    .map_w = 20000,
-    .map_h = 20000,
-    .point_density = 500,
-    .point_randomness = .7f,
-    .polygon_relaxation_steps = 1,
-};
+static map::MapConfig map_config {};
 
 struct State {
-    enum PolygonFill : int { None, Elevation };
+    enum PolygonFill : int { None, Elevation, Oceans };
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
 } state = {
     .show_points = false,
     .show_polygons = true,
-    .polygon_fill = State::PolygonFill::None,
+    .polygon_fill = State::PolygonFill::Oceans,
 };
 
 map::MapOutput map_;
@@ -92,6 +85,8 @@ static void draw_polygons()
                 draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.elevation ) });
                 break;
             }
+            case State::PolygonFill::Oceans:
+                draw_shape(biome.polygon, BLACK, biome.type == map::Biome::Ocean ? SKYBLUE : BROWN);
         }
     }
 }
@@ -118,6 +113,9 @@ void draw_ui()
             ImGui::SliderInt("Point density", &map_config.point_density, 100, 1500);
             ImGui::SliderFloat("Point randomness", &map_config.point_randomness, 0.0f, 1.0f, "%.3f");
             ImGui::SliderInt("Relaxation steps", &map_config.polygon_relaxation_steps, 0, 10);
+
+            ImGui::SeparatorText("Terrain");
+            ImGui::SliderFloat("Ocean elevation", &map_config.ocean_elevation, 0.0f, 1.0f, "%.3f");
 
             ImGui::SeparatorText("Generate map");
             if (ImGui::Button("Generate map"))

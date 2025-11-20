@@ -95,6 +95,13 @@ void update_biome_elevation(std::vector<Biome>& biomes, MapConfig const& cfg)
     }
 }
 
+void update_biome_ocean(std::vector<Biome>& biomes, MapConfig const& cfg)
+{
+    for (auto& biome: biomes)
+        if (biome.elevation < cfg.ocean_elevation)
+            biome.type = Biome::Ocean;
+}
+
 //
 // PUBLIC FUNCTIONS
 //
@@ -117,6 +124,7 @@ generate_polygons_again:
     }
 
     update_biome_elevation(biomes, cfg);
+    update_biome_ocean(biomes, cfg);
 
     output.biomes = std::move(biomes);
     return output;

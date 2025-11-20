@@ -11,12 +11,13 @@
 namespace map {
 
 struct MapConfig {
-    int    seed;
-    int    map_w;
-    int    map_h;
-    int    point_density;
-    float  point_randomness;
-    int    polygon_relaxation_steps;
+    int    seed                         = rand();
+    int    map_w                        = 20000;
+    int    map_h                        = 20000;
+    int    point_density                = 500;
+    float  point_randomness             = .7f;
+    int    polygon_relaxation_steps     = 1;
+    float  ocean_elevation              = .4f;
 };
 
 struct Biome {
