@@ -14,36 +14,26 @@
 
 static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
-static map::MapConfig map_config {
-    .seed = 0,
-    .map_w = 20000,
-    .map_h = 20000,
-    .point_density = 500,
-    .point_randomness = .7f,
-    .polygon_relaxation_steps = 1,
-};
+static map::MapConfig map_config {};
 
 struct State {
-    enum PolygonFill : int { None, Height };
+    enum PolygonFill : int { None, Elevation, Oceans };
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
 } state = {
     .show_points = false,
     .show_polygons = true,
-    .polygon_fill = State::PolygonFill::None,
+    .polygon_fill = State::PolygonFill::Oceans,
 };
 
 map::MapOutput map_;
-map::MapTemp tmp;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
 static void reset_map()
 {
-    auto [m, t] = map::create_with_temp(map_config);
-    map_ = m;
-    tmp = t;
+    map_ = map::create(map_config);
 }
 
 static void show_full_map()
@@ -80,23 +70,23 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
 
 static void draw_points()
 {
-    for (auto const& p: tmp.polygon_points)
-        draw_shape(geo::Circle { p, 40.f }, BLACK, VIOLET);
+    for (auto const& biome: map_.biomes)
+        draw_shape(geo::Circle { biome.original_point, 40.f }, BLACK, VIOLET);
 }
 
 static void draw_polygons()
 {
-    for (size_t i = 0; i < tmp.polygons.size(); ++i) {
-        geo::Polygon const& polygon = tmp.polygons.at(i);
+    for (auto const& biome: map_.biomes) {
         switch (state.polygon_fill) {
             case State::PolygonFill::None:
-                draw_shape(polygon, BLACK);
+                draw_shape(biome.polygon, BLACK);
                 break;
-            case State::PolygonFill::Height: {
-                float height = tmp.polygon_heights.at(i);
-                draw_shape(polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * height) });
+            case State::PolygonFill::Elevation: {
+                draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.elevation ) });
                 break;
             }
+            case State::PolygonFill::Oceans:
+                draw_shape(biome.polygon, BLACK, biome.type == map::Biome::Ocean ? SKYBLUE : BROWN);
         }
     }
 }
@@ -123,6 +113,10 @@ void draw_ui()
             ImGui::SliderInt("Point density", &map_config.point_density, 100, 1500);
             ImGui::SliderFloat("Point randomness", &map_config.point_randomness, 0.0f, 1.0f, "%.3f");
             ImGui::SliderInt("Relaxation steps", &map_config.polygon_relaxation_steps, 0, 10);
+
+            ImGui::SeparatorText("Terrain");
+            ImGui::SliderFloat("Ocean elevation", &map_config.ocean_elevation, 0.0f, 1.0f, "%.3f");
+            ImGui::SliderFloat("Lake threshold", &map_config.lake_threshold, 0.0f, 1.0f, "%.3f");
 
             ImGui::SeparatorText("Generate map");
             if (ImGui::Button("Generate map"))
