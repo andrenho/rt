@@ -27,9 +27,11 @@ static map::Map map_;
 struct State {
     bool show_points;
     bool show_polygons;
+    bool show_height;
 } state = {
     .show_points = true,
     .show_polygons = true,
+    .show_height = true,
 };
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
@@ -47,8 +49,8 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
             [&](geo::Polygon const& p) {
                 if (bg_color) {
                     for (size_t i = 0; i < p.size() - 1; i++)
-                        DrawTriangle(V(p.at(i)), V(p.at(i+1)), V(p.center()), *bg_color);
-                    DrawTriangle(V(p.at(p.size() - 1)), V(p.at(0)), V(p.center()), *bg_color);
+                        DrawTriangle(V(p.at(i+1)), V(p.at(i)), V(p.center()), *bg_color);
+                    DrawTriangle(V(p.at(0)), V(p.at(p.size() - 1)), V(p.center()), *bg_color);
                 }
                 if (line_color) {
                     for (size_t i = 0; i < p.size(); i++) {
@@ -74,8 +76,15 @@ static void draw_points()
 
 static void draw_polygons()
 {
-    for (auto const& pp: map_.polygons)
-        draw_shape(pp, BLACK);
+    for (size_t i = 0; i < map_.polygons.size(); ++i) {
+        geo::Polygon const& polygon = map_.polygons.at(i);
+        if (state.show_height) {
+            float height = map_.polygon_heights.at(i) * .7f + .3f;
+            draw_shape(polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * height) });
+        } else {
+            draw_shape(polygon, BLACK);
+        }
+    }
 }
 
 void draw_ui()
@@ -117,6 +126,7 @@ void draw_ui()
             ImGui::SeparatorText("Visualization");
             ImGui::Checkbox("Show center points", &state.show_points);
             ImGui::Checkbox("Show polygons", &state.show_polygons);
+            ImGui::Checkbox("Show polygon height", &state.show_height);
             ImGui::EndTabItem();
         }
 
@@ -188,10 +198,10 @@ int main()
         ClearBackground(WHITE);
 
         BeginMode2D(camera);
-        if (state.show_points)
-            draw_points();
         if (state.show_polygons)
             draw_polygons();
+        if (state.show_points)
+            draw_points();
         EndMode2D();
 
         draw_ui();

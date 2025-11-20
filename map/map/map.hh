@@ -26,6 +26,7 @@ public:
 
     std::vector<geo::Point> polygon_points {};
     std::vector<geo::Polygon> polygons {};
+    std::vector<float> polygon_heights {};
 
 private:
     MapConfig cfg_ {};
@@ -34,6 +35,7 @@ private:
     void generate_points();
     void generate_polygons();
     void relax_points();
+    void generate_polygon_heights();
 };
 
 } // map

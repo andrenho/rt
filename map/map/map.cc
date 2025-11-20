@@ -5,6 +5,8 @@
 #define JC_VORONOI_IMPLEMENTATION
 #include "jc_voronoi.h"
 
+#include "PerlinNoise.hpp"
+
 namespace map {
 
 void Map::initialize(MapConfig const& cfg)
@@ -26,6 +28,8 @@ generate_polygons_again:
         relax_points();
         goto generate_polygons_again;
     }
+
+    generate_polygon_heights();
 }
 
 void Map::generate_points()
@@ -82,5 +86,14 @@ void Map::relax_points()
         polygon_points.emplace_back(pp.center());
 }
 
+void Map::generate_polygon_heights()
+{
+    polygon_heights.clear();
+    polygon_heights.reserve(polygons.size());
+
+    for (auto const& pp: polygons) {
+        polygon_heights.emplace_back(.5);
+    }
+}
 
 } // map
