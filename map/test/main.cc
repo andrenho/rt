@@ -25,13 +25,14 @@ static map::MapConfig map_config {
 static map::Map map_;
 
 struct State {
-    bool show_points;
-    bool show_polygons;
-    bool show_height;
+    enum PolygonFill : int { None, Height };
+    bool        show_points;
+    bool        show_polygons;
+    PolygonFill polygon_fill;
 } state = {
     .show_points = false,
     .show_polygons = true,
-    .show_height = true,
+    .polygon_fill = State::PolygonFill::None,
 };
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
@@ -78,11 +79,15 @@ static void draw_polygons()
 {
     for (size_t i = 0; i < map_.polygons.size(); ++i) {
         geo::Polygon const& polygon = map_.polygons.at(i);
-        if (state.show_height) {
-            float height = map_.polygon_heights.at(i);
-            draw_shape(polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * height) });
-        } else {
-            draw_shape(polygon, BLACK);
+        switch (state.polygon_fill) {
+            case State::PolygonFill::None:
+                draw_shape(polygon, BLACK);
+                break;
+            case State::PolygonFill::Height: {
+                float height = map_.polygon_heights.at(i);
+                draw_shape(polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * height) });
+                break;
+            }
         }
     }
 }
@@ -126,7 +131,8 @@ void draw_ui()
             ImGui::SeparatorText("Visualization");
             ImGui::Checkbox("Show center points", &state.show_points);
             ImGui::Checkbox("Show polygons", &state.show_polygons);
-            ImGui::Checkbox("Show polygon height", &state.show_height);
+            static const char* items[] = { "None", "Elevation", "Land/Water" };
+            ImGui::Combo("Polygon fill", (int *) &state.polygon_fill, items, IM_ARRAYSIZE(items));
             ImGui::EndTabItem();
         }
 
