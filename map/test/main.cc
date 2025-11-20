@@ -29,7 +29,7 @@ struct State {
     bool show_polygons;
     bool show_height;
 } state = {
-    .show_points = true,
+    .show_points = false,
     .show_polygons = true,
     .show_height = true,
 };

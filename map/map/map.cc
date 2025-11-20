@@ -102,8 +102,8 @@ void Map::generate_polygon_heights()
         auto p = pp.center();
         float w = (float) cfg_.map_w;
         float h = (float) cfg_.map_h;
-        float distance_from_center = ((p.x-w*0.5f)*(p.x-w*0.5f)+(p.y-h*0.5f)*(p.y-h*0.5f))/((w*0.5f)*(w*0.5f)+(h*0.5f)*(h*0.5f)) / .6f;
-        polygon_heights.emplace_back(std::clamp(1.f - (float) perlin.noise2D_01(p.x / (float) cfg_.map_w * 2, p.y / (float) cfg_.map_h * 2) * distance_from_center / .5f, .0f, 1.f));
+        float distance_from_center = ((p.x-w*0.5f)*(p.x-w*0.5f)+(p.y-h*0.5f)*(p.y-h*0.5f))/((w*0.5f)*(w*0.5f)+(h*0.5f)*(h*0.5f)) / .5f;
+        polygon_heights.emplace_back(std::clamp(1.f - (float) perlin.octave2D_01(p.x / (float) cfg_.map_w * 2, p.y / (float) cfg_.map_h * 2, 4) * distance_from_center / .5f, .0f, 1.f));
     }
 }
 
