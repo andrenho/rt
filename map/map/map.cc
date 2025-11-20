@@ -37,13 +37,13 @@ std::vector<geo::Point> generate_points(MapConfig const& cfg, std::mt19937& rng)
     return polygon_points;
 }
 
-std::vector<geo::Polygon> generate_polygons(std::vector<geo::Point> const& polygon_points)
+std::vector<Biome> generate_biome_tiles(std::vector<geo::Point> const& points)
 {
-    std::vector<geo::Polygon> polygons;
+    std::vector<Biome> biomes;
 
     jcv_diagram diagram {};
-    std::vector<jcv_point> jcv_points; jcv_points.reserve(polygon_points.size());
-    for (auto const& p: polygon_points)
+    std::vector<jcv_point> jcv_points; jcv_points.reserve(points.size());
+    for (auto const& p: points)
         jcv_points.emplace_back(p.x, p.y);
 
     jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
@@ -60,19 +60,20 @@ std::vector<geo::Polygon> generate_polygons(std::vector<geo::Point> const& polyg
             e = e->next;
         }
 
-        polygons.emplace_back(std::move(polygon));
+        biomes.emplace_back(geo::Point { jcv_points[i].x, jcv_points[i].y },
+                polygon.center(), std::move(polygon), .5f, Biome::Type::Unknown);
     }
 
     jcv_diagram_free(&diagram);
 
-    return polygons;
+    return biomes;
 }
 
-std::vector<geo::Point> relax_points(std::vector<geo::Polygon> const& polygons)
+std::vector<geo::Point> relax_points(std::vector<Biome> const& biomes)
 {
     std::vector<geo::Point> polygon_points;
-    for (auto const& pp: polygons)
-        polygon_points.emplace_back(pp.center());
+    for (auto const& biome: biomes)
+        polygon_points.emplace_back(biome.center_point);
     return polygon_points;
 }
 
@@ -80,23 +81,18 @@ std::vector<geo::Point> relax_points(std::vector<geo::Polygon> const& polygons)
 // TERRAIN GENERATION
 //
 
-std::vector<float> generate_polygon_heights(std::vector<geo::Polygon> const& polygons, MapConfig const& cfg)
+void update_biome_elevation(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
-    std::vector<float> polygon_heights;
-    polygon_heights.reserve(polygons.size());
-
     const siv::PerlinNoise::seed_type seed = cfg.seed;
     const siv::PerlinNoise perlin(seed);
 
-    for (auto const& pp: polygons) {
-        auto p = pp.center();
+    for (auto& biome: biomes) {
+        auto p = biome.center_point;
         float w = (float) cfg.map_w;
         float h = (float) cfg.map_h;
         float distance_from_center = ((p.x-w*0.5f)*(p.x-w*0.5f)+(p.y-h*0.5f)*(p.y-h*0.5f))/((w*0.5f)*(w*0.5f)+(h*0.5f)*(h*0.5f)) / .5f;
-        polygon_heights.emplace_back(std::clamp(1.f - (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4) * distance_from_center / .5f, .0f, 1.f));
+        biome.elevation = std::clamp(1.f - (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4) * distance_from_center / .5f, .0f, 1.f);
     }
-
-    return polygon_heights;
 }
 
 //
@@ -104,12 +100,6 @@ std::vector<float> generate_polygon_heights(std::vector<geo::Polygon> const& pol
 //
 
 MapOutput create(MapConfig const& cfg)
-{
-    auto [output, _] = create_with_temp(cfg);
-    return output;
-}
-
-std::pair<MapOutput, MapTemp> create_with_temp(MapConfig const& cfg)
 {
     std::mt19937 rng(cfg.seed);
 
@@ -119,22 +109,17 @@ std::pair<MapOutput, MapTemp> create_with_temp(MapConfig const& cfg)
 
     int relaxations = cfg.polygon_relaxation_steps;
 generate_polygons_again:
-    std::vector<geo::Polygon> polygons = generate_polygons(polygon_points);
+    std::vector<Biome> biomes = generate_biome_tiles(polygon_points);
     if (relaxations > 0) {
         --relaxations;
-        polygon_points = relax_points(polygons);
+        polygon_points = relax_points(biomes);
         goto generate_polygons_again;
     }
 
-    std::vector<float> polygon_heights = generate_polygon_heights(polygons, cfg);
+    update_biome_elevation(biomes, cfg);
 
-    MapTemp tmp {
-        .polygon_points = polygon_points,
-        .polygons = polygons,
-        .polygon_heights = polygon_heights,
-    };
-
-    return { output, tmp };
+    output.biomes = std::move(biomes);
+    return output;
 }
 
 } // map

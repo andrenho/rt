@@ -24,7 +24,7 @@ static map::MapConfig map_config {
 };
 
 struct State {
-    enum PolygonFill : int { None, Height };
+    enum PolygonFill : int { None, Elevation };
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
@@ -35,15 +35,12 @@ struct State {
 };
 
 map::MapOutput map_;
-map::MapTemp tmp;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
 static void reset_map()
 {
-    auto [m, t] = map::create_with_temp(map_config);
-    map_ = m;
-    tmp = t;
+    map_ = map::create(map_config);
 }
 
 static void show_full_map()
@@ -80,21 +77,19 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
 
 static void draw_points()
 {
-    for (auto const& p: tmp.polygon_points)
-        draw_shape(geo::Circle { p, 40.f }, BLACK, VIOLET);
+    for (auto const& biome: map_.biomes)
+        draw_shape(geo::Circle { biome.original_point, 40.f }, BLACK, VIOLET);
 }
 
 static void draw_polygons()
 {
-    for (size_t i = 0; i < tmp.polygons.size(); ++i) {
-        geo::Polygon const& polygon = tmp.polygons.at(i);
+    for (auto const& biome: map_.biomes) {
         switch (state.polygon_fill) {
             case State::PolygonFill::None:
-                draw_shape(polygon, BLACK);
+                draw_shape(biome.polygon, BLACK);
                 break;
-            case State::PolygonFill::Height: {
-                float height = tmp.polygon_heights.at(i);
-                draw_shape(polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * height) });
+            case State::PolygonFill::Elevation: {
+                draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.elevation ) });
                 break;
             }
         }

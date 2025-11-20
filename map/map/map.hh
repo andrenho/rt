@@ -19,18 +19,22 @@ struct MapConfig {
     int    polygon_relaxation_steps;
 };
 
-struct MapTemp {
-    std::vector<geo::Point>   polygon_points {};
-    std::vector<geo::Polygon> polygons {};
-    std::vector<float>        polygon_heights {};
+struct Biome {
+    enum Type { Unknown, Ocean };
+
+    geo::Point   original_point { 0, 0 };
+    geo::Point   center_point { 0, 0 };
+    geo::Polygon polygon {};
+    float        elevation {};
+    Type         type = Biome::Type::Unknown;
 };
 
 struct MapOutput {
     size_t w = 0, h = 0;
+    std::vector<Biome> biomes {};
 };
 
 MapOutput create(MapConfig const& cfg);
-std::pair<MapOutput, MapTemp> create_with_temp(MapConfig const& cfg);
 
 } // map
 
