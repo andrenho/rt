@@ -27,6 +27,7 @@ add_library(imgui_raylib STATIC
 
 target_include_directories(imgui_raylib
         PUBLIC SYSTEM
+        /usr/local/include
         ${CMAKE_CURRENT_BINARY_DIR}/imgui
         ${CMAKE_CURRENT_BINARY_DIR}/imgui/backends
         ${CMAKE_CURRENT_BINARY_DIR}/rlimgui-src
