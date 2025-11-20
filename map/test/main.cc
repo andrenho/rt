@@ -79,7 +79,7 @@ static void draw_polygons()
     for (size_t i = 0; i < map_.polygons.size(); ++i) {
         geo::Polygon const& polygon = map_.polygons.at(i);
         if (state.show_height) {
-            float height = map_.polygon_heights.at(i) * .7f + .3f;
+            float height = map_.polygon_heights.at(i);
             draw_shape(polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * height) });
         } else {
             draw_shape(polygon, BLACK);
@@ -106,7 +106,7 @@ void draw_ui()
             ImGui::InputInt("Map height", &map_config.map_h);
 
             ImGui::SeparatorText("Polygons");
-            ImGui::SliderInt("Point density", &map_config.point_density, 300, 1500);
+            ImGui::SliderInt("Point density", &map_config.point_density, 100, 1500);
             ImGui::SliderFloat("Point randomness", &map_config.point_randomness, 0.0f, 1.0f, "%.3f");
             ImGui::SliderInt("Relaxation steps", &map_config.polygon_relaxation_steps, 0, 10);
 

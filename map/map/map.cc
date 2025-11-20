@@ -34,12 +34,16 @@ generate_polygons_again:
 
 void Map::generate_points()
 {
+    polygon_points.clear();
+
     // generate points
     int w = cfg_.map_w / cfg_.point_density;
     int h = cfg_.map_h / cfg_.point_density;
-    for (int x = 1; x < w; ++x)
-        for (int y = 1; y < h; ++y)
+    for (int x = 1; x < w; ++x) {
+        for (int y = 1; y < h; ++y) {
             polygon_points.emplace_back(x * cfg_.point_density, y * cfg_.point_density);
+        }
+    }
 
     // add randomness
     std::uniform_real_distribution<float> distances(0.0, ((float) cfg_.point_density) * cfg_.point_randomness);
@@ -91,8 +95,12 @@ void Map::generate_polygon_heights()
     polygon_heights.clear();
     polygon_heights.reserve(polygons.size());
 
+    const siv::PerlinNoise::seed_type seed = cfg_.seed;
+    const siv::PerlinNoise perlin(seed);
+
     for (auto const& pp: polygons) {
-        polygon_heights.emplace_back(.5);
+        auto p = pp.center();
+        polygon_heights.emplace_back(perlin.noise2D_01(p.x / (float) cfg_.map_w * 2, p.y / (float) cfg_.map_h * 2));
     }
 }
 
