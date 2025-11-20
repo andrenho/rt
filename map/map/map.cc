@@ -9,54 +9,37 @@
 
 namespace map {
 
-void Map::initialize(MapConfig const& cfg)
+//
+// POLYGONS GENERATION
+//
+
+std::vector<geo::Point> generate_points(MapConfig const& cfg, std::mt19937& rng)
 {
-    cfg_ = cfg;
-
-    rng_ = std::mt19937(cfg.seed);
-
-    polygon_points.clear();
-    polygons.clear();
-
-    generate_points();
-
-    int relaxations = cfg_.polygon_relaxation_steps;
-generate_polygons_again:
-    generate_polygons();
-    if (relaxations > 0) {
-        --relaxations;
-        relax_points();
-        goto generate_polygons_again;
-    }
-
-    generate_polygon_heights();
-}
-
-void Map::generate_points()
-{
-    polygon_points.clear();
+    std::vector<geo::Point> polygon_points {};
 
     // generate points
-    int w = cfg_.map_w / cfg_.point_density;
-    int h = cfg_.map_h / cfg_.point_density;
+    int w = cfg.map_w / cfg.point_density;
+    int h = cfg.map_h / cfg.point_density;
     for (int x = 1; x < w; ++x) {
         for (int y = 1; y < h; ++y) {
-            polygon_points.emplace_back(x * cfg_.point_density, y * cfg_.point_density);
+            polygon_points.emplace_back(x * cfg.point_density, y * cfg.point_density);
         }
     }
 
     // add randomness
-    std::uniform_real_distribution<float> distances(0.0, ((float) cfg_.point_density) * cfg_.point_randomness);
+    std::uniform_real_distribution<float> distances(0.0, ((float) cfg.point_density) * cfg.point_randomness);
     std::uniform_real_distribution<float> angles(0.0, 2.0);
     for (auto& p: polygon_points) {
-        p.x += distances(rng_) * (float) cos(angles(rng_));
-        p.y += distances(rng_) * (float) sin(angles(rng_));
+        p.x += distances(rng) * (float) cos(angles(rng));
+        p.y += distances(rng) * (float) sin(angles(rng));
     }
+
+    return polygon_points;
 }
 
-void Map::generate_polygons()
+std::vector<geo::Polygon> generate_polygons(std::vector<geo::Point> const& polygon_points)
 {
-    polygons.clear();
+    std::vector<geo::Polygon> polygons;
 
     jcv_diagram diagram {};
     std::vector<jcv_point> jcv_points; jcv_points.reserve(polygon_points.size());
@@ -81,30 +64,77 @@ void Map::generate_polygons()
     }
 
     jcv_diagram_free(&diagram);
+
+    return polygons;
 }
 
-void Map::relax_points()
+std::vector<geo::Point> relax_points(std::vector<geo::Polygon> const& polygons)
 {
-    polygon_points.clear();
+    std::vector<geo::Point> polygon_points;
     for (auto const& pp: polygons)
         polygon_points.emplace_back(pp.center());
+    return polygon_points;
 }
 
-void Map::generate_polygon_heights()
+//
+// TERRAIN GENERATION
+//
+
+std::vector<float> generate_polygon_heights(std::vector<geo::Polygon> const& polygons, MapConfig const& cfg)
 {
-    polygon_heights.clear();
+    std::vector<float> polygon_heights;
     polygon_heights.reserve(polygons.size());
 
-    const siv::PerlinNoise::seed_type seed = cfg_.seed;
+    const siv::PerlinNoise::seed_type seed = cfg.seed;
     const siv::PerlinNoise perlin(seed);
 
     for (auto const& pp: polygons) {
         auto p = pp.center();
-        float w = (float) cfg_.map_w;
-        float h = (float) cfg_.map_h;
+        float w = (float) cfg.map_w;
+        float h = (float) cfg.map_h;
         float distance_from_center = ((p.x-w*0.5f)*(p.x-w*0.5f)+(p.y-h*0.5f)*(p.y-h*0.5f))/((w*0.5f)*(w*0.5f)+(h*0.5f)*(h*0.5f)) / .5f;
-        polygon_heights.emplace_back(std::clamp(1.f - (float) perlin.octave2D_01(p.x / (float) cfg_.map_w * 2, p.y / (float) cfg_.map_h * 2, 4) * distance_from_center / .5f, .0f, 1.f));
+        polygon_heights.emplace_back(std::clamp(1.f - (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4) * distance_from_center / .5f, .0f, 1.f));
     }
+
+    return polygon_heights;
+}
+
+//
+// PUBLIC FUNCTIONS
+//
+
+MapOutput create(MapConfig const& cfg)
+{
+    auto [output, _] = create_with_temp(cfg);
+    return output;
+}
+
+std::pair<MapOutput, MapTemp> create_with_temp(MapConfig const& cfg)
+{
+    std::mt19937 rng(cfg.seed);
+
+    MapOutput output { .w = (size_t) cfg.map_w, .h = (size_t) cfg.map_h };
+
+    std::vector<geo::Point> polygon_points = generate_points(cfg, rng);
+
+    int relaxations = cfg.polygon_relaxation_steps;
+generate_polygons_again:
+    std::vector<geo::Polygon> polygons = generate_polygons(polygon_points);
+    if (relaxations > 0) {
+        --relaxations;
+        polygon_points = relax_points(polygons);
+        goto generate_polygons_again;
+    }
+
+    std::vector<float> polygon_heights = generate_polygon_heights(polygons, cfg);
+
+    MapTemp tmp {
+        .polygon_points = polygon_points,
+        .polygons = polygons,
+        .polygon_heights = polygon_heights,
+    };
+
+    return { output, tmp };
 }
 
 } // map

@@ -17,7 +17,7 @@ jobs:
       - name: Build & Test
         uses: vmactions/freebsd-vm@v1
         with:
-          prepare: pkg install -y cmake gcc13 git xorg mesa-libs glu
+          prepare: pkg install -y cmake gcc13 git xorg mesa-libs libX11 xorgproto
           copyback: false
           run: |
             mkdir build
