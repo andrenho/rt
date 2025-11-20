@@ -102,6 +102,18 @@ void update_biome_ocean(std::vector<Biome>& biomes, MapConfig const& cfg)
             biome.type = Biome::Ocean;
 }
 
+void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
+{
+    const siv::PerlinNoise::seed_type seed = cfg.seed;
+    const siv::PerlinNoise perlin(seed);
+
+    for (auto& biome: biomes) {
+        auto p = biome.center_point;
+        if (perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4) < cfg.lake_threshold)
+            biome.type = Biome::Ocean;
+    }
+}
+
 //
 // PUBLIC FUNCTIONS
 //
@@ -125,6 +137,7 @@ generate_polygons_again:
 
     update_biome_elevation(biomes, cfg);
     update_biome_ocean(biomes, cfg);
+    add_lakes(biomes, cfg);
 
     output.biomes = std::move(biomes);
     return output;

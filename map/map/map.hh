@@ -18,6 +18,7 @@ struct MapConfig {
     float  point_randomness             = .7f;
     int    polygon_relaxation_steps     = 1;
     float  ocean_elevation              = .4f;
+    float  lake_threshold               = .2f;
 };
 
 struct Biome {
