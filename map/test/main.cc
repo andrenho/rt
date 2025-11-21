@@ -28,7 +28,7 @@ struct State {
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
-static std::vector<Color> biome_colors = { BROWN, SKYBLUE, RAYWHITE, LIME, BEIGE, GREEN, MAROON, DARKGREEN, Color {0, 149, 70, 255}, Color {0, 170, 90, 255}};
+static std::vector<Color> biome_colors = { BROWN, SKYBLUE, RAYWHITE, LIME, BEIGE, GREEN, BROWN, DARKGREEN, Color {0, 149, 70, 255}, Color {0, 170, 90, 255}};
 
 static map::MapOutput map_;
 
