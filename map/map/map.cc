@@ -125,6 +125,13 @@ void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
     }
 }
 
+void update_terrain_type(std::vector<Biome>& biomes, MapConfig const& cfg)
+{
+    for (auto& biome: biomes) {
+        auto p = biome.center_point;
+    }
+}
+
 //
 // PUBLIC FUNCTIONS
 //
@@ -151,6 +158,8 @@ generate_polygons_again:
 
     update_biome_ocean(biomes, cfg);
     add_lakes(biomes, cfg);
+
+    update_terrain_type(biomes, cfg);
 
     output.biomes = std::move(biomes);
     return output;

@@ -22,7 +22,7 @@ struct MapConfig {
 };
 
 struct Biome {
-    enum Type { Unknown, Ocean };
+    enum Type { Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
 
     geo::Point   original_point { 0, 0 };
     geo::Point   center_point { 0, 0 };
