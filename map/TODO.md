@@ -6,7 +6,7 @@
 - [x] Voronoi
 - [x] Island
 - [x] Biomes
-- [ ] Cities locations
+- [x] Cities locations
 - [ ] Roads
 - [ ] City structures
 - Visual
