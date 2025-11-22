@@ -17,14 +17,14 @@ static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::MapConfig map_config {};
 
 struct State {
-    enum PolygonFill : int { None, Elevation, Moisture, Oceans, Terrains };
+    enum PolygonFill : int { None, Elevation, Moisture, Oceans, Terrains, Terrains_CityLocations };
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
 } state = {
     .show_points = false,
     .show_polygons = true,
-    .polygon_fill = State::PolygonFill::Terrains,
+    .polygon_fill = State::PolygonFill::Terrains_CityLocations,
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
@@ -80,6 +80,7 @@ static void draw_points()
 static void draw_polygons()
 {
     for (auto const& biome: map_.biomes) {
+        auto draw_terrain = [&]{ draw_shape(biome.polygon, BLACK, biome_colors.at((int) biome.type)); };
         switch (state.polygon_fill) {
             case State::PolygonFill::None:
                 draw_shape(biome.polygon, BLACK);
@@ -94,7 +95,13 @@ static void draw_polygons()
                 draw_shape(biome.polygon, BLACK, biome.type == map::Biome::Ocean ? SKYBLUE : BROWN);
                 break;
             case State::PolygonFill::Terrains:
-                draw_shape(biome.polygon, BLACK, biome_colors.at((int) biome.type));
+                draw_terrain();
+                break;
+            case State::PolygonFill::Terrains_CityLocations:
+                if (biome.contains_city)
+                    draw_shape(biome.polygon, BLACK, PURPLE);
+                else
+                    draw_terrain();
                 break;
         }
     }
@@ -143,7 +150,7 @@ void draw_ui()
             ImGui::SeparatorText("Visualization");
             ImGui::Checkbox("Show center points", &state.show_points);
             ImGui::Checkbox("Show polygons", &state.show_polygons);
-            static const char* items[] = { "None", "Elevation", "Moisture", "Land/Water", "Terrains" };
+            static const char* items[] = { "None", "Elevation", "Moisture", "Land/Water", "Terrains", "Terrains + City locations" };
             ImGui::Combo("Polygon fill", (int *) &state.polygon_fill, items, IM_ARRAYSIZE(items));
             ImGui::EndTabItem();
         }

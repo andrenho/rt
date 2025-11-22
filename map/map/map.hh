@@ -30,6 +30,7 @@ struct Biome {
     float        elevation = .5f;
     float        moisture = .5f;
     Type         type = Biome::Type::Unknown;
+    bool         contains_city = false;
 };
 
 struct MapOutput {
