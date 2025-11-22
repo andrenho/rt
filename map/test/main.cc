@@ -17,7 +17,7 @@ static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::MapConfig map_config {};
 
 struct State {
-    enum PolygonFill : int { None, Elevation, Oceans, Terrains };
+    enum PolygonFill : int { None, Elevation, Moisture, Oceans, Terrains };
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
@@ -28,7 +28,7 @@ struct State {
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
-static std::vector<Color> biome_colors = { BROWN, SKYBLUE, RAYWHITE, LIME, BEIGE, GREEN, BROWN, DARKGREEN, Color {0, 149, 70, 255}, Color {0, 170, 90, 255}};
+static std::vector<Color> biome_colors = { BROWN, SKYBLUE, RAYWHITE, Color {0, 150, 150, 255}, BEIGE, GREEN, BROWN, DARKGREEN, Color {0, 149, 70, 255}, Color {0, 170, 90, 255}};
 
 static map::MapOutput map_;
 
@@ -84,14 +84,18 @@ static void draw_polygons()
             case State::PolygonFill::None:
                 draw_shape(biome.polygon, BLACK);
                 break;
-            case State::PolygonFill::Elevation: {
+            case State::PolygonFill::Elevation:
                 draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.elevation ) });
                 break;
-            }
+            case State::PolygonFill::Moisture:
+                draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.moisture ) });
+                break;
             case State::PolygonFill::Oceans:
                 draw_shape(biome.polygon, BLACK, biome.type == map::Biome::Ocean ? SKYBLUE : BROWN);
+                break;
             case State::PolygonFill::Terrains:
                 draw_shape(biome.polygon, BLACK, biome_colors.at((int) biome.type));
+                break;
         }
     }
 }
@@ -139,7 +143,7 @@ void draw_ui()
             ImGui::SeparatorText("Visualization");
             ImGui::Checkbox("Show center points", &state.show_points);
             ImGui::Checkbox("Show polygons", &state.show_polygons);
-            static const char* items[] = { "None", "Elevation", "Land/Water", "Terrains" };
+            static const char* items[] = { "None", "Elevation", "Moisture", "Land/Water", "Terrains" };
             ImGui::Combo("Polygon fill", (int *) &state.polygon_fill, items, IM_ARRAYSIZE(items));
             ImGui::EndTabItem();
         }
