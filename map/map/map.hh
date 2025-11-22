@@ -19,6 +19,7 @@ struct MapConfig {
     int    polygon_relaxation_steps     = 1;
     float  ocean_elevation              = .4f;
     float  lake_threshold               = .28f;
+    int    number_of_cities             = 15;
 };
 
 struct Biome {
@@ -35,6 +36,7 @@ struct Biome {
 
 struct MapOutput {
     size_t w = 0, h = 0;
+    size_t tiles_w = 0, tiles_h = 0;
     std::vector<Biome> biomes {};
 };
 
