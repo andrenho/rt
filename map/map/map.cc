@@ -13,15 +13,13 @@ namespace map {
 // POLYGONS GENERATION
 //
 
-std::vector<geo::Point> generate_points(MapConfig const& cfg, std::mt19937& rng)
+std::vector<geo::Point> generate_points(std::mt19937& rng, size_t tiles_w, size_t tiles_h, MapConfig const& cfg)
 {
     std::vector<geo::Point> polygon_points {};
 
     // generate points
-    int w = cfg.map_w / cfg.point_density;
-    int h = cfg.map_h / cfg.point_density;
-    for (int x = 1; x < w; ++x) {
-        for (int y = 1; y < h; ++y) {
+    for (size_t x = 1; x < tiles_w; ++x) {
+        for (size_t y = 1; y < tiles_h; ++y) {
             polygon_points.emplace_back(x * cfg.point_density, y * cfg.point_density);
         }
     }
@@ -157,6 +155,75 @@ void update_terrain_type(std::vector<Biome>& biomes, MapConfig const& cfg)
 }
 
 //
+// CITIES
+//
+
+void find_city_locations(std::vector<Biome>& biomes, MapConfig const& cfg, std::mt19937& rng)
+{
+    size_t initial_city_count = (cfg.number_of_cities * 2.f);  // double cities as some will end up in water
+
+    // create distributed points with random component
+    size_t cities_h = (size_t) std::round(std::sqrt(initial_city_count * cfg.map_h / cfg.map_w));
+    size_t cities_w = (size_t) ceil(initial_city_count / cities_h);
+    float diff_x = cfg.map_w / cities_w / 2.f;
+    float diff_y = cfg.map_h / cities_h / 2.f;
+
+    std::uniform_real_distribution<float> distances_x(0.0, diff_x * 2);
+    std::uniform_real_distribution<float> distances_y(0.0, diff_y * 2);
+    std::uniform_real_distribution<float> angles(0.0, 2.0);
+
+    std::vector<jcv_point> jcv_points; jcv_points.reserve(initial_city_count);
+    for (float x = 0; x < cities_w; ++x) {
+        for (float y = 0; y < cities_h; ++y) {
+            float px = x * (cfg.map_w / cities_w) + diff_x + distances_x(rng) * (float) cos(angles(rng));
+            float py = y * (cfg.map_h / cities_h) + diff_y + distances_y(rng) * (float) sin(angles(rng));
+            jcv_points.emplace_back(px, py);
+        }
+    }
+
+    // create voronoi
+    jcv_diagram diagram {};
+    jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
+
+    // relax voronoi and create list of points
+    std::vector<geo::Point> points;
+    const jcv_site* sites = jcv_diagram_get_sites(&diagram);
+    for(int i = 0; i < diagram.numsites; ++i) {
+        const jcv_site* site = &sites[i];
+
+        const jcv_graphedge* e = site->edges;
+        float count = 0;
+        float sum_x = 0.f, sum_y = 0.f;
+        while (e) {
+            sum_x += e->pos[0].x;
+            sum_y += e->pos[0].y;
+            e = e->next;
+            ++count;
+        }
+
+        if (count > 0)
+            points.emplace_back(sum_x / count, sum_y / count);
+    }
+
+    jcv_diagram_free(&diagram);
+
+    // find biomes
+    std::shuffle(points.begin(), points.end(), rng);
+    size_t count = 0;
+    for (auto& biome: biomes) {
+        for (auto const& p: points) {
+            if (geo::contains_point(biome.polygon, p)) {
+                if (biome.type != Biome::Ocean) {
+                    biome.contains_city = true;
+                    if ((++count) >= cfg.number_of_cities)
+                        return;
+                }
+            }
+        }
+    }
+}
+
+//
 // PUBLIC FUNCTIONS
 //
 
@@ -164,9 +231,15 @@ MapOutput create(MapConfig const& cfg)
 {
     std::mt19937 rng(cfg.seed);
 
-    MapOutput output { .w = (size_t) cfg.map_w, .h = (size_t) cfg.map_h };
+    MapOutput output {
+        .w = (size_t) cfg.map_w,
+        .h = (size_t) cfg.map_h,
+    };
 
-    std::vector<geo::Point> polygon_points = generate_points(cfg, rng);
+    size_t tiles_w = (size_t) (cfg.map_w / cfg.point_density);
+    size_t tiles_h = (size_t) (cfg.map_h / cfg.point_density);
+
+    std::vector<geo::Point> polygon_points = generate_points(rng, tiles_w, tiles_h, cfg);
 
     int relaxations = cfg.polygon_relaxation_steps;
 generate_polygons_again:
@@ -184,6 +257,8 @@ generate_polygons_again:
     add_lakes(biomes, cfg);
 
     update_terrain_type(biomes, cfg);
+
+    find_city_locations(biomes, cfg, rng);
 
     output.biomes = std::move(biomes);
     return output;

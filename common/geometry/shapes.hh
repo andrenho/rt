@@ -30,6 +30,8 @@ struct Circle {
 
 using Shape = std::variant<Polygon, Circle>;
 
+bool contains_point(Shape const& shape, Point const& point);
+
 }
 
 #endif //TOPDOWN_SHAPES_HH

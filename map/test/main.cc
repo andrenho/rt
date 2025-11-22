@@ -134,6 +134,9 @@ void draw_ui()
             ImGui::SliderFloat("Ocean elevation", &map_config.ocean_elevation, 0.0f, 1.0f, "%.3f");
             ImGui::SliderFloat("Lake threshold", &map_config.lake_threshold, 0.0f, 1.0f, "%.3f");
 
+            ImGui::SeparatorText("Cities & Roads");
+            ImGui::SliderInt("Number of cities", &map_config.number_of_cities, 3, 50);
+
             ImGui::SeparatorText("Generate map");
             if (ImGui::Button("Generate map"))
                 reset_map();
