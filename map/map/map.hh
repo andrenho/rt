@@ -18,17 +18,19 @@ struct MapConfig {
     float  point_randomness             = .7f;
     int    polygon_relaxation_steps     = 1;
     float  ocean_elevation              = .4f;
-    float  lake_threshold               = .2f;
+    float  lake_threshold               = .28f;
 };
 
 struct Biome {
-    enum Type { Unknown, Ocean };
+    enum Type { Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
 
     geo::Point   original_point { 0, 0 };
     geo::Point   center_point { 0, 0 };
     geo::Polygon polygon {};
-    float        elevation {};
+    float        elevation = .5f;
+    float        moisture = .5f;
     Type         type = Biome::Type::Unknown;
+    bool         contains_city = false;
 };
 
 struct MapOutput {

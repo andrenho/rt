@@ -17,17 +17,20 @@ static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::MapConfig map_config {};
 
 struct State {
-    enum PolygonFill : int { None, Elevation, Oceans };
+    enum PolygonFill : int { None, Elevation, Moisture, Oceans, Terrains, Terrains_CityLocations };
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
 } state = {
     .show_points = false,
     .show_polygons = true,
-    .polygon_fill = State::PolygonFill::Oceans,
+    .polygon_fill = State::PolygonFill::Terrains_CityLocations,
 };
 
-map::MapOutput map_;
+                                         // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
+static std::vector<Color> biome_colors = { BROWN, SKYBLUE, RAYWHITE, Color {0, 150, 150, 255}, BEIGE, GREEN, BROWN, DARKGREEN, Color {0, 149, 70, 255}, Color {0, 170, 90, 255}};
+
+static map::MapOutput map_;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
@@ -77,16 +80,29 @@ static void draw_points()
 static void draw_polygons()
 {
     for (auto const& biome: map_.biomes) {
+        auto draw_terrain = [&]{ draw_shape(biome.polygon, BLACK, biome_colors.at((int) biome.type)); };
         switch (state.polygon_fill) {
             case State::PolygonFill::None:
                 draw_shape(biome.polygon, BLACK);
                 break;
-            case State::PolygonFill::Elevation: {
+            case State::PolygonFill::Elevation:
                 draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.elevation ) });
                 break;
-            }
+            case State::PolygonFill::Moisture:
+                draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.moisture ) });
+                break;
             case State::PolygonFill::Oceans:
                 draw_shape(biome.polygon, BLACK, biome.type == map::Biome::Ocean ? SKYBLUE : BROWN);
+                break;
+            case State::PolygonFill::Terrains:
+                draw_terrain();
+                break;
+            case State::PolygonFill::Terrains_CityLocations:
+                if (biome.contains_city)
+                    draw_shape(biome.polygon, BLACK, PURPLE);
+                else
+                    draw_terrain();
+                break;
         }
     }
 }
@@ -134,7 +150,7 @@ void draw_ui()
             ImGui::SeparatorText("Visualization");
             ImGui::Checkbox("Show center points", &state.show_points);
             ImGui::Checkbox("Show polygons", &state.show_polygons);
-            static const char* items[] = { "None", "Elevation", "Land/Water" };
+            static const char* items[] = { "None", "Elevation", "Moisture", "Land/Water", "Terrains", "Terrains + City locations" };
             ImGui::Combo("Polygon fill", (int *) &state.polygon_fill, items, IM_ARRAYSIZE(items));
             ImGui::EndTabItem();
         }

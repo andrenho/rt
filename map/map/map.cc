@@ -91,7 +91,19 @@ void update_biome_elevation(std::vector<Biome>& biomes, MapConfig const& cfg)
         float w = (float) cfg.map_w;
         float h = (float) cfg.map_h;
         float distance_from_center = ((p.x-w*0.5f)*(p.x-w*0.5f)+(p.y-h*0.5f)*(p.y-h*0.5f))/((w*0.5f)*(w*0.5f)+(h*0.5f)*(h*0.5f)) / .5f;
-        biome.elevation = std::clamp(1.f - (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4) * distance_from_center / .5f, .0f, 1.f);
+        float r = (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4);
+        biome.elevation = std::clamp(1.f - r * distance_from_center / .5f, .0f, 1.f);
+    }
+}
+
+void update_biome_moisture(std::vector<Biome>& biomes, MapConfig const& cfg)
+{
+    const siv::PerlinNoise::seed_type seed = cfg.seed + 1;
+    const siv::PerlinNoise perlin(seed);
+
+    for (auto& biome: biomes) {
+        auto p = biome.center_point;
+        biome.moisture = (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 16);
     }
 }
 
@@ -104,13 +116,43 @@ void update_biome_ocean(std::vector<Biome>& biomes, MapConfig const& cfg)
 
 void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
-    const siv::PerlinNoise::seed_type seed = cfg.seed;
+    const siv::PerlinNoise::seed_type seed = cfg.seed + 2;
     const siv::PerlinNoise perlin(seed);
 
     for (auto& biome: biomes) {
         auto p = biome.center_point;
         if (perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4) < cfg.lake_threshold)
             biome.type = Biome::Ocean;
+    }
+}
+
+void update_terrain_type(std::vector<Biome>& biomes, MapConfig const& cfg)
+{
+    for (auto& biome: biomes) {
+        auto p = biome.center_point;
+        if (biome.type != Biome::Type::Unknown)
+            continue;;
+        if (biome.elevation > .98f) {
+            biome.type = Biome::Type::Snow;
+        } else if (biome.elevation > .8f) {
+            if (biome.moisture < .25f)
+                biome.type = Biome::Type::Desert;
+            else if (biome.moisture < .5f)
+                biome.type = Biome::Type::Tundra;
+            else if (biome.moisture < .75f)
+                biome.type = Biome::Type::Grassland;
+            else
+                biome.type = Biome::Type::PineForest;
+        } else {
+            if (biome.moisture < .25f)
+                biome.type = Biome::Type::Desert;
+            else if (biome.moisture < .5f)
+                biome.type = Biome::Type::Savannah;
+            else if (biome.moisture < .75f)
+                biome.type = Biome::Type::Forest;
+            else
+                biome.type = Biome::Type::RainForest;
+        }
     }
 }
 
@@ -136,8 +178,12 @@ generate_polygons_again:
     }
 
     update_biome_elevation(biomes, cfg);
+    update_biome_moisture(biomes, cfg);
+
     update_biome_ocean(biomes, cfg);
     add_lakes(biomes, cfg);
+
+    update_terrain_type(biomes, cfg);
 
     output.biomes = std::move(biomes);
     return output;

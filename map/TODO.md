@@ -4,12 +4,13 @@
     - [x] Create rt-common
     - [x] raylib + imgui interface
 - [x] Voronoi
-- [ ] Island
-- [ ] Rivers
-- [ ] Biomes
-- [ ] Noise
-- [ ] Cities, structures
+- [x] Island
+- [x] Biomes
+- [ ] Cities locations
 - [ ] Roads
+- [ ] City structures
+- Visual
+  - [ ] Rivers
+  - [ ] Noisy edges
 
 http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/
-https://github.com/a-e-k/canvas_ity
