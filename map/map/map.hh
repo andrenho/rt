@@ -22,7 +22,7 @@ struct MapConfig {
     float  ocean_elevation              = .4f;
     float  lake_threshold               = .28f;
     int    number_of_cities             = 15;
-    float  connect_city_distance        = 4600;
+    float  connect_city_distance        = 5000;
 };
 
 struct Biome {

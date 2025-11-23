@@ -113,7 +113,7 @@ static void draw_city_connections()
 {
     for (auto const& city: map_.cities) {
         for (auto const& other_city: city->connected_cities) {
-            draw_shape(geo::Line { city->location, other_city->location }, PINK);
+            draw_shape(geo::Line { city->location, other_city->location }, RED);
         }
     }
 }

@@ -217,7 +217,7 @@ std::vector<std::unique_ptr<City>> find_city_locations(std::vector<Biome>& biome
             if (geo::contains_point(biome.polygon, p)) {
                 if (biome.type != Biome::Ocean) {
                     biome.contains_city = true;
-                    cities.emplace_back(std::make_unique<City>(p));
+                    cities.emplace_back(std::make_unique<City>(biome.polygon.center()));
                     if ((++count) >= cfg.number_of_cities)
                         goto done;
                 }
@@ -231,13 +231,25 @@ done:
 
 void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, MapConfig const& cfg)
 {
-    // find connected cities
-    float sq_max_distance = std::pow(cfg.connect_city_distance, 2);
-    for (auto& city: cities) {
+    auto add_connected_cities = [&](City& city, float max_distance_sq) {
         for (auto const& other_city: cities) {
-            float sq_distance = std::pow(other_city->location.x - city->location.x, 2) + std::pow(other_city->location.y - city->location.y, 2);
-            if (sq_distance < sq_max_distance)
-                city->connected_cities.emplace(other_city.get());
+            float sq_distance = std::pow(other_city->location.x - city.location.x, 2) + std::pow(other_city->location.y - city.location.y, 2);
+            if (sq_distance < max_distance_sq)
+                city.connected_cities.emplace(other_city.get());
+        }
+    };
+
+    // find connected cities
+    for (auto& city: cities)
+        add_connected_cities(*city, std::pow(cfg.connect_city_distance, 2));
+
+    // check for disconnected cities
+    // TODO - Use https://github.com/bobluppes/graaf, algorithm Kruskal, to ensure all cities are connected
+    for (auto& city: cities) {
+        float max_distance = std::pow(cfg.connect_city_distance, 2);
+        while (city->connected_cities.empty()) {
+            max_distance += 200.f;
+            add_connected_cities(*city, max_distance);
         }
     }
 

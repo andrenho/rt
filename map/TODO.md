@@ -9,7 +9,7 @@
 - [x] Cities locations
 - [ ] Roads
 - [ ] City structures
-- Visual
+- Improvements
   - [ ] Rivers
   - [ ] Noisy edges
 
