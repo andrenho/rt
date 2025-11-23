@@ -1,6 +1,8 @@
 #ifndef MAP_HH
 #define MAP_HH
 
+#include <memory>
+#include <unordered_set>
 #include <utility>
 #include <random>
 #include <vector>
@@ -20,6 +22,7 @@ struct MapConfig {
     float  ocean_elevation              = .4f;
     float  lake_threshold               = .28f;
     int    number_of_cities             = 15;
+    float  connect_city_distance        = 400;
 };
 
 struct Biome {
@@ -34,10 +37,16 @@ struct Biome {
     bool         contains_city = false;
 };
 
+struct City {
+    geo::Point location;
+    std::unordered_set<City*> connected_cities {};
+};
+
 struct MapOutput {
     size_t w = 0, h = 0;
     size_t tiles_w = 0, tiles_h = 0;
     std::vector<Biome> biomes {};
+    std::vector<std::unique_ptr<City>> cities {};
 };
 
 MapOutput create(MapConfig const& cfg);

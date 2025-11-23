@@ -158,8 +158,10 @@ void update_terrain_type(std::vector<Biome>& biomes, MapConfig const& cfg)
 // CITIES
 //
 
-void find_city_locations(std::vector<Biome>& biomes, MapConfig const& cfg, std::mt19937& rng)
+std::vector<std::unique_ptr<City>> find_city_locations(std::vector<Biome>& biomes, MapConfig const& cfg, std::mt19937& rng)
 {
+    std::vector<std::unique_ptr<City>> cities;
+
     size_t initial_city_count = (cfg.number_of_cities * 2.f);  // double cities as some will end up in water
 
     // create distributed points with random component
@@ -215,10 +217,35 @@ void find_city_locations(std::vector<Biome>& biomes, MapConfig const& cfg, std::
             if (geo::contains_point(biome.polygon, p)) {
                 if (biome.type != Biome::Ocean) {
                     biome.contains_city = true;
+                    cities.emplace_back(std::make_unique<City>(p));
                     if ((++count) >= cfg.number_of_cities)
-                        return;
+                        goto done;
                 }
             }
+        }
+    }
+
+done:
+    return cities;
+}
+
+void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, MapConfig const& cfg)
+{
+    // find connected cities
+    float sq_max_distance = std::pow(cfg.connect_city_distance, 2);
+    for (auto& city: cities) {
+        for (auto const& other_city: cities) {
+            float sq_distance = std::pow(other_city->location.x - city->location.x, 2) + std::pow(other_city->location.y - city->location.y, 2);
+            if (sq_distance < sq_max_distance)
+                city->connected_cities.emplace(other_city.get());
+        }
+    }
+
+    // remove duplicates
+    for (auto& city: cities) {
+        for (auto& other_city: cities) {
+            if (city->connected_cities.contains(other_city.get()))
+                other_city->connected_cities.erase(city.get());
         }
     }
 }
@@ -258,9 +285,11 @@ generate_polygons_again:
 
     update_terrain_type(biomes, cfg);
 
-    find_city_locations(biomes, cfg, rng);
+    auto cities = find_city_locations(biomes, cfg, rng);
+    find_connected_cities(cities, cfg);
 
     output.biomes = std::move(biomes);
+    output.cities = std::move(cities);
     return output;
 }
 
