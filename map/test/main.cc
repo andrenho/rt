@@ -72,6 +72,9 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                 if (line_color)
                     DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, *line_color);
             },
+            [&](geo::Line const& ln) {
+                DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, 1.f / camera.zoom, *line_color);
+            },
     }, shape);
 }
 
@@ -81,7 +84,7 @@ static void draw_points()
         draw_shape(geo::Circle { biome.original_point, 40.f }, BLACK, VIOLET);
 }
 
-static void draw_polygons()
+static void draw_biome_polygons()
 {
     for (auto const& biome: map_.biomes) {
         switch (state.polygon_fill) {
@@ -103,6 +106,15 @@ static void draw_polygons()
         }
         if (biome.contains_city && state.show_city_locations)
             draw_shape(biome.polygon, BLACK, PURPLE);
+    }
+}
+
+static void draw_city_connections()
+{
+    for (auto const& city: map_.cities) {
+        for (auto const& other_city: city->connected_cities) {
+            draw_shape(geo::Line { city->location, other_city->location }, PINK);
+        }
     }
 }
 
@@ -135,6 +147,7 @@ void draw_ui()
 
             ImGui::SeparatorText("Cities & Roads");
             ImGui::SliderInt("Number of cities", &map_config.number_of_cities, 3, 50);
+            ImGui::SliderFloat("Connected city distance", &map_config.connect_city_distance, 0.0f, 20000.0f, "%.3f");
 
             ImGui::EndTabItem();
         }
@@ -186,16 +199,14 @@ static void handle_events()
     if (IsKeyDown(KEY_G))
         reset_map();
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-    {
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         Vector2 delta = GetMouseDelta();
         delta = Vector2Scale(delta, -1.0f/camera.zoom);
         camera.target = Vector2Add(camera.target, delta);
     }
 
     float wheel = GetMouseWheelMove();
-    if (wheel != 0.f)
-    {
+    if (wheel < 0.f || wheel > 0.f) {
         Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
         camera.offset = GetMousePosition();
         camera.target = mouseWorldPos;
@@ -207,7 +218,7 @@ static void handle_events()
 
 int main()
 {
-    srand(time(nullptr));
+    srand((unsigned int) time(nullptr));
     map_config.seed = rand();
 
     reset_map();
@@ -229,9 +240,11 @@ int main()
 
         BeginMode2D(camera);
         if (state.show_polygons)
-            draw_polygons();
+            draw_biome_polygons();
         if (state.show_points)
             draw_points();
+        if (state.show_connected_cities)
+            draw_city_connections();
         EndMode2D();
 
         draw_ui();

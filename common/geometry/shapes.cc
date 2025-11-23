@@ -17,8 +17,7 @@ bool contains_point(Shape const& shape, Point const& p)
     return std::visit([&](auto const& s) -> bool {
         using T = std::decay_t<decltype(s)>;
 
-        if constexpr (std::is_same_v<T, Polygon>)
-        {
+        if constexpr (std::is_same_v<T, Polygon>) {
             bool inside = false;
             size_t const n = s.size();
             if (n < 3) return false;
@@ -34,12 +33,12 @@ bool contains_point(Shape const& shape, Point const& p)
                 if (intersect) inside = !inside;
             }
             return inside;
-        }
-        else // Circle
-        {
+        } else if constexpr (std::is_same_v<T, Circle>) {
             float dx = p.x - s.center.x;
             float dy = p.y - s.center.y;
             return dx * dx + dy * dy <= s.radius * s.radius;
+        } else {
+            return false;
         }
     }, shape);
 }

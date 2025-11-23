@@ -28,7 +28,13 @@ struct Circle {
     float  radius;
 };
 
-using Shape = std::variant<Polygon, Circle>;
+struct Line {
+    Line(Point const& p1_, Point const& p2_) : p1(p1_), p2(p2_) {}
+    Line(float x1, float y1, float x2, float y2) : p1({ x1, y1 }), p2({ x2, y2 }) {}
+    Point p1, p2;
+};
+
+using Shape = std::variant<Polygon, Circle, Line>;
 
 bool contains_point(Shape const& shape, Point const& point);
 
