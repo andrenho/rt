@@ -83,7 +83,7 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
 static void draw_points()
 {
     for (auto const& biome: map_.biomes)
-        draw_shape(geo::Circle { biome.original_point, 40.f }, BLACK, VIOLET);
+        draw_shape(geo::Circle { biome->original_point, 40.f }, BLACK, VIOLET);
 }
 
 static void draw_biome_polygons()
@@ -91,23 +91,23 @@ static void draw_biome_polygons()
     for (auto const& biome: map_.biomes) {
         switch (state.polygon_fill) {
             case State::PolygonFill::None:
-                draw_shape(biome.polygon, BLACK);
+                draw_shape(biome->polygon, BLACK);
                 break;
             case State::PolygonFill::Elevation:
-                draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.elevation ) });
+                draw_shape(biome->polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome->elevation ) });
                 break;
             case State::PolygonFill::Moisture:
-                draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.moisture ) });
+                draw_shape(biome->polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome->moisture ) });
                 break;
             case State::PolygonFill::Oceans:
-                draw_shape(biome.polygon, BLACK, biome.type == map::Biome::Ocean ? SKYBLUE : BROWN);
+                draw_shape(biome->polygon, BLACK, biome->type == map::Biome::Ocean ? SKYBLUE : BROWN);
                 break;
             case State::PolygonFill::Biomes:
-                draw_shape(biome.polygon, BLACK, biome_colors.at((int) biome.type));
+                draw_shape(biome->polygon, BLACK, biome_colors.at((int) biome->type));
                 break;
         }
-        if (biome.contains_city && state.show_city_locations)
-            draw_shape(biome.polygon, BLACK, PURPLE);
+        if (biome->contains_city && state.show_city_locations)
+            draw_shape(biome->polygon, BLACK, PURPLE);
     }
 }
 
@@ -120,9 +120,8 @@ static void draw_city_connections()
 
 static void draw_roads()
 {
-    for (auto const& road: map_.roads)
-        for (size_t i = 0; i < road.size() - 1; ++i)
-            draw_shape(geo::Line { road.at(i), road.at(i+1) }, BROWN, {}, 2.f);
+    for (auto const& road: map_.road_segments)
+        draw_shape(geo::Line { road.first, road.second }, BROWN, {}, 2.f);
 }
 
 void draw_ui()

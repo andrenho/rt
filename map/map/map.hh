@@ -35,6 +35,7 @@ struct Biome {
     float        moisture = .5f;
     Type         type = Biome::Type::Unknown;
     bool         contains_city = false;
+    std::vector<Biome*> neighbours {};
 };
 
 struct City {
@@ -42,14 +43,14 @@ struct City {
     std::unordered_set<City*> connected_cities {};
 };
 
-using Road = std::vector<geo::Point>;
+using RoadSegment = std::pair<geo::Point, geo::Point>;
 
 struct MapOutput {
     size_t w = 0, h = 0;
     size_t tiles_w = 0, tiles_h = 0;
-    std::vector<Biome> biomes {};
+    std::vector<std::unique_ptr<Biome>> biomes {};
     std::vector<std::unique_ptr<City>> cities {};
-    std::vector<Road> roads {};
+    std::vector<RoadSegment> road_segments {};
 };
 
 MapOutput create(MapConfig const& cfg);

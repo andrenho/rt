@@ -1,6 +1,8 @@
 #ifndef POINT_HH
 #define POINT_HH
 
+#include <cmath>
+
 namespace geo {
 
 struct Point {
@@ -27,6 +29,31 @@ struct Bounds {
 
     Point top_left;
     Point bottom_right;
+};
+
+
+// HASH
+
+constexpr float POINT_PRECISION = 1e-4f;
+inline float quantize(float v) {
+    return std::round(v / POINT_PRECISION) * POINT_PRECISION;
+}
+
+inline bool operator==(Point const& a, Point const& b) {
+    return quantize(a.x) == quantize(b.x)
+            && quantize(a.y) == quantize(b.y);
+}
+
+struct PointHash {
+    std::size_t operator()(Point const& p) const noexcept {
+        float qx = quantize(p.x);
+        float qy = quantize(p.y);
+
+        std::size_t h1 = std::hash<float>{}(qx);
+        std::size_t h2 = std::hash<float>{}(qy);
+
+        return h1 ^ (h2 + 0x9e3779b97f4a7c15ULL + (h1 << 6) + (h1 >> 2));
+    }
 };
 
 }

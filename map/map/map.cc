@@ -7,8 +7,10 @@
 
 #include "PerlinNoise.hpp"
 
+#include "fmt/core.h"
 #include "graaflib/graph.h"
 #include "graaflib/algorithm/minimum_spanning_tree/kruskal.h"
+#include "graaflib/algorithm/shortest_path/a_star.h"
 
 namespace map {
 
@@ -38,9 +40,9 @@ static std::vector<geo::Point> generate_points(std::mt19937& rng, size_t tiles_w
     return polygon_points;
 }
 
-static std::vector<Biome> generate_biome_tiles(std::vector<geo::Point> const& points)
+static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo::Point> const& points)
 {
-    std::vector<Biome> biomes;
+    std::vector<std::unique_ptr<Biome>> biomes;
 
     jcv_diagram diagram {};
     std::vector<jcv_point> jcv_points; jcv_points.reserve(points.size());
@@ -50,31 +52,46 @@ static std::vector<Biome> generate_biome_tiles(std::vector<geo::Point> const& po
     jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
 
     const jcv_site* sites = jcv_diagram_get_sites(&diagram);
+
+    std::unordered_map<Biome*, std::vector<jcv_site*>> biome_neighbour_sites;
+    std::unordered_map<jcv_site const*, Biome*> sites_biomes;
+
+    // create biomes
     for(int i = 0; i < diagram.numsites; ++i) {
         geo::Polygon polygon;
+        std::vector<jcv_site*> neighbours;
 
         const jcv_site* site = &sites[i];
 
         const jcv_graphedge* e = site->edges;
         while (e) {
             polygon.emplace_back(e->pos[0].x, e->pos[0].y);
+            neighbours.emplace_back(e->neighbor);
             e = e->next;
         }
 
-        biomes.emplace_back(geo::Point { jcv_points[i].x, jcv_points[i].y },
-                polygon.center(), std::move(polygon), .5f, Biome::Type::Unknown);
+        auto& biome = biomes.emplace_back(std::make_unique<Biome>(geo::Point { jcv_points[i].x, jcv_points[i].y },
+                polygon.center(), std::move(polygon), .5f, Biome::Type::Unknown));
+        biome_neighbour_sites[biome.get()] = std::move(neighbours);
+        sites_biomes[site] = biome.get();
     }
+
+    // find neighbours
+    for (auto& biome: biomes)
+        for (jcv_site* site: biome_neighbour_sites.at(biome.get()))
+            if (site)
+                biome->neighbours.push_back(sites_biomes.at(site));
 
     jcv_diagram_free(&diagram);
 
     return biomes;
 }
 
-static std::vector<geo::Point> relax_points(std::vector<Biome> const& biomes)
+static std::vector<geo::Point> relax_points(std::vector<std::unique_ptr<Biome>> const& biomes)
 {
     std::vector<geo::Point> polygon_points;
     for (auto const& biome: biomes)
-        polygon_points.emplace_back(biome.center_point);
+        polygon_points.emplace_back(biome->center_point);
     return polygon_points;
 }
 
@@ -82,76 +99,76 @@ static std::vector<geo::Point> relax_points(std::vector<Biome> const& biomes)
 // TERRAIN GENERATION
 //
 
-static void update_biome_elevation(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void update_biome_elevation(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed;
     const siv::PerlinNoise perlin(seed);
 
     for (auto& biome: biomes) {
-        auto p = biome.center_point;
+        auto p = biome->center_point;
         float w = (float) cfg.map_w;
         float h = (float) cfg.map_h;
         float distance_from_center = ((p.x-w*0.5f)*(p.x-w*0.5f)+(p.y-h*0.5f)*(p.y-h*0.5f))/((w*0.5f)*(w*0.5f)+(h*0.5f)*(h*0.5f)) / .5f;
         float r = (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4);
-        biome.elevation = std::clamp(1.f - r * distance_from_center / .5f, .0f, 1.f);
+        biome->elevation = std::clamp(1.f - r * distance_from_center / .5f, .0f, 1.f);
     }
 }
 
-static void update_biome_moisture(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void update_biome_moisture(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed + 1;
     const siv::PerlinNoise perlin(seed);
 
     for (auto& biome: biomes) {
-        auto p = biome.center_point;
-        biome.moisture = (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 16);
+        auto p = biome->center_point;
+        biome->moisture = (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 16);
     }
 }
 
-static void update_biome_ocean(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void update_biome_ocean(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
 {
     for (auto& biome: biomes)
-        if (biome.elevation < cfg.ocean_elevation)
-            biome.type = Biome::Ocean;
+        if (biome->elevation < cfg.ocean_elevation)
+            biome->type = Biome::Ocean;
 }
 
-static void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void add_lakes(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed + 2;
     const siv::PerlinNoise perlin(seed);
 
     for (auto& biome: biomes) {
-        auto p = biome.center_point;
+        auto p = biome->center_point;
         if (perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4) < cfg.lake_threshold)
-            biome.type = Biome::Ocean;
+            biome->type = Biome::Ocean;
     }
 }
 
-static void update_terrain_type(std::vector<Biome>& biomes)
+static void update_terrain_type(std::vector<std::unique_ptr<Biome>>& biomes)
 {
     for (auto& biome: biomes) {
-        if (biome.type != Biome::Type::Unknown)
+        if (biome->type != Biome::Type::Unknown)
             continue;;
-        if (biome.elevation > .98f) {
-            biome.type = Biome::Type::Snow;
-        } else if (biome.elevation > .8f) {
-            if (biome.moisture < .25f)
-                biome.type = Biome::Type::Desert;
-            else if (biome.moisture < .5f)
-                biome.type = Biome::Type::Tundra;
-            else if (biome.moisture < .75f)
-                biome.type = Biome::Type::Grassland;
+        if (biome->elevation > .98f) {
+            biome->type = Biome::Type::Snow;
+        } else if (biome->elevation > .8f) {
+            if (biome->moisture < .25f)
+                biome->type = Biome::Type::Desert;
+            else if (biome->moisture < .5f)
+                biome->type = Biome::Type::Tundra;
+            else if (biome->moisture < .75f)
+                biome->type = Biome::Type::Grassland;
             else
-                biome.type = Biome::Type::PineForest;
+                biome->type = Biome::Type::PineForest;
         } else {
-            if (biome.moisture < .25f)
-                biome.type = Biome::Type::Desert;
-            else if (biome.moisture < .5f)
-                biome.type = Biome::Type::Savannah;
-            else if (biome.moisture < .75f)
-                biome.type = Biome::Type::Forest;
+            if (biome->moisture < .25f)
+                biome->type = Biome::Type::Desert;
+            else if (biome->moisture < .5f)
+                biome->type = Biome::Type::Savannah;
+            else if (biome->moisture < .75f)
+                biome->type = Biome::Type::Forest;
             else
-                biome.type = Biome::Type::RainForest;
+                biome->type = Biome::Type::RainForest;
         }
     }
 }
@@ -160,7 +177,7 @@ static void update_terrain_type(std::vector<Biome>& biomes)
 // CITIES
 //
 
-static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<Biome>& biomes, MapConfig const& cfg, std::mt19937& rng)
+static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
 {
     std::vector<std::unique_ptr<City>> cities;
 
@@ -216,10 +233,10 @@ static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<Biome>
     size_t count = 0;
     for (auto& biome: biomes) {
         for (auto const& p: points) {
-            if (geo::contains_point(biome.polygon, p)) {
-                if (biome.type != Biome::Ocean) {
-                    biome.contains_city = true;
-                    cities.emplace_back(std::make_unique<City>(biome.polygon.center()));
+            if (geo::contains_point(biome->polygon, p)) {
+                if (biome->type != Biome::Ocean) {
+                    biome->contains_city = true;
+                    cities.emplace_back(std::make_unique<City>(biome->polygon.center()));
                     if ((++count) >= cfg.number_of_cities)
                         goto done;
                 }
@@ -232,7 +249,7 @@ done:
 }
 
 //
-// ROADS
+// CITY CONNECTIONS
 //
 
 static void find_minimally_connected_cities(std::vector<std::unique_ptr<City>>& cities)
@@ -262,23 +279,20 @@ static void find_minimally_connected_cities(std::vector<std::unique_ptr<City>>& 
     }
 }
 
-static void add_connected_cities(City& city, std::vector<std::unique_ptr<City>> const& cities, float max_distance_sq)
-{
-    for (auto const& other_city: cities) {
-        float sq_distance = std::pow(other_city->location.x - city.location.x, 2) + std::pow(other_city->location.y - city.location.y, 2);
-        if (sq_distance < max_distance_sq)
-            city.connected_cities.emplace(other_city.get());
-    }
-}
-
 static void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, MapConfig const& cfg)
 {
     // find minimal set of connected cities
     find_minimally_connected_cities(cities);
 
     // connect all cities that have a minimal distance
-    for (auto& city: cities)
-       add_connected_cities(*city, cities, std::pow(cfg.connect_city_distance, 2));
+    const float max_distance_sq = std::pow(cfg.connect_city_distance, 2);
+    for (auto& city: cities) {
+        for (auto const& other_city: cities) {
+            float sq_distance = std::pow(other_city->location.x - city->location.x, 2) + std::pow(other_city->location.y - city->location.y, 2);
+            if (sq_distance < max_distance_sq)
+                city->connected_cities.emplace(other_city.get());
+        }
+    }
 
     // remove duplicates
     for (auto& city: cities) {
@@ -287,6 +301,48 @@ static void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, Ma
                 other_city->connected_cities.erase(city.get());
         }
     }
+}
+
+//
+// BUILD ROADS
+//
+
+std::vector<RoadSegment> calculate_road_segments(std::vector<std::unique_ptr<Biome>> const& biomes, geo::Point const& p1, geo::Point const& p2)
+{
+    // create graph
+    graaf::undirected_graph<geo::Point, int> g;
+    std::unordered_map<geo::Point, graaf::vertex_id_t, geo::PointHash> vertices;
+    for (auto const& biome: biomes) {
+        vertices[biome->center_point] = g.add_vertex(biome->center_point);
+    }
+
+    // add weights
+    for (auto const& biome1: biomes) {
+        for (auto const& biome2: biomes) {
+            int sq_distance = (int) (std::pow(biome2->center_point.x - biome1->center_point.x, 2) + std::pow(biome2->center_point.y - biome1->center_point.y, 2));
+            g.add_edge(vertices.at(biome1->center_point), vertices.at(biome2->center_point), sq_distance);
+        }
+    }
+
+    // run A* algorithm
+    graaf::algorithm::a_star_search(g, vertices.at(p1), vertices.at(p2), [](graaf::vertex_id_t id) -> int { return 0; });
+
+    // generate road segments
+    return {};
+}
+
+static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<Biome>> const& biomes, std::vector<std::unique_ptr<City>> const& cities)
+{
+    std::vector<RoadSegment> road_segments;
+
+    for (auto const& city1: cities) {
+        for (auto const& city2: city1->connected_cities) {
+            // auto segments = calculate_road_segments(biomes, city1->location, city2->location);
+            // road_segments.insert(road_segments.begin(), segments.begin(), segments.end());
+        }
+    }
+
+    return road_segments;
 }
 
 //
@@ -309,7 +365,7 @@ MapOutput create(MapConfig const& cfg)
 
     int relaxations = cfg.polygon_relaxation_steps;
 generate_polygons_again:
-    std::vector<Biome> biomes = generate_biome_tiles(polygon_points);
+    std::vector<std::unique_ptr<Biome>> biomes = generate_biome_tiles(polygon_points);
     if (relaxations > 0) {
         --relaxations;
         polygon_points = relax_points(biomes);
@@ -327,8 +383,11 @@ generate_polygons_again:
     auto cities = find_city_locations(biomes, cfg, rng);
     find_connected_cities(cities, cfg);
 
+    std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities);
+
     output.biomes = std::move(biomes);
     output.cities = std::move(cities);
+    output.road_segments = std::move(road_segments);
     return output;
 }
 
