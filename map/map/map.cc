@@ -127,10 +127,9 @@ static void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
     }
 }
 
-static void update_terrain_type(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void update_terrain_type(std::vector<Biome>& biomes)
 {
     for (auto& biome: biomes) {
-        auto p = biome.center_point;
         if (biome.type != Biome::Type::Unknown)
             continue;;
         if (biome.elevation > .98f) {
@@ -165,7 +164,7 @@ static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<Biome>
 {
     std::vector<std::unique_ptr<City>> cities;
 
-    size_t initial_city_count = (cfg.number_of_cities * 2.f);  // double cities as some will end up in water
+    size_t initial_city_count = (cfg.number_of_cities * 2);  // double cities as some will end up in water
 
     // create distributed points with random component
     size_t cities_h = (size_t) std::round(std::sqrt(initial_city_count * cfg.map_h / cfg.map_w));
@@ -323,7 +322,7 @@ generate_polygons_again:
     update_biome_ocean(biomes, cfg);
     add_lakes(biomes, cfg);
 
-    update_terrain_type(biomes, cfg);
+    update_terrain_type(biomes);
 
     auto cities = find_city_locations(biomes, cfg, rng);
     find_connected_cities(cities, cfg);
