@@ -35,10 +35,12 @@ struct Biome {
     float        moisture = .5f;
     Type         type = Biome::Type::Unknown;
     bool         contains_city = false;
+    bool         has_road = false;
     std::vector<Biome*> neighbours {};
 };
 
 struct City {
+    Biome* biome;
     geo::Point location;
     std::unordered_set<City*> connected_cities {};
 };

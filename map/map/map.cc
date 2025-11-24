@@ -236,7 +236,7 @@ static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::u
             if (geo::contains_point(biome->polygon, p)) {
                 if (biome->type != Biome::Ocean) {
                     biome->contains_city = true;
-                    cities.emplace_back(std::make_unique<City>(biome->polygon.center()));
+                    cities.emplace_back(std::make_unique<City>(biome.get(), biome->polygon.center()));
                     if ((++count) >= cfg.number_of_cities)
                         goto done;
                 }
@@ -307,38 +307,62 @@ static void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, Ma
 // BUILD ROADS
 //
 
-std::vector<RoadSegment> calculate_road_segments(std::vector<std::unique_ptr<Biome>> const& biomes, geo::Point const& p1, geo::Point const& p2)
-{
-    // create graph
-    graaf::undirected_graph<geo::Point, int> g;
-    std::unordered_map<geo::Point, graaf::vertex_id_t, geo::PointHash> vertices;
-    for (auto const& biome: biomes) {
-        vertices[biome->center_point] = g.add_vertex(biome->center_point);
-    }
-
-    // add weights
-    for (auto const& biome1: biomes) {
-        for (auto const& biome2: biomes) {
-            int sq_distance = (int) (std::pow(biome2->center_point.x - biome1->center_point.x, 2) + std::pow(biome2->center_point.y - biome1->center_point.y, 2));
-            g.add_edge(vertices.at(biome1->center_point), vertices.at(biome2->center_point), sq_distance);
-        }
-    }
-
-    // run A* algorithm
-    graaf::algorithm::a_star_search(g, vertices.at(p1), vertices.at(p2), [](graaf::vertex_id_t id) -> int { return 0; });
-
-    // generate road segments
-    return {};
-}
-
 static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<Biome>> const& biomes, std::vector<std::unique_ptr<City>> const& cities)
 {
     std::vector<RoadSegment> road_segments;
 
+    // create graph
+    graaf::directed_graph<Biome*, float> g;
+    std::unordered_map<Biome*, graaf::vertex_id_t> vertices;
+    std::unordered_map<graaf::vertex_id_t, Biome*> biome_vert;
+    for (auto const& biome: biomes) {
+        graaf::vertex_id_t v = g.add_vertex(biome.get());
+        vertices[biome.get()] = v;
+        biome_vert[v] = biome.get();
+    }
+
+    // add weights
+    for (auto const& biome1: biomes) {
+        for (auto const& biome2: biome1->neighbours) {
+            float weight = 1.f;
+            if (biome2->has_road) {
+                weight = .1f;   // try to reuse existing road
+            } else {
+                switch (biome2->type) {
+                    case Biome::Ocean:
+                        weight = 3.f;
+                        break;
+                    case Biome::Snow:
+                    case Biome::PineForest:
+                    case Biome::Forest:
+                    case Biome::RainForest:
+                        weight = 1.2f;
+                        break;
+                    default: break;
+                }
+            }
+            g.add_edge(vertices.at(biome1.get()), vertices.at(biome2), weight);
+        }
+    }
+
+    // calculate roads
     for (auto const& city1: cities) {
         for (auto const& city2: city1->connected_cities) {
-            // auto segments = calculate_road_segments(biomes, city1->location, city2->location);
-            // road_segments.insert(road_segments.begin(), segments.begin(), segments.end());
+            // calculate best path
+            // TODO - don't return 0
+            auto result = graaf::algorithm::a_star_search(g, vertices.at(city1->biome), vertices.at(city2->biome), [](graaf::vertex_id_t id) -> float { return 0; });
+
+            // create road segment
+            if (result.has_value()) {
+                std::optional<Biome*> last {};
+                for (auto v_id: result->vertices) {
+                    Biome* nw = biome_vert.at(v_id);
+                    nw->has_road = true;
+                    if (last)
+                        road_segments.emplace_back(last.value()->center_point, nw->center_point);
+                    last = nw;
+                }
+            }
         }
     }
 

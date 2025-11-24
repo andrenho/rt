@@ -8,6 +8,7 @@
 - [x] Biomes
 - [x] Cities locations
 - [ ] Roads
+  - [ ] Configurable road building
 - [ ] City structures
 - Improvements
   - [ ] Rivers

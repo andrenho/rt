@@ -121,7 +121,7 @@ static void draw_city_connections()
 static void draw_roads()
 {
     for (auto const& road: map_.road_segments)
-        draw_shape(geo::Line { road.first, road.second }, BROWN, {}, 2.f);
+        draw_shape(geo::Line { road.first, road.second }, BLACK, {}, 3.f);
 }
 
 void draw_ui()
