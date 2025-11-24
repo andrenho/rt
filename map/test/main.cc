@@ -23,12 +23,14 @@ struct State {
     PolygonFill polygon_fill;
     bool        show_city_locations;
     bool        show_connected_cities;
+    bool        show_roads;
 } state = {
     .show_points = false,
     .show_polygons = true,
     .polygon_fill = State::PolygonFill::Biomes,
     .show_city_locations = true,
-    .show_connected_cities = true,
+    .show_connected_cities = false,
+    .show_roads = true,
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
@@ -50,7 +52,7 @@ static void show_full_map()
     camera.zoom = (float) GetScreenWidth() / (float) map_.w;
 }
 
-static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color={}, std::optional<Color> bg_color={})
+static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color={}, std::optional<Color> bg_color={}, float line_width=1.f)
 {
     std::visit(overloaded {
             [&](geo::Polygon const& p) {
@@ -62,7 +64,7 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                 if (line_color) {
                     for (size_t i = 0; i < p.size(); i++) {
                         auto a = p[i], b = p[(i + 1) % p.size()];
-                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, 1.f / camera.zoom, *line_color);
+                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, (1.f / camera.zoom) * line_width, *line_color);
                     }
                 }
             },
@@ -73,7 +75,7 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                     DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, *line_color);
             },
             [&](geo::Line const& ln) {
-                DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, 1.f / camera.zoom, *line_color);
+                DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, (1.f / camera.zoom) * line_width, *line_color);
             },
     }, shape);
 }
@@ -111,11 +113,16 @@ static void draw_biome_polygons()
 
 static void draw_city_connections()
 {
-    for (auto const& city: map_.cities) {
-        for (auto const& other_city: city->connected_cities) {
-            draw_shape(geo::Line { city->location, other_city->location }, RED);
-        }
-    }
+    for (auto const& city: map_.cities)
+        for (auto const& other_city: city->connected_cities)
+            draw_shape(geo::Line { city->location, other_city->location }, RED, {}, 1.5f);
+}
+
+static void draw_roads()
+{
+    for (auto const& road: map_.roads)
+        for (size_t i = 0; i < road.size() - 1; ++i)
+            draw_shape(geo::Line { road.at(i), road.at(i+1) }, BROWN, {}, 2.f);
 }
 
 void draw_ui()
@@ -160,6 +167,7 @@ void draw_ui()
             ImGui::Combo("Polygon fill", (int *) &state.polygon_fill, items, IM_ARRAYSIZE(items));
             ImGui::Checkbox("Show city locations", &state.show_city_locations);
             ImGui::Checkbox("Show connected cities", &state.show_connected_cities);
+            ImGui::Checkbox("Show roads", &state.show_roads);
             ImGui::EndTabItem();
         }
 
@@ -245,6 +253,8 @@ int main()
             draw_points();
         if (state.show_connected_cities)
             draw_city_connections();
+        if (state.show_roads)
+            draw_roads();
         EndMode2D();
 
         draw_ui();

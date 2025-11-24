@@ -42,11 +42,14 @@ struct City {
     std::unordered_set<City*> connected_cities {};
 };
 
+using Road = std::vector<geo::Point>;
+
 struct MapOutput {
     size_t w = 0, h = 0;
     size_t tiles_w = 0, tiles_h = 0;
     std::vector<Biome> biomes {};
     std::vector<std::unique_ptr<City>> cities {};
+    std::vector<Road> roads {};
 };
 
 MapOutput create(MapConfig const& cfg);
