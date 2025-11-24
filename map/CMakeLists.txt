@@ -27,9 +27,7 @@ include(../cmake/libs/graaf.cmake)
 # library
 
 add_library(rt-map STATIC map/map.hh map/map.cc)
-message(${jc_voronoi_SOURCE_DIR})
-target_include_directories(rt-map PUBLIC SYSTEM ${jc_voronoi_SOURCE_DIR}/src ${perlin_SOURCE_DIR} ${graaf_SOURCE_DIR}/include)
-target_link_libraries(rt-map PUBLIC rt-common)
+target_link_libraries(rt-map PUBLIC rt-common jc_voronoi perlin Graaf::Graaf)
 
 # test executable
 
