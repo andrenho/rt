@@ -7,13 +7,16 @@
 
 #include "PerlinNoise.hpp"
 
+#include "graaflib/graph.h"
+#include "graaflib/algorithm/minimum_spanning_tree/kruskal.h"
+
 namespace map {
 
 //
 // POLYGONS GENERATION
 //
 
-std::vector<geo::Point> generate_points(std::mt19937& rng, size_t tiles_w, size_t tiles_h, MapConfig const& cfg)
+static std::vector<geo::Point> generate_points(std::mt19937& rng, size_t tiles_w, size_t tiles_h, MapConfig const& cfg)
 {
     std::vector<geo::Point> polygon_points {};
 
@@ -35,7 +38,7 @@ std::vector<geo::Point> generate_points(std::mt19937& rng, size_t tiles_w, size_
     return polygon_points;
 }
 
-std::vector<Biome> generate_biome_tiles(std::vector<geo::Point> const& points)
+static std::vector<Biome> generate_biome_tiles(std::vector<geo::Point> const& points)
 {
     std::vector<Biome> biomes;
 
@@ -67,7 +70,7 @@ std::vector<Biome> generate_biome_tiles(std::vector<geo::Point> const& points)
     return biomes;
 }
 
-std::vector<geo::Point> relax_points(std::vector<Biome> const& biomes)
+static std::vector<geo::Point> relax_points(std::vector<Biome> const& biomes)
 {
     std::vector<geo::Point> polygon_points;
     for (auto const& biome: biomes)
@@ -79,7 +82,7 @@ std::vector<geo::Point> relax_points(std::vector<Biome> const& biomes)
 // TERRAIN GENERATION
 //
 
-void update_biome_elevation(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void update_biome_elevation(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed;
     const siv::PerlinNoise perlin(seed);
@@ -94,7 +97,7 @@ void update_biome_elevation(std::vector<Biome>& biomes, MapConfig const& cfg)
     }
 }
 
-void update_biome_moisture(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void update_biome_moisture(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed + 1;
     const siv::PerlinNoise perlin(seed);
@@ -105,14 +108,14 @@ void update_biome_moisture(std::vector<Biome>& biomes, MapConfig const& cfg)
     }
 }
 
-void update_biome_ocean(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void update_biome_ocean(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
     for (auto& biome: biomes)
         if (biome.elevation < cfg.ocean_elevation)
             biome.type = Biome::Ocean;
 }
 
-void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed + 2;
     const siv::PerlinNoise perlin(seed);
@@ -124,7 +127,7 @@ void add_lakes(std::vector<Biome>& biomes, MapConfig const& cfg)
     }
 }
 
-void update_terrain_type(std::vector<Biome>& biomes, MapConfig const& cfg)
+static void update_terrain_type(std::vector<Biome>& biomes, MapConfig const& cfg)
 {
     for (auto& biome: biomes) {
         auto p = biome.center_point;
@@ -158,7 +161,7 @@ void update_terrain_type(std::vector<Biome>& biomes, MapConfig const& cfg)
 // CITIES
 //
 
-std::vector<std::unique_ptr<City>> find_city_locations(std::vector<Biome>& biomes, MapConfig const& cfg, std::mt19937& rng)
+static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<Biome>& biomes, MapConfig const& cfg, std::mt19937& rng)
 {
     std::vector<std::unique_ptr<City>> cities;
 
@@ -229,29 +232,54 @@ done:
     return cities;
 }
 
-void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, MapConfig const& cfg)
+//
+// ROADS
+//
+
+static void find_minimally_connected_cities(std::vector<std::unique_ptr<City>>& cities)
 {
-    auto add_connected_cities = [&](City& city, float max_distance_sq) {
-        for (auto const& other_city: cities) {
-            float sq_distance = std::pow(other_city->location.x - city.location.x, 2) + std::pow(other_city->location.y - city.location.y, 2);
-            if (sq_distance < max_distance_sq)
-                city.connected_cities.emplace(other_city.get());
-        }
-    };
-
-    // find connected cities
+    // create graph
+    std::unordered_map<City*, graaf::vertex_id_t> vertices;
+    graaf::undirected_graph<City*, int> g;
     for (auto& city: cities)
-        add_connected_cities(*city, std::pow(cfg.connect_city_distance, 2));
+        vertices[city.get()] = g.add_vertex(city.get());
 
-    // check for disconnected cities
-    // TODO - Use https://github.com/bobluppes/graaf, algorithm Kruskal, to ensure all cities are connected
-    for (auto& city: cities) {
-        float max_distance = std::pow(cfg.connect_city_distance, 2);
-        while (city->connected_cities.empty()) {
-            max_distance += 200.f;
-            add_connected_cities(*city, max_distance);
+    // add graph weights
+    for (auto const& city1: cities) {
+        for (auto const& city2: cities) {
+            int sq_distance = (int) (std::pow(city2->location.x - city1->location.x, 2) + std::pow(city2->location.y - city1->location.y, 2));
+            g.add_edge(vertices.at(city1.get()), vertices.at(city2.get()), sq_distance);
         }
     }
+
+    // run algorithm (Kruskal)
+    auto edges = graaf::algorithm::kruskal_minimum_spanning_tree(g);
+
+    // connect cities based on algorithm result
+    for (auto const& edge_id: edges) {
+        auto city1 = g.get_vertex(edge_id.first);
+        auto city2 = g.get_vertex(edge_id.second);
+        city1->connected_cities.emplace(city2);
+    }
+}
+
+static void add_connected_cities(City& city, std::vector<std::unique_ptr<City>> const& cities, float max_distance_sq)
+{
+    for (auto const& other_city: cities) {
+        float sq_distance = std::pow(other_city->location.x - city.location.x, 2) + std::pow(other_city->location.y - city.location.y, 2);
+        if (sq_distance < max_distance_sq)
+            city.connected_cities.emplace(other_city.get());
+    }
+}
+
+static void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, MapConfig const& cfg)
+{
+    // find minimal set of connected cities
+    find_minimally_connected_cities(cities);
+
+    // connect all cities that have a minimal distance
+    for (auto& city: cities)
+       add_connected_cities(*city, cities, std::pow(cfg.connect_city_distance, 2));
 
     // remove duplicates
     for (auto& city: cities) {
