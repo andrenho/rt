@@ -10,9 +10,12 @@
 - [x] Roads
   - [ ] Fix warnings
   - [ ] Fix min number of cities
-- [ ] City structures
-- Improvements
+- [ ] Improvements
   - [ ] Rivers
   - [ ] Noisy edges
+- [ ] Physical objects generation
+  - [ ] Roads
+  - [ ] Partition impassable terrain
+  - [ ] City structures
 
 http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/
