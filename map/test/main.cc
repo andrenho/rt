@@ -153,7 +153,10 @@ void draw_ui()
 
             ImGui::SeparatorText("Cities & Roads");
             ImGui::SliderInt("Number of cities", &map_config.number_of_cities, 3, 50);
-            ImGui::SliderFloat("Connected city distance", &map_config.connect_city_distance, 0.0f, 20000.0f, "%.3f");
+            ImGui::SliderFloat("Connected city distance", &map_config.connect_city_distance, 0.0f, 20000.0f, "%.0f");
+            ImGui::SliderFloat("Road weight - Ocean", &map_config.road_weight_ocean, 0.f, 5.f, "%.1f");
+            ImGui::SliderFloat("Road weight - Forest", &map_config.road_weight_forest, 0.f, 5.f, "%.1f");
+            ImGui::SliderFloat("Road weight - Reuse", &map_config.road_weight_reuse, 0.f, 5.f, "%.1f");
 
             ImGui::EndTabItem();
         }

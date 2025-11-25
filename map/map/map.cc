@@ -182,10 +182,12 @@ static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::u
     std::vector<std::unique_ptr<City>> cities;
 
     size_t initial_city_count = (cfg.number_of_cities * 2);  // double cities as some will end up in water
+    size_t city_count = initial_city_count;
 
     // create distributed points with random component
-    size_t cities_h = (size_t) std::round(std::sqrt(initial_city_count * cfg.map_h / cfg.map_w));
-    size_t cities_w = (size_t) ceil(initial_city_count / cities_h);
+try_again:
+    size_t cities_h = (size_t) std::round(std::sqrt(city_count * cfg.map_h / cfg.map_w));
+    size_t cities_w = (size_t) ceil(city_count / cities_h);
     float diff_x = cfg.map_w / cities_w / 2.f;
     float diff_y = cfg.map_h / cities_h / 2.f;
 
@@ -193,7 +195,7 @@ static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::u
     std::uniform_real_distribution<float> distances_y(0.0, diff_y * 2);
     std::uniform_real_distribution<float> angles(0.0, 2.0);
 
-    std::vector<jcv_point> jcv_points; jcv_points.reserve(initial_city_count);
+    std::vector<jcv_point> jcv_points; jcv_points.reserve(city_count);
     for (float x = 0; x < cities_w; ++x) {
         for (float y = 0; y < cities_h; ++y) {
             float px = x * (cfg.map_w / cities_w) + diff_x + distances_x(rng) * (float) cos(angles(rng));
@@ -230,19 +232,26 @@ static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::u
 
     // find biomes
     std::shuffle(points.begin(), points.end(), rng);
-    size_t count = 0;
+    std::shuffle(biomes.begin(), biomes.end(), rng);
     for (auto& biome: biomes) {
         for (auto const& p: points) {
             if (geo::contains_point(biome->polygon, p)) {
                 if (biome->type != Biome::Ocean) {
                     biome->contains_city = true;
                     cities.emplace_back(std::make_unique<City>(biome.get(), biome->polygon.center()));
-                    if ((++count) >= cfg.number_of_cities)
+                    if (cities.size() >= cfg.number_of_cities)
                         goto done;
                 }
             }
         }
     }
+
+    /*
+    if (cities.size() < cfg.number_of_cities) {
+        city_count *= 1.2f;
+        goto try_again;
+    }
+     */
 
 done:
     return cities;
@@ -307,7 +316,7 @@ static void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, Ma
 // BUILD ROADS
 //
 
-static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<Biome>> const& biomes, std::vector<std::unique_ptr<City>> const& cities)
+static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<Biome>> const& biomes, std::vector<std::unique_ptr<City>> const& cities, MapConfig const& cfg)
 {
     std::vector<RoadSegment> road_segments;
 
@@ -326,17 +335,16 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
         for (auto const& biome2: biome1->neighbours) {
             float weight = 1.f;
             if (biome2->has_road) {
-                weight = .1f;   // try to reuse existing road
+                weight = cfg.road_weight_reuse;   // try to reuse existing road
             } else {
                 switch (biome2->type) {
                     case Biome::Ocean:
-                        weight = 3.f;
+                        weight = cfg.road_weight_ocean;
                         break;
-                    case Biome::Snow:
                     case Biome::PineForest:
                     case Biome::Forest:
                     case Biome::RainForest:
-                        weight = 1.2f;
+                        weight = cfg.road_weight_forest;
                         break;
                     default: break;
                 }
@@ -349,8 +357,12 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
     for (auto const& city1: cities) {
         for (auto const& city2: city1->connected_cities) {
             // calculate best path
-            // TODO - don't return 0
-            auto result = graaf::algorithm::a_star_search(g, vertices.at(city1->biome), vertices.at(city2->biome), [](graaf::vertex_id_t id) -> float { return 0; });
+            auto result = graaf::algorithm::a_star_search(g, vertices.at(city1->biome), vertices.at(city2->biome),
+                    [&](graaf::vertex_id_t id) -> float {
+                        geo::Point p1 = biome_vert.at(id)->center_point;
+                        geo::Point p2 = city2->location;
+                        return (std::pow(p2.x - p1.x, 2) + std::pow(p2.y - p1.y, 2));
+                    });
 
             // create road segment
             if (result.has_value()) {
@@ -407,7 +419,7 @@ generate_polygons_again:
     auto cities = find_city_locations(biomes, cfg, rng);
     find_connected_cities(cities, cfg);
 
-    std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities);
+    std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);
 
     output.biomes = std::move(biomes);
     output.cities = std::move(cities);

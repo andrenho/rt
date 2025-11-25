@@ -7,8 +7,9 @@
 - [x] Island
 - [x] Biomes
 - [x] Cities locations
-- [ ] Roads
-  - [ ] Configurable road building
+- [x] Roads
+  - [ ] Fix warnings
+  - [ ] Fix min number of cities
 - [ ] City structures
 - Improvements
   - [ ] Rivers
