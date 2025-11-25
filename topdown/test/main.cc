@@ -126,6 +126,9 @@ void draw_object(Object const* object, Color color=DARK)
                 [&](geo::Circle const& c) {
                     DrawCircleLinesV({ c.center.x, c.center.y }, c.radius, color);
                 },
+                [&](geo::Line const& ln) {
+                    DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, .5f, color);
+                },
         }, shape);
     }
 }
