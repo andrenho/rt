@@ -8,8 +8,8 @@
 - [x] Biomes
 - [x] Cities locations
 - [x] Roads
+  - [x] Fix min number of cities
   - [ ] Fix warnings
-  - [ ] Fix min number of cities
 - [ ] Improvements
   - [ ] Rivers
   - [ ] Noisy edges
