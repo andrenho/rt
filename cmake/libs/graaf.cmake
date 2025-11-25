@@ -7,7 +7,7 @@ FetchContent_MakeAvailable(fmtx)
 
 add_library(fmtx INTERFACE)
 target_include_directories(fmtx SYSTEM INTERFACE
-        ${fmtx_SOURCE_DIR}
+        ${fmtx_SOURCE_DIR}/include
 )
 
 set(SKIP_TESTS ON)
