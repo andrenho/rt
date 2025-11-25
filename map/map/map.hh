@@ -25,7 +25,7 @@ struct MapConfig {
     float  connect_city_distance        = 4500;
     float  road_weight_ocean            = 3.f;
     float  road_weight_forest           = 1.2f;
-    float  road_weight_reuse            = .1f;
+    float  road_weight_reuse            = .7f;
 };
 
 struct Biome {
@@ -38,7 +38,6 @@ struct Biome {
     float        moisture = .5f;
     Type         type = Biome::Type::Unknown;
     bool         contains_city = false;
-    bool         has_road = false;
     std::vector<Biome*> neighbours {};
 };
 

@@ -10,7 +10,7 @@
 #include "fmt/core.h"
 #include "graaflib/graph.h"
 #include "graaflib/algorithm/minimum_spanning_tree/kruskal.h"
-#include "graaflib/algorithm/shortest_path/a_star.h"
+#include "graaflib/algorithm/shortest_path/dijkstra_shortest_path.h"
 
 namespace map {
 
@@ -177,15 +177,11 @@ static void update_terrain_type(std::vector<std::unique_ptr<Biome>>& biomes)
 // CITIES
 //
 
-static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
+static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>> const& biomes, MapConfig const& cfg, std::mt19937& rng, size_t city_count)
 {
     std::vector<std::unique_ptr<City>> cities;
 
-    size_t initial_city_count = (cfg.number_of_cities * 2);  // double cities as some will end up in water
-    size_t city_count = initial_city_count;
-
     // create distributed points with random component
-try_again:
     size_t cities_h = (size_t) std::round(std::sqrt(city_count * cfg.map_h / cfg.map_w));
     size_t cities_w = (size_t) ceil(city_count / cities_h);
     float diff_x = cfg.map_w / cities_w / 2.f;
@@ -231,14 +227,12 @@ try_again:
     jcv_diagram_free(&diagram);
 
     // find biomes
-    std::shuffle(points.begin(), points.end(), rng);
-    std::shuffle(biomes.begin(), biomes.end(), rng);
-    for (auto& biome: biomes) {
+    std::vector<int> biome_n(biomes.size()); std::iota(biome_n.begin(), biome_n.end(), 0); std::shuffle(biome_n.begin(), biome_n.end(), rng);
+    for (auto i: biome_n) {
         for (auto const& p: points) {
-            if (geo::contains_point(biome->polygon, p)) {
-                if (biome->type != Biome::Ocean) {
-                    biome->contains_city = true;
-                    cities.emplace_back(std::make_unique<City>(biome.get(), biome->polygon.center()));
+            if (geo::contains_point(biomes.at(i)->polygon, p)) {
+                if (biomes.at(i)->type != Biome::Ocean) {
+                    cities.emplace_back(std::make_unique<City>(biomes.at(i).get(), biomes.at(i)->polygon.center()));
                     if (cities.size() >= cfg.number_of_cities)
                         goto done;
                 }
@@ -246,14 +240,26 @@ try_again:
         }
     }
 
-    /*
-    if (cities.size() < cfg.number_of_cities) {
-        city_count *= 1.2f;
-        goto try_again;
-    }
-     */
-
 done:
+    return cities;
+}
+
+static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
+{
+    size_t city_count = cfg.number_of_cities + 10;
+    std::vector<std::unique_ptr<City>> cities;
+
+    // create city list
+    do {
+        cities = create_cities(biomes, cfg, rng, city_count);
+        city_count += 10;
+        if (city_count > cfg.number_of_cities * 3)   // sanity check
+            break;
+    } while (cities.size() < cfg.number_of_cities);  // if not enough cities were created, try again with more cities
+
+    for (auto& city: cities)
+        city->biome->contains_city = true;
+
     return cities;
 }
 
@@ -321,7 +327,7 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
     std::vector<RoadSegment> road_segments;
 
     // create graph
-    graaf::directed_graph<Biome*, float> g;
+    graaf::undirected_graph<Biome*, float> g;
     std::unordered_map<Biome*, graaf::vertex_id_t> vertices;
     std::unordered_map<graaf::vertex_id_t, Biome*> biome_vert;
     for (auto const& biome: biomes) {
@@ -334,20 +340,16 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
     for (auto const& biome1: biomes) {
         for (auto const& biome2: biome1->neighbours) {
             float weight = 1.f;
-            if (biome2->has_road) {
-                weight = cfg.road_weight_reuse;   // try to reuse existing road
-            } else {
-                switch (biome2->type) {
-                    case Biome::Ocean:
-                        weight = cfg.road_weight_ocean;
-                        break;
-                    case Biome::PineForest:
-                    case Biome::Forest:
-                    case Biome::RainForest:
-                        weight = cfg.road_weight_forest;
-                        break;
-                    default: break;
-                }
+            switch (biome2->type) {
+                case Biome::Ocean:
+                    weight = cfg.road_weight_ocean;
+                    break;
+                case Biome::PineForest:
+                case Biome::Forest:
+                case Biome::RainForest:
+                    weight = cfg.road_weight_forest;
+                    break;
+                default: break;
             }
             g.add_edge(vertices.at(biome1.get()), vertices.at(biome2), weight);
         }
@@ -357,22 +359,24 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
     for (auto const& city1: cities) {
         for (auto const& city2: city1->connected_cities) {
             // calculate best path
-            auto result = graaf::algorithm::a_star_search(g, vertices.at(city1->biome), vertices.at(city2->biome),
-                    [&](graaf::vertex_id_t id) -> float {
-                        geo::Point p1 = biome_vert.at(id)->center_point;
-                        geo::Point p2 = city2->location;
-                        return (std::pow(p2.x - p1.x, 2) + std::pow(p2.y - p1.y, 2));
-                    });
+            auto result = graaf::algorithm::dijkstra_shortest_path(g, vertices.at(city1->biome), vertices.at(city2->biome));
 
             // create road segment
             if (result.has_value()) {
                 std::optional<Biome*> last {};
+                graaf::vertex_id_t last_v_id = -1;
                 for (auto v_id: result->vertices) {
                     Biome* nw = biome_vert.at(v_id);
-                    nw->has_road = true;
-                    if (last)
+                    if (last) {
+                        // add road
                         road_segments.emplace_back(last.value()->center_point, nw->center_point);
+
+                        // adjust edge to indicate that there's a road here now, and we rather reuse it
+                        g.remove_edge(last_v_id, v_id);
+                        g.add_edge(last_v_id, v_id, cfg.road_weight_reuse);
+                    }
                     last = nw;
+                    last_v_id = v_id;
                 }
             }
         }
