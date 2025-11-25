@@ -1,5 +1,5 @@
 set(WARNINGS "-Wall -Wextra -Wpedantic -Wcast-align -Wcast-qual \
-    -Wno-conversion -Wfloat-equal -Wnull-dereference -Wshadow -Wstack-protector -Wswitch-enum \
+    -Wno-conversion -Wfloat-equal -Wnull-dereference -Wshadow -Wstack-protector -Wswitch \
     -Wundef -Wno-vla -Wno-sign-conversion -Wno-sign-compare -Wmissing-field-initializers -Wnull-dereference -Wcast-align \
     ${SPECIFIC_WARNINGS}")
 
