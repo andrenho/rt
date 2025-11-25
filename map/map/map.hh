@@ -49,7 +49,7 @@ struct City {
 
 using RoadSegment = std::pair<geo::Point, geo::Point>;
 
-struct MapOutput {
+struct Map {
     size_t w = 0, h = 0;
     size_t tiles_w = 0, tiles_h = 0;
     std::vector<std::unique_ptr<Biome>> biomes {};
@@ -57,7 +57,7 @@ struct MapOutput {
     std::vector<RoadSegment> road_segments {};
 };
 
-MapOutput create(MapConfig const& cfg);
+Map create(MapConfig const& cfg);
 
 } // map
 

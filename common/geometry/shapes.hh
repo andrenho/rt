@@ -23,6 +23,8 @@ inline Polygon Box(Point const& p, Point const& sz)
     return { p, { p.x, p.y + sz.y }, p + sz, { p.x + sz.x, p.y } };
 }
 
+Polygon ThickLine(geo::Point const& p1, geo::Point const& p2, float width);
+
 struct Circle {
     Point center;
     float  radius;
@@ -34,7 +36,12 @@ struct Line {
     Point p1, p2;
 };
 
-using Shape = std::variant<Polygon, Circle, Line>;
+struct Capsule {
+    Point p1, p2;
+    float radius;
+};
+
+using Shape = std::variant<Polygon, Circle, Capsule, Line>;
 
 bool contains_point(Shape const& shape, Point const& point);
 

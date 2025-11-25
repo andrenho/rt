@@ -389,11 +389,11 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
 // PUBLIC FUNCTIONS
 //
 
-MapOutput create(MapConfig const& cfg)
+Map create(MapConfig const& cfg)
 {
     std::mt19937 rng(cfg.seed);
 
-    MapOutput output {
+    Map output {
         .w = (size_t) cfg.map_w,
         .h = (size_t) cfg.map_h,
     };

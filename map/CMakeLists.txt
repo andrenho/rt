@@ -26,7 +26,9 @@ include(../cmake/libs/graaf.cmake)
 
 # library
 
-add_library(rt-map STATIC map/map.hh map/map.cc)
+add_library(rt-map STATIC map/map.hh map/map.cc
+        map/physicalmap.cc
+        map/physicalmap.hh)
 target_link_libraries(rt-map PUBLIC rt-common jc_voronoi perlin graaf fmtx)
 
 # test executable

@@ -10,6 +10,8 @@ struct Point {
     explicit operator struct Size() const;
 
     Point operator+(Point const& a) const { return { x + a.x, y + a.y }; }
+    Point operator-(Point const& a) const { return { x - a.x, y - a.y }; }
+    Point operator*(float w) const { return { x * w, y * w }; }
 
     float x, y;
 };

@@ -36,7 +36,7 @@ struct State {
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
 static std::vector<Color> biome_colors = { BROWN, SKYBLUE, RAYWHITE, Color {0, 150, 150, 255}, BEIGE, GREEN, BROWN, DARKGREEN, Color {0, 149, 70, 255}, Color {0, 170, 90, 255}};
 
-static map::MapOutput map_;
+static map::Map map_;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
@@ -76,6 +76,12 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
             },
             [&](geo::Line const& ln) {
                 DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, (1.f / camera.zoom) * line_width, *line_color);
+            },
+            [&](geo::Capsule const& c) {
+                if (bg_color)
+                    DrawCapsule({ c.p1.x, c.p1.y, 0 }, { c.p2.x, c.p2.y, 0 }, c.radius, 1, 1, *bg_color);
+                if (line_color)
+                    DrawCapsuleWires({ c.p1.x, c.p1.y, 0 }, { c.p2.x, c.p2.y, 0 }, c.radius, 1, 1, *line_color);
             },
     }, shape);
 }

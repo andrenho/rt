@@ -37,10 +37,29 @@ bool contains_point(Shape const& shape, Point const& p)
             float dx = p.x - s.center.x;
             float dy = p.y - s.center.y;
             return dx * dx + dy * dy <= s.radius * s.radius;
+        } else if constexpr (std::is_same_v<T, Capsule>) {
+            // TODO - check central rectangle
+            return contains_point(Circle { s.p1, s.radius }, p) ||
+                   contains_point(Circle { s.p2, s.radius }, p) ||
+                   contains_point(ThickLine(s.p1, s.p2, s.radius), p);
         } else {
             return false;
         }
     }, shape);
+}
+
+Polygon ThickLine(Point const& p1, Point const& p2, float width)
+{
+    Point dir = p2 - p1;
+    float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
+
+    // unit perpendicular to the line (rotate dir by +90 degrees and normalize)
+    Point perp = { -dir.y / len, dir.x / len };
+    float half = width * 0.5f;
+    Point offs = perp * half;
+
+    // rectangle corners in CCW order (p1+off, p1-off, p2-off, p2+off)
+    return Polygon { p1 + offs, p1 - offs, p2 - offs, p2 + offs };
 }
 
 }
