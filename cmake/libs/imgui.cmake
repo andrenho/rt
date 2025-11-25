@@ -25,6 +25,17 @@ add_library(imgui_raylib STATIC
         rlimgui-src/rlImGui.cpp
 )
 
+
+target_compile_options(imgui_raylib PRIVATE
+        # GCC / Clang / AppleClang (C and C++)
+        $<$<COMPILE_LANG_AND_ID:C,Clang,GNU,AppleClang>:-w>
+        $<$<COMPILE_LANG_AND_ID:CXX,Clang,GNU,AppleClang>:-w>
+
+        # MSVC (C and C++)
+        $<$<COMPILE_LANG_AND_ID:C,MSVC>:/W0>
+        $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:/W0>
+)
+
 target_include_directories(imgui_raylib
         PUBLIC SYSTEM
         /usr/local/include

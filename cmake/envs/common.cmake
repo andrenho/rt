@@ -1,6 +1,6 @@
 set(WARNINGS "-Wall -Wextra -Wpedantic -Wcast-align -Wcast-qual \
-    -Wconversion -Wfloat-equal -Wnull-dereference -Wshadow -Wstack-protector -Wswitch-enum \
-    -Wundef -Wno-vla -Wno-sign-conversion -Wmissing-field-initializers -Wnull-dereference -Wcast-align \
+    -Wno-conversion -Wfloat-equal -Wnull-dereference -Wshadow -Wstack-protector -Wswitch \
+    -Wundef -Wno-vla -Wno-sign-conversion -Wno-sign-compare -Wmissing-field-initializers -Wnull-dereference -Wcast-align \
     ${SPECIFIC_WARNINGS}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNINGS}")

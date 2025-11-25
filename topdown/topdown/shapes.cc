@@ -1,5 +1,7 @@
 #include "shapes.hh"
 
+#include <stdexcept>
+
 namespace topdown {
 
 b2Vec2 b2vec(geo::Point const& p)
@@ -33,6 +35,10 @@ b2ShapeId create_b2shape(b2BodyId body_id, geo::Shape const& shape, bool sensor,
         [&](geo::Circle const& circle) {
             b2Circle c { { circle.center.x, circle.center.y }, circle.radius };
             return b2CreateCircleShape(body_id, &shape_def, &c);
+        },
+        [&](geo::Line const& line) {
+            throw std::runtime_error("Lines not supported at the present moment");
+            return b2CreateCircleShape(body_id, nullptr, nullptr);  // makes compiler happy
         },
     }, shape);
 }

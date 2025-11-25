@@ -1,6 +1,8 @@
 #ifndef POINT_HH
 #define POINT_HH
 
+#include <cmath>
+
 namespace geo {
 
 struct Point {

@@ -17,14 +17,20 @@ static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::MapConfig map_config {};
 
 struct State {
-    enum PolygonFill : int { None, Elevation, Moisture, Oceans, Terrains, Terrains_CityLocations };
+    enum PolygonFill : int { None, Elevation, Moisture, Oceans, Biomes };
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
+    bool        show_city_locations;
+    bool        show_connected_cities;
+    bool        show_roads;
 } state = {
     .show_points = false,
     .show_polygons = true,
-    .polygon_fill = State::PolygonFill::Terrains_CityLocations,
+    .polygon_fill = State::PolygonFill::Biomes,
+    .show_city_locations = true,
+    .show_connected_cities = false,
+    .show_roads = true,
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
@@ -46,7 +52,7 @@ static void show_full_map()
     camera.zoom = (float) GetScreenWidth() / (float) map_.w;
 }
 
-static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color={}, std::optional<Color> bg_color={})
+static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color={}, std::optional<Color> bg_color={}, float line_width=1.f)
 {
     std::visit(overloaded {
             [&](geo::Polygon const& p) {
@@ -58,7 +64,7 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                 if (line_color) {
                     for (size_t i = 0; i < p.size(); i++) {
                         auto a = p[i], b = p[(i + 1) % p.size()];
-                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, 1.f / camera.zoom, *line_color);
+                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, (1.f / camera.zoom) * line_width, *line_color);
                     }
                 }
             },
@@ -68,43 +74,54 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                 if (line_color)
                     DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, *line_color);
             },
+            [&](geo::Line const& ln) {
+                DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, (1.f / camera.zoom) * line_width, *line_color);
+            },
     }, shape);
 }
 
 static void draw_points()
 {
     for (auto const& biome: map_.biomes)
-        draw_shape(geo::Circle { biome.original_point, 40.f }, BLACK, VIOLET);
+        draw_shape(geo::Circle { biome->original_point, 40.f }, BLACK, VIOLET);
 }
 
-static void draw_polygons()
+static void draw_biome_polygons()
 {
     for (auto const& biome: map_.biomes) {
-        auto draw_terrain = [&]{ draw_shape(biome.polygon, BLACK, biome_colors.at((int) biome.type)); };
         switch (state.polygon_fill) {
             case State::PolygonFill::None:
-                draw_shape(biome.polygon, BLACK);
+                draw_shape(biome->polygon, BLACK);
                 break;
             case State::PolygonFill::Elevation:
-                draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.elevation ) });
+                draw_shape(biome->polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome->elevation ) });
                 break;
             case State::PolygonFill::Moisture:
-                draw_shape(biome.polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome.moisture ) });
+                draw_shape(biome->polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome->moisture ) });
                 break;
             case State::PolygonFill::Oceans:
-                draw_shape(biome.polygon, BLACK, biome.type == map::Biome::Ocean ? SKYBLUE : BROWN);
+                draw_shape(biome->polygon, BLACK, biome->type == map::Biome::Ocean ? SKYBLUE : BROWN);
                 break;
-            case State::PolygonFill::Terrains:
-                draw_terrain();
-                break;
-            case State::PolygonFill::Terrains_CityLocations:
-                if (biome.contains_city)
-                    draw_shape(biome.polygon, BLACK, PURPLE);
-                else
-                    draw_terrain();
+            case State::PolygonFill::Biomes:
+                draw_shape(biome->polygon, BLACK, biome_colors.at((int) biome->type));
                 break;
         }
+        if (biome->contains_city && state.show_city_locations)
+            draw_shape(biome->polygon, BLACK, PURPLE);
     }
+}
+
+static void draw_city_connections()
+{
+    for (auto const& city: map_.cities)
+        for (auto const& other_city: city->connected_cities)
+            draw_shape(geo::Line { city->location, other_city->location }, RED, {}, 1.5f);
+}
+
+static void draw_roads()
+{
+    for (auto const& road: map_.road_segments)
+        draw_shape(geo::Line { road.first, road.second }, BLACK, {}, 3.f);
 }
 
 void draw_ui()
@@ -136,15 +153,10 @@ void draw_ui()
 
             ImGui::SeparatorText("Cities & Roads");
             ImGui::SliderInt("Number of cities", &map_config.number_of_cities, 3, 50);
-
-            ImGui::SeparatorText("Generate map");
-            if (ImGui::Button("Generate map"))
-                reset_map();
-            ImGui::SameLine();
-            if (ImGui::Button("Generate map with new seed")) {
-                map_config.seed = rand();
-                reset_map();
-            }
+            ImGui::SliderFloat("Connected city distance", &map_config.connect_city_distance, 0.0f, 20000.0f, "%.0f");
+            ImGui::SliderFloat("Road weight - Ocean", &map_config.road_weight_ocean, 0.f, 5.f, "%.1f");
+            ImGui::SliderFloat("Road weight - Forest", &map_config.road_weight_forest, 0.f, 5.f, "%.1f");
+            ImGui::SliderFloat("Road weight - Reuse", &map_config.road_weight_reuse, 0.f, 5.f, "%.1f");
 
             ImGui::EndTabItem();
         }
@@ -153,8 +165,11 @@ void draw_ui()
             ImGui::SeparatorText("Visualization");
             ImGui::Checkbox("Show center points", &state.show_points);
             ImGui::Checkbox("Show polygons", &state.show_polygons);
-            static const char* items[] = { "None", "Elevation", "Moisture", "Land/Water", "Terrains", "Terrains + City locations" };
+            static const char* items[] = { "None", "Elevation", "Moisture", "Land/Water", "Biomes" };
             ImGui::Combo("Polygon fill", (int *) &state.polygon_fill, items, IM_ARRAYSIZE(items));
+            ImGui::Checkbox("Show city locations", &state.show_city_locations);
+            ImGui::Checkbox("Show connected cities", &state.show_connected_cities);
+            ImGui::Checkbox("Show roads", &state.show_roads);
             ImGui::EndTabItem();
         }
 
@@ -168,6 +183,16 @@ void draw_ui()
 
         ImGui::EndTabBar();
     }
+
+    ImGui::SeparatorText("Generate map");
+    if (ImGui::Button("Generate map"))
+        reset_map();
+    ImGui::SameLine();
+    if (ImGui::Button("Generate map with new seed")) {
+        map_config.seed = rand();
+        reset_map();
+    }
+
     ImGui::End();
 
     if (show_demo_window)
@@ -184,16 +209,14 @@ static void handle_events()
     if (IsKeyDown(KEY_G))
         reset_map();
 
-    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT))
-    {
+    if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
         Vector2 delta = GetMouseDelta();
         delta = Vector2Scale(delta, -1.0f/camera.zoom);
         camera.target = Vector2Add(camera.target, delta);
     }
 
     float wheel = GetMouseWheelMove();
-    if (wheel != 0.f)
-    {
+    if (wheel < 0.f || wheel > 0.f) {
         Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
         camera.offset = GetMousePosition();
         camera.target = mouseWorldPos;
@@ -205,7 +228,7 @@ static void handle_events()
 
 int main()
 {
-    srand(time(nullptr));
+    srand((unsigned int) time(nullptr));
     map_config.seed = rand();
 
     reset_map();
@@ -227,9 +250,13 @@ int main()
 
         BeginMode2D(camera);
         if (state.show_polygons)
-            draw_polygons();
+            draw_biome_polygons();
         if (state.show_points)
             draw_points();
+        if (state.show_connected_cities)
+            draw_city_connections();
+        if (state.show_roads)
+            draw_roads();
         EndMode2D();
 
         draw_ui();

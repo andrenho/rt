@@ -18,6 +18,7 @@ include(../common/include-common-lib.cmake)
 include(../cmake/libs/imgui.cmake)
 include(../cmake/libs/voronoi.cmake)
 include(../cmake/libs/perlin.cmake)
+include(../cmake/libs/graaf.cmake)
 
 #-------------------------
 # Main build
@@ -26,9 +27,7 @@ include(../cmake/libs/perlin.cmake)
 # library
 
 add_library(rt-map STATIC map/map.hh map/map.cc)
-message(${jc_voronoi_SOURCE_DIR})
-target_include_directories(rt-map PUBLIC ${jc_voronoi_SOURCE_DIR}/src ${perlin_SOURCE_DIR})
-target_link_libraries(rt-map PUBLIC rt-common)
+target_link_libraries(rt-map PUBLIC rt-common jc_voronoi perlin graaf fmtx)
 
 # test executable
 
