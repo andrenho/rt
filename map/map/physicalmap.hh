@@ -6,7 +6,13 @@
 namespace map {
 
 struct PhysicalMap {
+    enum class ObjectType { Road };
+    struct Object {
+        ObjectType type;
+        geo::Shape shape;
+    };
 
+    std::vector<Object> objects;
 };
 
 PhysicalMap generate_physical_map(Map const& map);

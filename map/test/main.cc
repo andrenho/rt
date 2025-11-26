@@ -9,7 +9,7 @@
 #include "rlImGui.h"
 #include "imgui.h"
 
-#include "map/map.hh"
+#include "map/physicalmap.hh"
 #include "geometry/shapes.hh"
 
 static bool show_demo_window = false;
@@ -18,6 +18,8 @@ static map::MapConfig map_config {};
 
 struct State {
     enum PolygonFill : int { None, Elevation, Moisture, Oceans, Biomes };
+    enum MapType : int { Political, Physical };
+    MapType     map_type;
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
@@ -25,6 +27,7 @@ struct State {
     bool        show_connected_cities;
     bool        show_roads;
 } state = {
+    .map_type = State::MapType::Physical,
     .show_points = false,
     .show_polygons = true,
     .polygon_fill = State::PolygonFill::Biomes,
@@ -37,12 +40,14 @@ struct State {
 static std::vector<Color> biome_colors = { BROWN, SKYBLUE, RAYWHITE, Color {0, 150, 150, 255}, BEIGE, GREEN, BROWN, DARKGREEN, Color {0, 149, 70, 255}, Color {0, 170, 90, 255}};
 
 static map::Map map_;
+static map::PhysicalMap pmap;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
 static void reset_map()
 {
     map_ = map::create(map_config);
+    pmap = map::generate_physical_map(map_);
 }
 
 static void show_full_map()
@@ -78,10 +83,9 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                 DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, (1.f / camera.zoom) * line_width, *line_color);
             },
             [&](geo::Capsule const& c) {
-                if (bg_color)
-                    DrawCapsule({ c.p1.x, c.p1.y, 0 }, { c.p2.x, c.p2.y, 0 }, c.radius, 1, 1, *bg_color);
-                if (line_color)
-                    DrawCapsuleWires({ c.p1.x, c.p1.y, 0 }, { c.p2.x, c.p2.y, 0 }, c.radius, 1, 1, *line_color);
+                draw_shape(geo::Circle { c.p1, c.radius }, line_color, bg_color, line_width);
+                draw_shape(geo::Circle { c.p2, c.radius }, line_color, bg_color, line_width);
+                draw_shape(ThickLine(c.p1, c.p2, c.radius), line_color, bg_color, line_width);
             },
     }, shape);
 }
@@ -130,6 +134,17 @@ static void draw_roads()
         draw_shape(geo::Line { road.first, road.second }, BLACK, {}, 3.f);
 }
 
+static void draw_physical_map()
+{
+    for (auto const& obj: pmap.objects) {
+        switch (obj.type) {
+            case map::PhysicalMap::ObjectType::Road:
+                draw_shape(obj.shape, BLACK, DARKGRAY);
+                break;
+        }
+    }
+}
+
 void draw_ui()
 {
     rlImGuiBegin();
@@ -168,6 +183,10 @@ void draw_ui()
         }
 
         if (ImGui::BeginTabItem("Visualization")) {
+            ImGui::SeparatorText("Map type");
+            static const char* m_items[] = { "Political", "Physical" };
+            ImGui::Combo("Map Type", (int *) &state.map_type, m_items, IM_ARRAYSIZE(m_items));
+
             ImGui::SeparatorText("Visualization");
             ImGui::Checkbox("Show center points", &state.show_points);
             ImGui::Checkbox("Show polygons", &state.show_polygons);
@@ -228,7 +247,7 @@ static void handle_events()
         camera.target = mouseWorldPos;
 
         float scale = 0.2f*wheel;
-        camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0, 4.0f);
+        camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0, 16.0f);
     }
 }
 
@@ -255,14 +274,18 @@ int main()
         ClearBackground(WHITE);
 
         BeginMode2D(camera);
-        if (state.show_polygons)
-            draw_biome_polygons();
-        if (state.show_points)
-            draw_points();
-        if (state.show_connected_cities)
-            draw_city_connections();
-        if (state.show_roads)
-            draw_roads();
+        if (state.map_type == State::MapType::Political) {
+            if (state.show_polygons)
+                draw_biome_polygons();
+            if (state.show_points)
+                draw_points();
+            if (state.show_connected_cities)
+                draw_city_connections();
+            if (state.show_roads)
+                draw_roads();
+        } else {
+            draw_physical_map();
+        }
         EndMode2D();
 
         draw_ui();

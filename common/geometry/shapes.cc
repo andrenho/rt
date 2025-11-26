@@ -55,8 +55,7 @@ Polygon ThickLine(Point const& p1, Point const& p2, float width)
 
     // unit perpendicular to the line (rotate dir by +90 degrees and normalize)
     Point perp = { -dir.y / len, dir.x / len };
-    float half = width * 0.5f;
-    Point offs = perp * half;
+    Point offs = perp * width;
 
     // rectangle corners in CCW order (p1+off, p1-off, p2-off, p2+off)
     return Polygon { p1 + offs, p1 - offs, p2 - offs, p2 + offs };
