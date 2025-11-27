@@ -87,7 +87,7 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                 draw_shape(geo::Circle { c.p2, c.radius }, line_color, bg_color, line_width);
                 draw_shape(ThickLine(c.p1, c.p2, c.radius), line_color, bg_color, line_width);
             },
-    }, shape);
+    }, shape.for_visit());
 }
 
 static void draw_points()

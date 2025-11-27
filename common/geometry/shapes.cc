@@ -45,7 +45,7 @@ bool contains_point(Shape const& shape, Point const& p)
         } else {
             return false;
         }
-    }, shape);
+    }, shape.for_visit());
 }
 
 Polygon ThickLine(Point const& p1, Point const& p2, float width)

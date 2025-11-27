@@ -41,7 +41,26 @@ struct Capsule {
     float radius;
 };
 
-using Shape = std::variant<Polygon, Circle, Capsule, Line>;
+using Shapes = std::variant<Polygon, Circle, Capsule, Line>;
+
+class Shape {
+public:
+    Shape() : shape_({}) {}
+
+    template <class T,
+            class = std::enable_if_t<std::variant_size_v<Shapes> &&
+                    std::is_constructible_v<Shapes, T>>>
+    Shape(T&& v) : shape_(std::forward<T>(v)) {}
+
+    operator const Shapes&() const { return shape_; }
+    operator Shapes&() { return shape_; }
+
+    const Shapes& for_visit() const { return shape_; }
+    Shapes& for_visit() { return shape_; }
+
+private:
+    Shapes shape_;
+};
 
 bool contains_point(Shape const& shape, Point const& point);
 
