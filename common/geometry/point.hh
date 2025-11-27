@@ -2,6 +2,8 @@
 #define POINT_HH
 
 #include <cmath>
+#include <random>
+#include <vector>
 
 namespace geo {
 
@@ -14,7 +16,11 @@ struct Point {
     Point operator*(float w) const { return { x * w, y * w }; }
 
     float x, y;
+
+    static std::vector<geo::Point> generate_random_points(class Shape const& area, float density, float randomness, bool relax, std::mt19937& rng);
 };
+
+
 
 struct Size {
     Size() : w(0), h(0) {}
@@ -23,8 +29,6 @@ struct Size {
 
     float w, h;
 };
-
-inline Point::operator Size() const { return { x, y }; }
 
 struct Bounds {
     Bounds(Point top_left_, Point bottom_right_) : top_left(top_left_), bottom_right(bottom_right_) {}

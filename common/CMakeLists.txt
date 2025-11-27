@@ -18,5 +18,6 @@ include(../cmake/common.cmake)
 add_library(rt-common STATIC
         geometry/point.hh
         geometry/shapes.hh
-        geometry/shapes.cc)
+        geometry/shapes.cc
+        geometry/point.cc)
 target_include_directories(rt-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
