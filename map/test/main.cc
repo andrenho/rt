@@ -138,9 +138,23 @@ static void draw_physical_map()
 {
     for (auto const& obj: pmap.objects) {
         switch (obj.type) {
-            case map::PhysicalMap::ObjectType::Road:
-                draw_shape(obj.shape, BLACK, DARKGRAY);
+            case map::PhysicalMap::ObjectType::TerrainSensor:
+            case map::PhysicalMap::ObjectType::ImpassableTerrain:
+                draw_shape(obj.shape, {}, biome_colors.at(std::get<map::Biome::Type>(obj.additional_info)));
                 break;
+            case map::PhysicalMap::ObjectType::Water:
+                draw_shape(obj.shape, {}, biome_colors.at(map::Biome::Type::Ocean));
+                break;
+            default: break;
+        }
+    }
+
+    for (auto const& obj: pmap.objects) {
+        switch (obj.type) {
+            case map::PhysicalMap::ObjectType::Road:
+                draw_shape(obj.shape, DARKGRAY, DARKGRAY);
+                break;
+            default: break;
         }
     }
 }
