@@ -118,7 +118,7 @@ static void update_terrain_type(std::vector<std::unique_ptr<Biome>>& biomes)
 // CITIES
 //
 
-static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>> const& biomes, MapConfig const& cfg, std::mt19937& rng, size_t city_count)
+static std::vector<std::unique_ptr<City>> create_cities_attempt(std::vector<std::unique_ptr<Biome>> const& biomes, MapConfig const& cfg, std::mt19937& rng, size_t city_count)
 {
     std::vector<std::unique_ptr<City>> cities;
 
@@ -128,44 +128,8 @@ static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_
     float diff_x = cfg.map_w / cities_w / 2.f;
     float diff_y = cfg.map_h / cities_h / 2.f;
 
-    std::uniform_real_distribution<float> distances_x(0.0, diff_x * 2);
-    std::uniform_real_distribution<float> distances_y(0.0, diff_y * 2);
-    std::uniform_real_distribution<float> angles(0.0, 2.0);
-
-    std::vector<jcv_point> jcv_points; jcv_points.reserve(city_count);
-    for (float x = 0; x < cities_w; ++x) {
-        for (float y = 0; y < cities_h; ++y) {
-            float px = x * (cfg.map_w / cities_w) + diff_x + distances_x(rng) * (float) cos(angles(rng));
-            float py = y * (cfg.map_h / cities_h) + diff_y + distances_y(rng) * (float) sin(angles(rng));
-            jcv_points.emplace_back(px, py);
-        }
-    }
-
-    // create voronoi
-    jcv_diagram diagram {};
-    jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
-
-    // relax voronoi and create list of points
-    std::vector<geo::Point> points;
-    const jcv_site* sites = jcv_diagram_get_sites(&diagram);
-    for(int i = 0; i < diagram.numsites; ++i) {
-        const jcv_site* site = &sites[i];
-
-        const jcv_graphedge* e = site->edges;
-        float count = 0;
-        float sum_x = 0.f, sum_y = 0.f;
-        while (e) {
-            sum_x += e->pos[0].x;
-            sum_y += e->pos[0].y;
-            e = e->next;
-            ++count;
-        }
-
-        if (count > 0)
-            points.emplace_back(sum_x / count, sum_y / count);
-    }
-
-    jcv_diagram_free(&diagram);
+    geo::Bounds bounds { { 0, 0 }, { cfg.map_w, cfg.map_h } };
+    auto points = geo::Point::grid(bounds, diff_x, diff_y, rng, 1.f);
 
     // find biomes
     std::vector<int> biome_n(biomes.size()); std::iota(biome_n.begin(), biome_n.end(), 0); std::shuffle(biome_n.begin(), biome_n.end(), rng);
@@ -185,14 +149,14 @@ done:
     return cities;
 }
 
-static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
+static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
 {
     size_t city_count = cfg.number_of_cities + 10;
     std::vector<std::unique_ptr<City>> cities;
 
     // create city list
     do {
-        cities = create_cities(biomes, cfg, rng, city_count);
+        cities = create_cities_attempt(biomes, cfg, rng, city_count);
         city_count += 10;
         if (city_count > cfg.number_of_cities * 3)   // sanity check
             break;
@@ -334,12 +298,7 @@ Map create(MapConfig const& cfg)
 {
     std::mt19937 rng(cfg.seed);
 
-    Map output {
-        .w = (size_t) cfg.map_w,
-        .h = (size_t) cfg.map_h,
-    };
-
-    geo::Bounds bounds { { 0, 0 }, { output.w, output.h } };
+    geo::Bounds bounds { { 0, 0 }, { cfg.map_w, cfg.map_h } };
     auto polygon_points = geo::Point::grid(bounds, cfg.point_density, cfg.point_density, rng, cfg.point_randomness);
 
     auto biomes = generate_biome_tiles(polygon_points, cfg.polygon_relaxation);
@@ -352,15 +311,18 @@ Map create(MapConfig const& cfg)
 
     update_terrain_type(biomes);
 
-    auto cities = find_city_locations(biomes, cfg, rng);
+    auto cities = create_cities(biomes, cfg, rng);
     find_connected_cities(cities, cfg);
 
     std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);
 
-    output.biomes = std::move(biomes);
-    output.cities = std::move(cities);
-    output.road_segments = std::move(road_segments);
-    return output;
+    return {
+        .w = (size_t) cfg.map_w,
+        .h = (size_t) cfg.map_h,
+        .biomes = std::move(biomes),
+        .cities = std::move(cities),
+        .road_segments = std::move(road_segments),
+    };
 }
 
 } // map
