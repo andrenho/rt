@@ -117,19 +117,29 @@ void draw_object(Object const* object, Color color=DARK)
     std::vector<geo::Shape> shapes; object->shapes(shapes);
     for (auto const& shape: shapes) {
         std::visit(overloaded {
-                [&](geo::Polygon const& p) {
+                [&](geo::shape::Polygon const& p) {
                     for (size_t i = 0; i < p.size(); i++) {
                         auto a = p[i], b = p[(i + 1) % p.size()];
                         DrawLineEx({ a.x, a.y }, { b.x, b.y }, 0.5f, color);
                     }
                 },
-                [&](geo::Circle const& c) {
+                [&](geo::shape::Circle const& c) {
                     DrawCircleLinesV({ c.center.x, c.center.y }, c.radius, color);
                 },
-                [&](geo::Line const& ln) {
+                [&](geo::shape::Line const& ln) {
                     DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, .5f, color);
                 },
-        }, shape);
+                [&](geo::shape::Capsule const& c) {
+                    DrawCircleLinesV({ c.p1.x, c.p1.y }, c.radius, color);
+                    DrawCircleLinesV({ c.p2.x, c.p2.y }, c.radius, color);
+
+                    auto p = std::get<geo::shape::Polygon>(geo::Shape::ThickLine(c.p1, c.p2, c.radius).for_visit());
+                    for (size_t i = 0; i < p.size(); i++) {
+                        auto a = p[i], b = p[(i + 1) % p.size()];
+                        DrawLineEx({ a.x, a.y }, { b.x, b.y }, 0.5f, color);
+                    }
+                },
+        }, shape.for_visit());
     }
 }
 
@@ -147,8 +157,8 @@ int main()
     std::optional<Cast> last_cast {};
 
     World world;
-    world.add_object<Sensor>(geo::Box({ -260, -260 }, { 150, 250 }), terrain::Ice);
-    world.add_object<Sensor>(geo::Box({ 80, -260 }, { 150, 250 }), terrain::Asphalt);
+    world.add_object<Sensor>(geo::Shape::Box({ -260, -260 }, { 150, 250 }), terrain::Ice);
+    world.add_object<Sensor>(geo::Shape::Box({ 80, -260 }, { 150, 250 }), terrain::Asphalt);
     std::vector<Vehicle*> vehicles = {
         world.add_object<Vehicle>(b2Vec2 { -50, 0 }, vehicle::Beetle),
         world.add_object<Vehicle>(b2Vec2 { -10, 0 }, vehicle::Car),
@@ -161,11 +171,11 @@ int main()
     size_t current_vehicle = 0;
 
     Person* hero = world.add_object<Person>(b2Vec2 { -70, 0 });
-    world.add_object<PushableObject>(geo::Box({ -70, -20 }, { 4, 4 }), 1.f);
-    world.add_object<PushableObject>(geo::Box({ -90, -20 }, { 4, 4 }), 100.f);
+    world.add_object<PushableObject>(geo::Shape::Box({ -70, -20 }, { 4, 4 }), 1.f);
+    world.add_object<PushableObject>(geo::Shape::Box({ -90, -20 }, { 4, 4 }), 100.f);
     hero->set_data("Hero");
 
-    world.add_object<StaticObject>(geo::Circle { { 0, -80 }, 5 });
+    world.add_object<StaticObject>(geo::Shape::Circle({ 0, -80 }, 5));
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1600, 900, "topdown-test");

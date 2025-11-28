@@ -60,11 +60,11 @@ static void show_full_map()
 static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color={}, std::optional<Color> bg_color={}, float line_width=1.f)
 {
     std::visit(overloaded {
-            [&](geo::Polygon const& p) {
+            [&](geo::shape::Polygon const& p) {
                 if (bg_color) {
                     for (size_t i = 0; i < p.size() - 1; i++)
-                        DrawTriangle(V(p.at(i+1)), V(p.at(i)), V(p.center()), *bg_color);
-                    DrawTriangle(V(p.at(0)), V(p.at(p.size() - 1)), V(p.center()), *bg_color);
+                        DrawTriangle(V(p.at(i+1)), V(p.at(i)), V(shape.center()), *bg_color);
+                    DrawTriangle(V(p.at(0)), V(p.at(p.size() - 1)), V(shape.center()), *bg_color);
                 }
                 if (line_color) {
                     for (size_t i = 0; i < p.size(); i++) {
@@ -73,27 +73,27 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
                     }
                 }
             },
-            [&](geo::Circle const& c) {
+            [&](geo::shape::Circle const& c) {
                 if (bg_color)
                     DrawCircle((int) c.center.x, (int) c.center.y, c.radius, *bg_color);
                 if (line_color)
                     DrawCircleLines((int) c.center.x, (int) c.center.y, c.radius, *line_color);
             },
-            [&](geo::Line const& ln) {
+            [&](geo::shape::Line const& ln) {
                 DrawLineEx({ ln.p1.x, ln.p1.y }, { ln.p2.x, ln.p2.y }, (1.f / camera.zoom) * line_width, *line_color);
             },
-            [&](geo::Capsule const& c) {
-                draw_shape(geo::Circle { c.p1, c.radius }, line_color, bg_color, line_width);
-                draw_shape(geo::Circle { c.p2, c.radius }, line_color, bg_color, line_width);
-                draw_shape(ThickLine(c.p1, c.p2, c.radius), line_color, bg_color, line_width);
+            [&](geo::shape::Capsule const& c) {
+                draw_shape(geo::shape::Circle { c.p1, c.radius }, line_color, bg_color, line_width);
+                draw_shape(geo::shape::Circle { c.p2, c.radius }, line_color, bg_color, line_width);
+                draw_shape(geo::Shape::ThickLine(c.p1, c.p2, c.radius), line_color, bg_color, line_width);
             },
-    }, shape);
+    }, shape.for_visit());
 }
 
 static void draw_points()
 {
     for (auto const& biome: map_.biomes)
-        draw_shape(geo::Circle { biome->original_point, 40.f }, BLACK, VIOLET);
+        draw_shape(geo::shape::Circle { biome->center_point, 40.f }, BLACK, VIOLET);
 }
 
 static void draw_biome_polygons()
@@ -125,13 +125,13 @@ static void draw_city_connections()
 {
     for (auto const& city: map_.cities)
         for (auto const& other_city: city->connected_cities)
-            draw_shape(geo::Line { city->location, other_city->location }, RED, {}, 1.5f);
+            draw_shape(geo::shape::Line { city->location, other_city->location }, RED, {}, 1.5f);
 }
 
 static void draw_roads()
 {
     for (auto const& road: map_.road_segments)
-        draw_shape(geo::Line { road.first, road.second }, BLACK, {}, 3.f);
+        draw_shape(geo::shape::Line { road.first, road.second }, BLACK, {}, 3.f);
 }
 
 static void draw_physical_map()
@@ -178,9 +178,9 @@ void draw_ui()
             ImGui::InputInt("Map height", &map_config.map_h);
 
             ImGui::SeparatorText("Polygons");
-            ImGui::SliderInt("Point density", &map_config.point_density, 100, 1500);
+            ImGui::SliderInt("Point density", &map_config.point_density, 100, 2000);
             ImGui::SliderFloat("Point randomness", &map_config.point_randomness, 0.0f, 1.0f, "%.3f");
-            ImGui::SliderInt("Relaxation steps", &map_config.polygon_relaxation_steps, 0, 10);
+            ImGui::Checkbox("Relaxation steps", &map_config.polygon_relaxation);
 
             ImGui::SeparatorText("Terrain");
             ImGui::SliderFloat("Ocean elevation", &map_config.ocean_elevation, 0.0f, 1.0f, "%.3f");

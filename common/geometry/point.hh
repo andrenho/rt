@@ -2,11 +2,15 @@
 #define POINT_HH
 
 #include <cmath>
+#include <random>
+#include <vector>
 
 namespace geo {
 
 struct Point {
-    Point(float x_, float y_) : x(x_), y(y_) {}
+    template <typename T, typename U>
+    Point(T x_, U y_) : x((float) x_), y((float) y_) {}
+
     explicit operator struct Size() const;
 
     Point operator+(Point const& a) const { return { x + a.x, y + a.y }; }
@@ -14,7 +18,15 @@ struct Point {
     Point operator*(float w) const { return { x * w, y * w }; }
 
     float x, y;
+
+    static std::vector<geo::Point> grid(struct Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h);
+    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h);
+    static std::vector<geo::Point> grid(struct Bounds const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
+    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
+
+    static std::vector<geo::Point> relax_grid(std::vector<geo::Point> const& grid);
 };
+
 
 struct Size {
     Size() : w(0), h(0) {}
@@ -23,8 +35,6 @@ struct Size {
 
     float w, h;
 };
-
-inline Point::operator Size() const { return { x, y }; }
 
 struct Bounds {
     Bounds(Point top_left_, Point bottom_right_) : top_left(top_left_), bottom_right(bottom_right_) {}
