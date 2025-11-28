@@ -21,6 +21,7 @@ static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo:
 {
     auto [shapes, neighbours] = geo::Shape::voronoi_with_neighbours(points, relax_points);
 
+    // create biomes
     std::vector<std::unique_ptr<Biome>> biomes;
     std::unordered_map<geo::Shape*, Biome*> shape_biome_tmp;
     for (auto const& shape: shapes) {
@@ -28,6 +29,7 @@ static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo:
         shape_biome_tmp[shape.get()] = biome.get();
     }
 
+    // find neighbours
     for (auto const& [shape1, ns]: neighbours)
         for (auto const& shape2: ns)
             shape_biome_tmp.at(shape1)->neighbours.emplace_back(shape_biome_tmp.at(shape2));
@@ -46,8 +48,7 @@ static void update_biome_elevation(std::vector<std::unique_ptr<Biome>>& biomes, 
 
     for (auto& biome: biomes) {
         auto p = biome->center_point;
-        float w = (float) cfg.map_w;
-        float h = (float) cfg.map_h;
+        float w = (float) cfg.map_w, h = (float) cfg.map_h;
         float distance_from_center = ((p.x-w*0.5f)*(p.x-w*0.5f)+(p.y-h*0.5f)*(p.y-h*0.5f))/((w*0.5f)*(w*0.5f)+(h*0.5f)*(h*0.5f)) / .5f;
         float r = (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4);
         biome->elevation = std::clamp(1.f - r * distance_from_center / .5f, .0f, 1.f);
@@ -338,7 +339,8 @@ Map create(MapConfig const& cfg)
         .h = (size_t) cfg.map_h,
     };
 
-    auto polygon_points = geo::Point::grid({ { 0, 0 }, { output.w, output.h } }, cfg.point_density, rng, cfg.point_randomness);
+    geo::Bounds bounds { { 0, 0 }, { output.w, output.h } };
+    auto polygon_points = geo::Point::grid(bounds, cfg.point_density, cfg.point_density, rng, cfg.point_randomness);
 
     auto biomes = generate_biome_tiles(polygon_points, cfg.polygon_relaxation);
 

@@ -19,10 +19,10 @@ struct Point {
 
     float x, y;
 
-    static std::vector<geo::Point> grid(struct Bounds const& bounds, float avg_point_distance);
-    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance);
-    static std::vector<geo::Point> grid(struct Bounds const& area, float avg_point_distance, std::mt19937& rng, float randomness);
-    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance, std::mt19937& rng, float randomness);
+    static std::vector<geo::Point> grid(struct Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h);
+    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h);
+    static std::vector<geo::Point> grid(struct Bounds const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
+    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
 
     static std::vector<geo::Point> relax_grid(std::vector<geo::Point> const& grid);
 };
