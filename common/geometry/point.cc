@@ -67,4 +67,16 @@ std::vector<geo::Point> Point::grid(Shape const& area, float avg_point_distance,
     return remove_points_not_in_shape(points, area);
 }
 
+std::vector<geo::Point> Point::relax_grid(std::vector<geo::Point> const& grid)
+{
+    auto polygons = Shape::voronoi(grid, false);
+
+    std::vector<geo::Point> points;
+    points.reserve(polygons.size());
+    for (auto const& shape: polygons)
+        points.emplace_back(shape.center());
+
+    return points;
+}
+
 }

@@ -1,6 +1,8 @@
 #ifndef GEO_SHAPES_HH
 #define GEO_SHAPES_HH
 
+#include <memory>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -64,6 +66,10 @@ public:
     [[nodiscard]] bool contains_point(Point const& point) const;
     [[nodiscard]] Point center() const;
     [[nodiscard]] Bounds aabb() const;
+
+    static std::vector<Shape> voronoi(std::vector<Point> const& points, bool relax=false);
+    static std::pair<std::vector<std::unique_ptr<Shape>>, std::unordered_map<Shape*, std::vector<Shape*>>>
+        voronoi_with_neighbours(std::vector<Point> const& points, bool relax=false);
 
 private:
     Shapes shape_;

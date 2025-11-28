@@ -2,6 +2,10 @@
 
 #include <cassert>
 #include <numbers>
+#include <unordered_map>
+
+#define JC_VORONOI_IMPLEMENTATION
+#include "jc_voronoi.h"
 
 namespace geo {
 
@@ -116,6 +120,91 @@ Bounds Shape::aabb() const
                 } };
             },
     }, for_visit());
+}
+
+std::vector<Shape> Shape::voronoi(std::vector<Point> const& pts, bool relax)
+{
+    std::vector<Shape> shapes;
+    std::vector<Point> points = relax ? Point::relax_grid(pts) : pts;
+
+    jcv_diagram diagram {};
+    std::vector<jcv_point> jcv_points;
+    jcv_points.reserve(points.size());
+    for (auto const& p: points)
+        jcv_points.emplace_back(p.x, p.y);
+
+    jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
+    const jcv_site* sites = jcv_diagram_get_sites(&diagram);
+
+    for(int i = 0; i < diagram.numsites; ++i) {
+        std::vector<geo::Point> ppoints;
+
+        const jcv_site* site = &sites[i];
+
+        const jcv_graphedge* e = site->edges;
+        while (e) {
+            ppoints.emplace_back(e->pos[0].x, e->pos[0].y);
+            e = e->next;
+        }
+
+        shapes.emplace_back(Shape::Polygon(ppoints));
+    }
+
+    jcv_diagram_free(&diagram);
+
+    // TODO - relax grid
+
+    return shapes;
+}
+
+std::pair<std::vector<std::unique_ptr<Shape>>, std::unordered_map<Shape*, std::vector<Shape*>>>
+Shape::voronoi_with_neighbours(std::vector<Point> const& pts, bool relax)
+{
+    std::vector<std::unique_ptr<Shape>> shapes;
+    std::unordered_map<Shape*, std::vector<Shape*>> shape_neighbours;
+    std::vector<Point> points = relax ? Point::relax_grid(pts) : pts;
+
+    jcv_diagram diagram {};
+    std::vector<jcv_point> jcv_points;
+    jcv_points.reserve(points.size());
+    for (auto const& p: points)
+        jcv_points.emplace_back(p.x, p.y);
+
+    jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
+    const jcv_site* sites = jcv_diagram_get_sites(&diagram);
+
+    std::unordered_map<Shape*, std::vector<jcv_site*>> shape_neighbour_sites;
+    std::unordered_map<jcv_site const*, Shape*> sites_shapes;
+
+    for(int i = 0; i < diagram.numsites; ++i) {
+        std::vector<geo::Point> ppoints;
+        std::vector<jcv_site*> neighbours;
+
+        const jcv_site* site = &sites[i];
+
+        const jcv_graphedge* e = site->edges;
+        while (e) {
+            ppoints.emplace_back(e->pos[0].x, e->pos[0].y);
+            neighbours.emplace_back(e->neighbor);
+            e = e->next;
+        }
+
+        auto& shape = shapes.emplace_back(std::make_unique<Shape>(Shape::Polygon(ppoints)));
+        shape_neighbour_sites[shape.get()] = std::move(neighbours);
+        sites_shapes[site] = shape.get();
+    }
+
+    jcv_diagram_free(&diagram);
+
+    // find neighbours
+    for (auto& shape: shapes)
+        for (jcv_site* site: shape_neighbour_sites.at(shape.get()))
+            if (site)
+                shape_neighbours[shape.get()] = sites_shapes.at(site);
+
+    // TODO - relax grid
+
+    return { std::move(shapes), std::move(shape_neighbours) };
 }
 
 namespace shape {

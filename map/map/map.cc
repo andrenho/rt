@@ -2,7 +2,6 @@
 
 #include <random>
 
-#define JC_VORONOI_IMPLEMENTATION
 #include "jc_voronoi.h"
 
 #include "PerlinNoise.hpp"

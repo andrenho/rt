@@ -23,6 +23,8 @@ struct Point {
     static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance);
     static std::vector<geo::Point> grid(struct Bounds const& area, float avg_point_distance, std::mt19937& rng, float randomness);
     static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance, std::mt19937& rng, float randomness);
+
+    static std::vector<geo::Point> relax_grid(std::vector<geo::Point> const& grid);
 };
 
 
