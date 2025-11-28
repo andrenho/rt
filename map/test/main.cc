@@ -178,7 +178,7 @@ void draw_ui()
             ImGui::InputInt("Map height", &map_config.map_h);
 
             ImGui::SeparatorText("Polygons");
-            ImGui::SliderInt("Point density", &map_config.point_density, 100, 1500);
+            ImGui::SliderInt("Point density", &map_config.point_density, 100, 2000);
             ImGui::SliderFloat("Point randomness", &map_config.point_randomness, 0.0f, 1.0f, "%.3f");
             ImGui::SliderInt("Relaxation steps", &map_config.polygon_relaxation_steps, 0, 10);
 

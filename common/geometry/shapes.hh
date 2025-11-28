@@ -63,6 +63,7 @@ public:
 
     [[nodiscard]] bool contains_point(Point const& point) const;
     [[nodiscard]] Point center() const;
+    [[nodiscard]] Bounds aabb() const;
 
 private:
     Shapes shape_;

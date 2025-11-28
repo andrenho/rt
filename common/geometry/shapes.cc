@@ -1,5 +1,8 @@
 #include "shapes.hh"
 
+#include <cassert>
+#include <numbers>
+
 namespace geo {
 
 bool Shape::contains_point(Point const& p) const
@@ -73,9 +76,55 @@ Point Shape::center() const
     }, for_visit());
 }
 
-Shape shape::Capsule::polygon() const
+Bounds Shape::aabb() const
+{
+    return std::visit(overloaded {
+            [&](shape::Polygon const& poly) {
+                float min_x = std::numeric_limits<float>::max(), min_y = std::numeric_limits<float>::max();
+                float max_x = std::numeric_limits<float>::min(), max_y = std::numeric_limits<float>::min();
+                for (Point const& p: poly) {
+                    min_x = std::min(min_x, p.x);
+                    min_y = std::min(min_y, p.y);
+                    max_x = std::min(max_x, p.x);
+                    max_y = std::min(max_y, p.y);
+                }
+                assert(max_x >= min_x && max_y >= min_y);
+                return Bounds({ min_x, min_y }, { max_x, max_y });
+            },
+            [&](shape::Circle const& c) {
+                return Bounds {
+                    { c.center.x - c.radius, c.center.y + c.radius },
+                    { c.center.x + c.radius, c.center.y + c.radius },
+                };
+            },
+            [&](shape::Line const& ln) {
+                return Bounds {
+                    { std::min(ln.p1.x, ln.p2.x), std::min(ln.p1.x, ln.p2.x) },
+                    { std::max(ln.p1.x, ln.p2.x), std::max(ln.p1.x, ln.p2.x) }
+                };
+            },
+            [&](shape::Capsule const& c) {
+                Shape s1 = Shape::Circle(c.p1, c.radius);
+                Shape s2 = Shape::Circle(c.p2, c.radius);
+                Shape s3 = Shape::ThickLine(c.p1, c.p2, c.radius);
+                return Bounds { {
+                    std::min(std::min(s1.aabb().top_left.x, s2.aabb().top_left.x), s3.aabb().top_left.x),
+                    std::min(std::min(s1.aabb().top_left.y, s2.aabb().top_left.y), s3.aabb().top_left.y),
+                }, {
+                    std::max(std::max(s1.aabb().bottom_right.x, s2.aabb().bottom_right.x), s3.aabb().bottom_right.x),
+                    std::max(std::max(s1.aabb().bottom_right.y, s2.aabb().bottom_right.y), s3.aabb().bottom_right.y),
+                } };
+            },
+    }, for_visit());
+}
+
+namespace shape {
+
+Shape Capsule::polygon() const
 {
     return Shape::ThickLine(p1, p2, radius);
+}
+
 }
 
 }

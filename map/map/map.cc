@@ -18,28 +18,6 @@ namespace map {
 // POLYGONS GENERATION
 //
 
-static std::vector<geo::Point> generate_points(std::mt19937& rng, size_t tiles_w, size_t tiles_h, MapConfig const& cfg)
-{
-    std::vector<geo::Point> polygon_points {};
-
-    // generate points
-    for (size_t x = 1; x < tiles_w; ++x) {
-        for (size_t y = 1; y < tiles_h; ++y) {
-            polygon_points.emplace_back(x * cfg.point_density, y * cfg.point_density);
-        }
-    }
-
-    // add randomness
-    std::uniform_real_distribution<float> distances(0.0, ((float) cfg.point_density) * cfg.point_randomness);
-    std::uniform_real_distribution<float> angles(0.0, 2.0);
-    for (auto& p: polygon_points) {
-        p.x += distances(rng) * (float) cos(angles(rng));
-        p.y += distances(rng) * (float) sin(angles(rng));
-    }
-
-    return polygon_points;
-}
-
 static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo::Point> const& points)
 {
     std::vector<std::unique_ptr<Biome>> biomes;
@@ -398,10 +376,8 @@ Map create(MapConfig const& cfg)
         .h = (size_t) cfg.map_h,
     };
 
-    size_t tiles_w = (size_t) (cfg.map_w / cfg.point_density);
-    size_t tiles_h = (size_t) (cfg.map_h / cfg.point_density);
-
-    std::vector<geo::Point> polygon_points = generate_points(rng, tiles_w, tiles_h, cfg);
+    geo::Bounds bounds { { 0, 0 }, { output.w, output.h } };
+    auto polygon_points = geo::Point::grid(bounds, cfg.point_density, rng, cfg.point_randomness);
 
     int relaxations = cfg.polygon_relaxation_steps;
 generate_polygons_again:

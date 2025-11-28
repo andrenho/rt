@@ -8,7 +8,9 @@
 namespace geo {
 
 struct Point {
-    Point(float x_, float y_) : x(x_), y(y_) {}
+    template <typename T, typename U>
+    Point(T x_, U y_) : x((float) x_), y((float) y_) {}
+
     explicit operator struct Size() const;
 
     Point operator+(Point const& a) const { return { x + a.x, y + a.y }; }
@@ -17,7 +19,10 @@ struct Point {
 
     float x, y;
 
-    static std::vector<geo::Point> generate_random_points(class Shape const& area, float density, float randomness, bool relax, std::mt19937& rng);
+    static std::vector<geo::Point> grid(struct Bounds const& bounds, float avg_point_distance);
+    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance);
+    static std::vector<geo::Point> grid(struct Bounds const& area, float avg_point_distance, std::mt19937& rng, float randomness);
+    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance, std::mt19937& rng, float randomness);
 };
 
 

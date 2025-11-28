@@ -41,6 +41,7 @@ b2ShapeId create_b2shape(b2BodyId body_id, geo::Shape const& shape, bool sensor,
             return b2CreateCapsuleShape(body_id, &shape_def, &c);
         },
         [&](geo::shape::Line const& line) {
+            (void) line;
             throw std::runtime_error("Lines not supported at the present moment");
             return b2CreateCircleShape(body_id, nullptr, nullptr);  // makes compiler happy
         },
