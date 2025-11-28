@@ -200,7 +200,7 @@ Shape::voronoi_with_neighbours(std::vector<Point> const& pts, bool relax)
     for (auto& shape: shapes)
         for (jcv_site* site: shape_neighbour_sites.at(shape.get()))
             if (site)
-                shape_neighbours[shape.get()] = sites_shapes.at(site);
+                shape_neighbours[shape.get()].emplace_back(sites_shapes.at(site));
 
     // TODO - relax grid
 

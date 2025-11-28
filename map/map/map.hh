@@ -18,7 +18,7 @@ struct MapConfig {
     int    map_h                        = 20000;
     int    point_density                = 500;
     float  point_randomness             = .7f;
-    int    polygon_relaxation_steps     = 1;
+    bool   polygon_relaxation           = true;
     float  ocean_elevation              = .4f;
     float  lake_threshold               = .28f;
     int    number_of_cities             = 15;
@@ -29,9 +29,11 @@ struct MapConfig {
 };
 
 struct Biome {
+    Biome(geo::Point const& center_point, geo::Shape polygon)
+        : center_point(center_point), polygon(std::move(polygon)) {}
+
     enum Type { Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
 
-    geo::Point   original_point { 0, 0 };
     geo::Point   center_point { 0, 0 };
     geo::Shape   polygon {};
     float        elevation = .5f;

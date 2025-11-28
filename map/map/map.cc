@@ -17,49 +17,20 @@ namespace map {
 // POLYGONS GENERATION
 //
 
-static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo::Point> const& points)
+static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo::Point> const& points, bool relax_points)
 {
+    auto [shapes, neighbours] = geo::Shape::voronoi_with_neighbours(points, relax_points);
+
     std::vector<std::unique_ptr<Biome>> biomes;
-
-    jcv_diagram diagram {};
-    std::vector<jcv_point> jcv_points; jcv_points.reserve(points.size());
-    for (auto const& p: points)
-        jcv_points.emplace_back(p.x, p.y);
-
-    jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
-
-    const jcv_site* sites = jcv_diagram_get_sites(&diagram);
-
-    std::unordered_map<Biome*, std::vector<jcv_site*>> biome_neighbour_sites;
-    std::unordered_map<jcv_site const*, Biome*> sites_biomes;
-
-    // create biomes
-    for(int i = 0; i < diagram.numsites; ++i) {
-        std::vector<geo::Point> ppoints;
-        std::vector<jcv_site*> neighbours;
-
-        const jcv_site* site = &sites[i];
-
-        const jcv_graphedge* e = site->edges;
-        while (e) {
-            ppoints.emplace_back(e->pos[0].x, e->pos[0].y);
-            neighbours.emplace_back(e->neighbor);
-            e = e->next;
-        }
-
-        auto& biome = biomes.emplace_back(std::make_unique<Biome>(geo::Point { jcv_points[i].x, jcv_points[i].y },
-                geo::Shape::Polygon(ppoints).center(), std::move(ppoints), .5f, Biome::Type::Unknown));
-        biome_neighbour_sites[biome.get()] = std::move(neighbours);
-        sites_biomes[site] = biome.get();
+    std::unordered_map<geo::Shape*, Biome*> shape_biome_tmp;
+    for (auto const& shape: shapes) {
+        auto& biome = biomes.emplace_back(std::make_unique<Biome>(shape->center(), *shape));
+        shape_biome_tmp[shape.get()] = biome.get();
     }
 
-    // find neighbours
-    for (auto& biome: biomes)
-        for (jcv_site* site: biome_neighbour_sites.at(biome.get()))
-            if (site)
-                biome->neighbours.push_back(sites_biomes.at(site));
-
-    jcv_diagram_free(&diagram);
+    for (auto const& [shape1, ns]: neighbours)
+        for (auto const& shape2: ns)
+            shape_biome_tmp.at(shape1)->neighbours.emplace_back(shape_biome_tmp.at(shape2));
 
     return biomes;
 }
@@ -378,6 +349,9 @@ Map create(MapConfig const& cfg)
     geo::Bounds bounds { { 0, 0 }, { output.w, output.h } };
     auto polygon_points = geo::Point::grid(bounds, cfg.point_density, rng, cfg.point_randomness);
 
+    auto biomes = generate_biome_tiles(polygon_points, cfg.polygon_relaxation);
+
+    /*
     int relaxations = cfg.polygon_relaxation_steps;
 generate_polygons_again:
     std::vector<std::unique_ptr<Biome>> biomes = generate_biome_tiles(polygon_points);
@@ -386,6 +360,7 @@ generate_polygons_again:
         polygon_points = relax_points(biomes);
         goto generate_polygons_again;
     }
+    */
 
     update_biome_elevation(biomes, cfg);
     update_biome_moisture(biomes, cfg);

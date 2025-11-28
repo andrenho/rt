@@ -93,7 +93,7 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
 static void draw_points()
 {
     for (auto const& biome: map_.biomes)
-        draw_shape(geo::shape::Circle { biome->original_point, 40.f }, BLACK, VIOLET);
+        draw_shape(geo::shape::Circle { biome->center_point, 40.f }, BLACK, VIOLET);
 }
 
 static void draw_biome_polygons()
@@ -180,7 +180,7 @@ void draw_ui()
             ImGui::SeparatorText("Polygons");
             ImGui::SliderInt("Point density", &map_config.point_density, 100, 2000);
             ImGui::SliderFloat("Point randomness", &map_config.point_randomness, 0.0f, 1.0f, "%.3f");
-            ImGui::SliderInt("Relaxation steps", &map_config.polygon_relaxation_steps, 0, 10);
+            ImGui::Checkbox("Relaxation steps", &map_config.polygon_relaxation);
 
             ImGui::SeparatorText("Terrain");
             ImGui::SliderFloat("Ocean elevation", &map_config.ocean_elevation, 0.0f, 1.0f, "%.3f");
