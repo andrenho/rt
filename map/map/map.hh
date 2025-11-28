@@ -33,7 +33,7 @@ struct Biome {
 
     geo::Point   original_point { 0, 0 };
     geo::Point   center_point { 0, 0 };
-    geo::Polygon polygon {};
+    geo::Shape   polygon {};
     float        elevation = .5f;
     float        moisture = .5f;
     Type         type = Biome::Type::Unknown;

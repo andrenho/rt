@@ -21,7 +21,6 @@ struct Point {
 };
 
 
-
 struct Size {
     Size() : w(0), h(0) {}
     Size(float w_, float h_) : w(w_), h(h_) {}

@@ -4,8 +4,9 @@ static constexpr float ROAD_WIDTH = 8.f;
 
 namespace map {
 
-static void add_static_features(geo::Polygon const& polygon, float prop, PhysicalMap& pmap)
+static void add_static_features(geo::Shape const& polygon, float prop, PhysicalMap& pmap)
 {
+    (void) polygon; (void) prop; (void) pmap;
 }
 
 static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap)
@@ -62,7 +63,7 @@ PhysicalMap generate_physical_map(Map const& map)
     for (auto const& road_segment: map.road_segments) {
         pmap.objects.emplace_back(
                 PhysicalMap::ObjectType::Road,
-                geo::Capsule { road_segment.first, road_segment.second, ROAD_WIDTH });
+                geo::Shape::Capsule(road_segment.first, road_segment.second, ROAD_WIDTH));
     }
 
     // terrains

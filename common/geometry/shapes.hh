@@ -11,19 +11,9 @@ template<class... Ts> struct overloaded : Ts... { using Ts::operator()...; };
 
 namespace geo {
 
-class Polygon : public std::vector<Point> {
-public:
-    using std::vector<Point>::vector;
+namespace shape {
 
-    [[nodiscard]] Point center() const;
-};
-
-inline Polygon Box(Point const& p, Point const& sz)
-{
-    return { p, { p.x, p.y + sz.y }, p + sz, { p.x + sz.x, p.y } };
-}
-
-Polygon ThickLine(geo::Point const& p1, geo::Point const& p2, float width);
+using Polygon = std::vector<Point>;
 
 struct Circle {
     Point center;
@@ -39,12 +29,16 @@ struct Line {
 struct Capsule {
     Point p1, p2;
     float radius;
+
+    [[nodiscard]] Shape polygon() const;
 };
 
-using Shapes = std::variant<Polygon, Circle, Capsule, Line>;
+}
 
 class Shape {
 public:
+    using Shapes = std::variant<shape::Polygon, shape::Circle, shape::Capsule, shape::Line>;
+
     Shape() : shape_({}) {}
 
     template <class T,
@@ -52,17 +46,27 @@ public:
                     std::is_constructible_v<Shapes, T>>>
     Shape(T&& v) : shape_(std::forward<T>(v)) {}
 
+    static Shape Polygon(std::vector<geo::Point> const& points) { return shape::Polygon { points }; }
+    static Shape Polygon(std::initializer_list<geo::Point> const& points) { return shape::Polygon { points }; }
+    static Shape Circle(Point const& p, float radius) { return shape::Circle { p, radius }; }
+    static Shape Capsule(Point const& p1, Point const& p2, float radius) { return shape::Capsule { p1, p2, radius }; }
+    static Shape Line(Point const& p1, Point const& p2) { return shape::Line { p1, p2 }; }
+    static Shape Line(float x1, float y1, float x2, float y2) { return shape::Line { x1, y1, x2, y2 }; }
+    static Shape ThickLine(geo::Point const& p1, geo::Point const& p2, float width);
+    static Shape Box(Point const& p, Point const& sz) { return Polygon({  p, { p.x, p.y + sz.y }, p + sz, { p.x + sz.x, p.y } }); }
+
     operator const Shapes&() const { return shape_; }
     operator Shapes&() { return shape_; }
 
     const Shapes& for_visit() const { return shape_; }
     Shapes& for_visit() { return shape_; }
 
+    [[nodiscard]] bool contains_point(Point const& point) const;
+    [[nodiscard]] Point center() const;
+
 private:
     Shapes shape_;
 };
-
-bool contains_point(Shape const& shape, Point const& point);
 
 }
 

@@ -58,20 +58,20 @@ static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo:
 
     // create biomes
     for(int i = 0; i < diagram.numsites; ++i) {
-        geo::Polygon polygon;
+        std::vector<geo::Point> ppoints;
         std::vector<jcv_site*> neighbours;
 
         const jcv_site* site = &sites[i];
 
         const jcv_graphedge* e = site->edges;
         while (e) {
-            polygon.emplace_back(e->pos[0].x, e->pos[0].y);
+            ppoints.emplace_back(e->pos[0].x, e->pos[0].y);
             neighbours.emplace_back(e->neighbor);
             e = e->next;
         }
 
         auto& biome = biomes.emplace_back(std::make_unique<Biome>(geo::Point { jcv_points[i].x, jcv_points[i].y },
-                polygon.center(), std::move(polygon), .5f, Biome::Type::Unknown));
+                geo::Shape::Polygon(ppoints).center(), std::move(ppoints), .5f, Biome::Type::Unknown));
         biome_neighbour_sites[biome.get()] = std::move(neighbours);
         sites_biomes[site] = biome.get();
     }
@@ -230,7 +230,7 @@ static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_
     std::vector<int> biome_n(biomes.size()); std::iota(biome_n.begin(), biome_n.end(), 0); std::shuffle(biome_n.begin(), biome_n.end(), rng);
     for (auto i: biome_n) {
         for (auto const& p: points) {
-            if (geo::contains_point(biomes.at(i)->polygon, p)) {
+            if (biomes.at(i)->polygon.contains_point(p)) {
                 if (biomes.at(i)->type != Biome::Ocean) {
                     cities.emplace_back(std::make_unique<City>(biomes.at(i).get(), biomes.at(i)->polygon.center()));
                     if (cities.size() >= cfg.number_of_cities)

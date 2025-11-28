@@ -2,22 +2,12 @@
 
 namespace geo {
 
-Point Polygon::center() const
-{
-    float x = 0.f, y = 0.f;
-    for (Point const& p: *this) {
-        x += p.x;
-        y += p.y;
-    }
-    return { x / (float) size(), y / (float) size() };
-}
-
-bool contains_point(Shape const& shape, Point const& p)
+bool Shape::contains_point(Point const& p) const
 {
     return std::visit([&](auto const& s) -> bool {
         using T = std::decay_t<decltype(s)>;
 
-        if constexpr (std::is_same_v<T, Polygon>) {
+        if constexpr (std::is_same_v<T, shape::Polygon>) {
             bool inside = false;
             size_t const n = s.size();
             if (n < 3) return false;
@@ -33,22 +23,21 @@ bool contains_point(Shape const& shape, Point const& p)
                 if (intersect) inside = !inside;
             }
             return inside;
-        } else if constexpr (std::is_same_v<T, Circle>) {
+        } else if constexpr (std::is_same_v<T, shape::Circle>) {
             float dx = p.x - s.center.x;
             float dy = p.y - s.center.y;
             return dx * dx + dy * dy <= s.radius * s.radius;
-        } else if constexpr (std::is_same_v<T, Capsule>) {
-            // TODO - check central rectangle
-            return contains_point(Circle { s.p1, s.radius }, p) ||
-                   contains_point(Circle { s.p2, s.radius }, p) ||
-                   contains_point(ThickLine(s.p1, s.p2, s.radius), p);
+        } else if constexpr (std::is_same_v<T, shape::Capsule>) {
+            return (Shape::Circle(s.p1, s.radius).contains_point(p) ||
+                    Shape::Circle(s.p2, s.radius).contains_point(p) ||
+                    Shape { ThickLine(s.p1, s.p2, s.radius) }.contains_point(p));
         } else {
             return false;
         }
-    }, shape.for_visit());
+    }, for_visit());
 }
 
-Polygon ThickLine(Point const& p1, Point const& p2, float width)
+Shape Shape::ThickLine(Point const& p1, Point const& p2, float width)
 {
     Point dir = p2 - p1;
     float len = std::sqrt(dir.x * dir.x + dir.y * dir.y);
@@ -58,7 +47,35 @@ Polygon ThickLine(Point const& p1, Point const& p2, float width)
     Point offs = perp * width;
 
     // rectangle corners in CCW order (p1+off, p1-off, p2-off, p2+off)
-    return Polygon { p1 + offs, p1 - offs, p2 - offs, p2 + offs };
+    return Shape::Polygon({ p1 + offs, p1 - offs, p2 - offs, p2 + offs });
+}
+
+Point Shape::center() const
+{
+    return std::visit(overloaded {
+        [&](shape::Polygon const& poly) {
+            float x = 0.f, y = 0.f;
+            for (Point const& p: poly) {
+                x += p.x;
+                y += p.y;
+            }
+            return geo::Point { x / (float) poly.size(), y / (float) poly.size() };
+        },
+        [&](shape::Circle const& c) {
+            return c.center;
+        },
+        [&](shape::Line const& ln) {
+            return geo::Point { (ln.p1.x + ln.p2.x) / 2.f, (ln.p1.y + ln.p2.y) / 2.f };
+        },
+        [&](shape::Capsule const& c) {
+            return c.polygon().center();
+        },
+    }, for_visit());
+}
+
+Shape shape::Capsule::polygon() const
+{
+    return Shape::ThickLine(p1, p2, radius);
 }
 
 }

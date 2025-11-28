@@ -24,7 +24,7 @@ b2ShapeId create_b2shape(b2BodyId body_id, geo::Shape const& shape, bool sensor,
     shape_def.userData = user_data;
 
     return std::visit(overloaded {
-        [&](geo::Polygon const& polygon) {
+        [&](geo::shape::Polygon const& polygon) {
             std::vector<b2Vec2> vecs;
             for (auto p: polygon)
                 vecs.emplace_back(p.x, p.y);
@@ -32,19 +32,19 @@ b2ShapeId create_b2shape(b2BodyId body_id, geo::Shape const& shape, bool sensor,
             b2Polygon poly = b2MakePolygon(&hull, 0);
             return b2CreatePolygonShape(body_id, &shape_def, &poly);
         },
-        [&](geo::Circle const& circle) {
+        [&](geo::shape::Circle const& circle) {
             b2Circle c { { circle.center.x, circle.center.y }, circle.radius };
             return b2CreateCircleShape(body_id, &shape_def, &c);
         },
-        [&](geo::Capsule const& capsule) {
+        [&](geo::shape::Capsule const& capsule) {
             b2Capsule c { { capsule.p1.x, capsule.p1.y }, { capsule.p2.x, capsule.p2.y }, capsule.radius };
             return b2CreateCapsuleShape(body_id, &shape_def, &c);
         },
-        [&](geo::Line const& line) {
+        [&](geo::shape::Line const& line) {
             throw std::runtime_error("Lines not supported at the present moment");
             return b2CreateCircleShape(body_id, nullptr, nullptr);  // makes compiler happy
         },
-    }, shape);
+    }, shape.for_visit());
 }
 
 }
