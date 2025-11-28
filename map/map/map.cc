@@ -35,14 +35,6 @@ static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo:
     return biomes;
 }
 
-static std::vector<geo::Point> relax_points(std::vector<std::unique_ptr<Biome>> const& biomes)
-{
-    std::vector<geo::Point> polygon_points;
-    for (auto const& biome: biomes)
-        polygon_points.emplace_back(biome->center_point);
-    return polygon_points;
-}
-
 //
 // TERRAIN GENERATION
 //
@@ -346,21 +338,9 @@ Map create(MapConfig const& cfg)
         .h = (size_t) cfg.map_h,
     };
 
-    geo::Bounds bounds { { 0, 0 }, { output.w, output.h } };
-    auto polygon_points = geo::Point::grid(bounds, cfg.point_density, rng, cfg.point_randomness);
+    auto polygon_points = geo::Point::grid({ { 0, 0 }, { output.w, output.h } }, cfg.point_density, rng, cfg.point_randomness);
 
     auto biomes = generate_biome_tiles(polygon_points, cfg.polygon_relaxation);
-
-    /*
-    int relaxations = cfg.polygon_relaxation_steps;
-generate_polygons_again:
-    std::vector<std::unique_ptr<Biome>> biomes = generate_biome_tiles(polygon_points);
-    if (relaxations > 0) {
-        --relaxations;
-        polygon_points = relax_points(biomes);
-        goto generate_polygons_again;
-    }
-    */
 
     update_biome_elevation(biomes, cfg);
     update_biome_moisture(biomes, cfg);

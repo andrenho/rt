@@ -29,8 +29,8 @@ struct MapConfig {
 };
 
 struct Biome {
-    Biome(geo::Point const& center_point, geo::Shape polygon)
-        : center_point(center_point), polygon(std::move(polygon)) {}
+    Biome(geo::Point const& center_point_, geo::Shape polygon_)
+        : center_point(center_point_), polygon(std::move(polygon_)) {}
 
     enum Type { Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
 
