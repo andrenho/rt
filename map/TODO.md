@@ -17,5 +17,7 @@
 - [ ] Improvements
   - [ ] Rivers
   - [ ] Noisy edges
+- [x] Quadrants
+  - [ ] Combine quadrants
 
 http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/

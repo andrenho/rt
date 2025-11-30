@@ -89,8 +89,8 @@ Bounds Shape::aabb() const
                 for (Point const& p: poly) {
                     min_x = std::min(min_x, p.x);
                     min_y = std::min(min_y, p.y);
-                    max_x = std::min(max_x, p.x);
-                    max_y = std::min(max_y, p.y);
+                    max_x = std::max(max_x, p.x);
+                    max_y = std::max(max_y, p.y);
                 }
                 assert(max_x >= min_x && max_y >= min_y);
                 return Bounds({ min_x, min_y }, { max_x, max_y });
@@ -205,6 +205,11 @@ Shape::voronoi_with_neighbours(std::vector<Point> const& pts, bool relax)
     // TODO - relax grid
 
     return { std::move(shapes), std::move(shape_neighbours) };
+}
+
+bool Shape::aabb_intersects(Bounds const& bounds) const
+{
+    return aabb().intersects(bounds);
 }
 
 namespace shape {

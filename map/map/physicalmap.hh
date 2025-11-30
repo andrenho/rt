@@ -3,22 +3,29 @@
 
 #include "map.hh"
 
+#include <unordered_map>
+#include <utility>
 #include <variant>
 
 namespace map {
 
 struct PhysicalMap {
-    enum class ObjectType { Road, Water, TerrainSensor, ImpassableTerrain, StaticFeature };
-    struct Object {
-        ObjectType type;
-        geo::Shape shape;
-        std::variant<std::monostate, Biome::Type> additional_info {};
+
+    struct Terrain {
+        geo::Shape  shape;
+        bool        passable;
+        Biome::Type terrain_type;
+        std::unordered_map<geo::Point, uint8_t> static_features {};
     };
 
-    std::vector<Object> objects;
+    int                                     w, h;
+    std::vector<geo::Shape>                 water;
+    std::vector<Terrain>                    terrains;
+    std::vector<geo::Shape>                 unpassable_terrains;
+    std::vector<geo::Shape>                 roads;
 };
 
-PhysicalMap generate_physical_map(Map const& map);
+PhysicalMap generate_physical_map(Map const& map, size_t seed);
 
 } // map
 

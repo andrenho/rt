@@ -80,4 +80,26 @@ std::vector<geo::Point> Point::relax_grid(std::vector<geo::Point> const& grid)
     return points;
 }
 
+bool Point::operator==(Point const& other) const
+{
+    int x1 = static_cast<int>(std::round(x * 1000));
+    int x2 = static_cast<int>(std::round(other.x * 1000));
+    int y1 = static_cast<int>(std::round(y * 1000));
+    int y2 = static_cast<int>(std::round(other.y * 1000));
+    return x1 == x2 && y1 == y2;
+}
+
+bool Bounds::intersects(Bounds const& a) const
+{
+    // One rectangle is completely to the left of the other
+    if (bottom_right.x < a.top_left.x || a.bottom_right.x < top_left.x)
+        return false;
+
+    // One rectangle is completely above the other
+    if (bottom_right.y < a.top_left.y || a.bottom_right.y < top_left.y)
+        return false;
+
+    return true; // They overlap or touch
+}
+
 }

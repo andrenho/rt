@@ -25,7 +25,9 @@ include(../cmake/libs/imgui.cmake)
 
 add_library(rt-map STATIC map/map.hh map/map.cc
         map/physicalmap.cc
-        map/physicalmap.hh)
+        map/physicalmap.hh
+        map/quadrants.cc
+        map/quadrants.hh)
 target_link_libraries(rt-map PUBLIC rt-common)
 
 # test executable

@@ -49,8 +49,7 @@ public:
     Shape(T&& v) : shape_(std::forward<T>(v)) {}
 
     static Shape Polygon(std::vector<geo::Point> const& points) { return shape::Polygon { points }; }
-    static Shape Polygon(std::initializer_list<geo::Point> const& points) { return shape::Polygon { points }; }
-    static Shape Circle(Point const& p, float radius) { return shape::Circle { p, radius }; }
+    static Shape Polygon(std::initializer_list<geo::Point> const& points) { return shape::Polygon { points }; } static Shape Circle(Point const& p, float radius) { return shape::Circle { p, radius }; }
     static Shape Capsule(Point const& p1, Point const& p2, float radius) { return shape::Capsule { p1, p2, radius }; }
     static Shape Line(Point const& p1, Point const& p2) { return shape::Line { p1, p2 }; }
     static Shape Line(float x1, float y1, float x2, float y2) { return shape::Line { x1, y1, x2, y2 }; }
@@ -66,6 +65,7 @@ public:
     [[nodiscard]] bool contains_point(Point const& point) const;
     [[nodiscard]] Point center() const;
     [[nodiscard]] Bounds aabb() const;
+    [[nodiscard]] bool aabb_intersects(Bounds const& bounds) const;
 
     static std::vector<Shape> voronoi(std::vector<Point> const& points, bool relax=false);
     static std::pair<std::vector<std::unique_ptr<Shape>>, std::unordered_map<Shape*, std::vector<Shape*>>>
