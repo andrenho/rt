@@ -16,9 +16,6 @@ include(../cmake/common.cmake)
 include(../common/include-common-lib.cmake)
 
 include(../cmake/libs/imgui.cmake)
-include(../cmake/libs/voronoi.cmake)
-include(../cmake/libs/perlin.cmake)
-include(../cmake/libs/graaf.cmake)
 
 #-------------------------
 # Main build
@@ -26,8 +23,12 @@ include(../cmake/libs/graaf.cmake)
 
 # library
 
-add_library(rt-map STATIC map/map.hh map/map.cc)
-target_link_libraries(rt-map PUBLIC rt-common jc_voronoi perlin graaf fmtx)
+add_library(rt-map STATIC map/map.hh map/map.cc
+        map/physicalmap.cc
+        map/physicalmap.hh
+        map/quadrants.cc
+        map/quadrants.hh)
+target_link_libraries(rt-map PUBLIC rt-common)
 
 # test executable
 

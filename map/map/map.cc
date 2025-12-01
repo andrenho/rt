@@ -2,7 +2,6 @@
 
 #include <random>
 
-#define JC_VORONOI_IMPLEMENTATION
 #include "jc_voronoi.h"
 
 #include "PerlinNoise.hpp"
@@ -18,81 +17,24 @@ namespace map {
 // POLYGONS GENERATION
 //
 
-static std::vector<geo::Point> generate_points(std::mt19937& rng, size_t tiles_w, size_t tiles_h, MapConfig const& cfg)
+static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo::Point> const& points, bool relax_points)
 {
-    std::vector<geo::Point> polygon_points {};
-
-    // generate points
-    for (size_t x = 1; x < tiles_w; ++x) {
-        for (size_t y = 1; y < tiles_h; ++y) {
-            polygon_points.emplace_back(x * cfg.point_density, y * cfg.point_density);
-        }
-    }
-
-    // add randomness
-    std::uniform_real_distribution<float> distances(0.0, ((float) cfg.point_density) * cfg.point_randomness);
-    std::uniform_real_distribution<float> angles(0.0, 2.0);
-    for (auto& p: polygon_points) {
-        p.x += distances(rng) * (float) cos(angles(rng));
-        p.y += distances(rng) * (float) sin(angles(rng));
-    }
-
-    return polygon_points;
-}
-
-static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo::Point> const& points)
-{
-    std::vector<std::unique_ptr<Biome>> biomes;
-
-    jcv_diagram diagram {};
-    std::vector<jcv_point> jcv_points; jcv_points.reserve(points.size());
-    for (auto const& p: points)
-        jcv_points.emplace_back(p.x, p.y);
-
-    jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
-
-    const jcv_site* sites = jcv_diagram_get_sites(&diagram);
-
-    std::unordered_map<Biome*, std::vector<jcv_site*>> biome_neighbour_sites;
-    std::unordered_map<jcv_site const*, Biome*> sites_biomes;
+    auto [shapes, neighbours] = geo::Shape::voronoi_with_neighbours(points, relax_points);
 
     // create biomes
-    for(int i = 0; i < diagram.numsites; ++i) {
-        geo::Polygon polygon;
-        std::vector<jcv_site*> neighbours;
-
-        const jcv_site* site = &sites[i];
-
-        const jcv_graphedge* e = site->edges;
-        while (e) {
-            polygon.emplace_back(e->pos[0].x, e->pos[0].y);
-            neighbours.emplace_back(e->neighbor);
-            e = e->next;
-        }
-
-        auto& biome = biomes.emplace_back(std::make_unique<Biome>(geo::Point { jcv_points[i].x, jcv_points[i].y },
-                polygon.center(), std::move(polygon), .5f, Biome::Type::Unknown));
-        biome_neighbour_sites[biome.get()] = std::move(neighbours);
-        sites_biomes[site] = biome.get();
+    std::vector<std::unique_ptr<Biome>> biomes;
+    std::unordered_map<geo::Shape*, Biome*> shape_biome_tmp;
+    for (auto const& shape: shapes) {
+        auto& biome = biomes.emplace_back(std::make_unique<Biome>(shape->center(), *shape));
+        shape_biome_tmp[shape.get()] = biome.get();
     }
 
     // find neighbours
-    for (auto& biome: biomes)
-        for (jcv_site* site: biome_neighbour_sites.at(biome.get()))
-            if (site)
-                biome->neighbours.push_back(sites_biomes.at(site));
-
-    jcv_diagram_free(&diagram);
+    for (auto const& [shape1, ns]: neighbours)
+        for (auto const& shape2: ns)
+            shape_biome_tmp.at(shape1)->neighbours.emplace_back(shape_biome_tmp.at(shape2));
 
     return biomes;
-}
-
-static std::vector<geo::Point> relax_points(std::vector<std::unique_ptr<Biome>> const& biomes)
-{
-    std::vector<geo::Point> polygon_points;
-    for (auto const& biome: biomes)
-        polygon_points.emplace_back(biome->center_point);
-    return polygon_points;
 }
 
 //
@@ -106,8 +48,7 @@ static void update_biome_elevation(std::vector<std::unique_ptr<Biome>>& biomes, 
 
     for (auto& biome: biomes) {
         auto p = biome->center_point;
-        float w = (float) cfg.map_w;
-        float h = (float) cfg.map_h;
+        float w = (float) cfg.map_w, h = (float) cfg.map_h;
         float distance_from_center = ((p.x-w*0.5f)*(p.x-w*0.5f)+(p.y-h*0.5f)*(p.y-h*0.5f))/((w*0.5f)*(w*0.5f)+(h*0.5f)*(h*0.5f)) / .5f;
         float r = (float) perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4);
         biome->elevation = std::clamp(1.f - r * distance_from_center / .5f, .0f, 1.f);
@@ -177,7 +118,7 @@ static void update_terrain_type(std::vector<std::unique_ptr<Biome>>& biomes)
 // CITIES
 //
 
-static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>> const& biomes, MapConfig const& cfg, std::mt19937& rng, size_t city_count)
+static std::vector<std::unique_ptr<City>> create_cities_attempt(std::vector<std::unique_ptr<Biome>> const& biomes, MapConfig const& cfg, std::mt19937& rng, size_t city_count)
 {
     std::vector<std::unique_ptr<City>> cities;
 
@@ -187,50 +128,14 @@ static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_
     float diff_x = cfg.map_w / cities_w / 2.f;
     float diff_y = cfg.map_h / cities_h / 2.f;
 
-    std::uniform_real_distribution<float> distances_x(0.0, diff_x * 2);
-    std::uniform_real_distribution<float> distances_y(0.0, diff_y * 2);
-    std::uniform_real_distribution<float> angles(0.0, 2.0);
-
-    std::vector<jcv_point> jcv_points; jcv_points.reserve(city_count);
-    for (float x = 0; x < cities_w; ++x) {
-        for (float y = 0; y < cities_h; ++y) {
-            float px = x * (cfg.map_w / cities_w) + diff_x + distances_x(rng) * (float) cos(angles(rng));
-            float py = y * (cfg.map_h / cities_h) + diff_y + distances_y(rng) * (float) sin(angles(rng));
-            jcv_points.emplace_back(px, py);
-        }
-    }
-
-    // create voronoi
-    jcv_diagram diagram {};
-    jcv_diagram_generate((int) jcv_points.size(), jcv_points.data(), nullptr, nullptr, &diagram);
-
-    // relax voronoi and create list of points
-    std::vector<geo::Point> points;
-    const jcv_site* sites = jcv_diagram_get_sites(&diagram);
-    for(int i = 0; i < diagram.numsites; ++i) {
-        const jcv_site* site = &sites[i];
-
-        const jcv_graphedge* e = site->edges;
-        float count = 0;
-        float sum_x = 0.f, sum_y = 0.f;
-        while (e) {
-            sum_x += e->pos[0].x;
-            sum_y += e->pos[0].y;
-            e = e->next;
-            ++count;
-        }
-
-        if (count > 0)
-            points.emplace_back(sum_x / count, sum_y / count);
-    }
-
-    jcv_diagram_free(&diagram);
+    geo::Bounds bounds { { 0, 0 }, { cfg.map_w, cfg.map_h } };
+    auto points = geo::Point::grid(bounds, diff_x, diff_y, rng, 1.f);
 
     // find biomes
     std::vector<int> biome_n(biomes.size()); std::iota(biome_n.begin(), biome_n.end(), 0); std::shuffle(biome_n.begin(), biome_n.end(), rng);
     for (auto i: biome_n) {
         for (auto const& p: points) {
-            if (geo::contains_point(biomes.at(i)->polygon, p)) {
+            if (biomes.at(i)->polygon.contains_point(p)) {
                 if (biomes.at(i)->type != Biome::Ocean) {
                     cities.emplace_back(std::make_unique<City>(biomes.at(i).get(), biomes.at(i)->polygon.center()));
                     if (cities.size() >= cfg.number_of_cities)
@@ -244,14 +149,14 @@ done:
     return cities;
 }
 
-static std::vector<std::unique_ptr<City>> find_city_locations(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
+static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
 {
     size_t city_count = cfg.number_of_cities + 10;
     std::vector<std::unique_ptr<City>> cities;
 
     // create city list
     do {
-        cities = create_cities(biomes, cfg, rng, city_count);
+        cities = create_cities_attempt(biomes, cfg, rng, city_count);
         city_count += 10;
         if (city_count > cfg.number_of_cities * 3)   // sanity check
             break;
@@ -389,28 +294,14 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
 // PUBLIC FUNCTIONS
 //
 
-MapOutput create(MapConfig const& cfg)
+Map create(MapConfig const& cfg)
 {
     std::mt19937 rng(cfg.seed);
 
-    MapOutput output {
-        .w = (size_t) cfg.map_w,
-        .h = (size_t) cfg.map_h,
-    };
+    geo::Bounds bounds { { 0, 0 }, { cfg.map_w, cfg.map_h } };
+    auto polygon_points = geo::Point::grid(bounds, cfg.point_density, cfg.point_density, rng, cfg.point_randomness);
 
-    size_t tiles_w = (size_t) (cfg.map_w / cfg.point_density);
-    size_t tiles_h = (size_t) (cfg.map_h / cfg.point_density);
-
-    std::vector<geo::Point> polygon_points = generate_points(rng, tiles_w, tiles_h, cfg);
-
-    int relaxations = cfg.polygon_relaxation_steps;
-generate_polygons_again:
-    std::vector<std::unique_ptr<Biome>> biomes = generate_biome_tiles(polygon_points);
-    if (relaxations > 0) {
-        --relaxations;
-        polygon_points = relax_points(biomes);
-        goto generate_polygons_again;
-    }
+    auto biomes = generate_biome_tiles(polygon_points, cfg.polygon_relaxation);
 
     update_biome_elevation(biomes, cfg);
     update_biome_moisture(biomes, cfg);
@@ -420,15 +311,18 @@ generate_polygons_again:
 
     update_terrain_type(biomes);
 
-    auto cities = find_city_locations(biomes, cfg, rng);
+    auto cities = create_cities(biomes, cfg, rng);
     find_connected_cities(cities, cfg);
 
     std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);
 
-    output.biomes = std::move(biomes);
-    output.cities = std::move(cities);
-    output.road_segments = std::move(road_segments);
-    return output;
+    return {
+        .w = (size_t) cfg.map_w,
+        .h = (size_t) cfg.map_h,
+        .biomes = std::move(biomes),
+        .cities = std::move(cities),
+        .road_segments = std::move(road_segments),
+    };
 }
 
 } // map

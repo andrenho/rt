@@ -9,13 +9,15 @@
 - [x] Cities locations
 - [x] Roads
   - [x] Fix min number of cities
-  - [ ] Fix warnings
+  - [x] Fix warnings
+- [ ] Physical objects generation
+  - [x] Roads
+  - [ ] Partition impassable terrain
+  - [ ] City structures
 - [ ] Improvements
   - [ ] Rivers
   - [ ] Noisy edges
-- [ ] Physical objects generation
-  - [ ] Roads
-  - [ ] Partition impassable terrain
-  - [ ] City structures
+- [x] Quadrants
+  - [ ] Combine quadrants
 
 http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/
