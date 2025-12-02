@@ -1,4 +1,4 @@
-#include "map.hh"
+#include "minimap.hh"
 
 #include <random>
 
@@ -17,15 +17,15 @@ namespace map {
 // POLYGONS GENERATION
 //
 
-static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo::Point> const& points, bool relax_points)
+static std::vector<std::unique_ptr<Minimap::Biome>> generate_biome_tiles(std::vector<geo::Point> const& points, bool relax_points)
 {
     auto [shapes, neighbours] = geo::Shape::voronoi_with_neighbours(points, relax_points);
 
     // create biomes
-    std::vector<std::unique_ptr<Biome>> biomes;
-    std::unordered_map<geo::Shape*, Biome*> shape_biome_tmp;
+    std::vector<std::unique_ptr<Minimap::Biome>> biomes;
+    std::unordered_map<geo::Shape*, Minimap::Biome*> shape_biome_tmp;
     for (auto const& shape: shapes) {
-        auto& biome = biomes.emplace_back(std::make_unique<Biome>(shape->center(), *shape));
+        auto& biome = biomes.emplace_back(std::make_unique<Minimap::Biome>(shape->center(), *shape));
         shape_biome_tmp[shape.get()] = biome.get();
     }
 
@@ -41,7 +41,7 @@ static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo:
 // TERRAIN GENERATION
 //
 
-static void update_biome_elevation(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
+static void update_biome_elevation(std::vector<std::unique_ptr<Minimap::Biome>>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed;
     const siv::PerlinNoise perlin(seed);
@@ -55,7 +55,7 @@ static void update_biome_elevation(std::vector<std::unique_ptr<Biome>>& biomes, 
     }
 }
 
-static void update_biome_moisture(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
+static void update_biome_moisture(std::vector<std::unique_ptr<Minimap::Biome>>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed + 1;
     const siv::PerlinNoise perlin(seed);
@@ -66,14 +66,14 @@ static void update_biome_moisture(std::vector<std::unique_ptr<Biome>>& biomes, M
     }
 }
 
-static void update_biome_ocean(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
+static void update_biome_ocean(std::vector<std::unique_ptr<Minimap::Biome>>& biomes, MapConfig const& cfg)
 {
     for (auto& biome: biomes)
         if (biome->elevation < cfg.ocean_elevation)
-            biome->type = Biome::Ocean;
+            biome->type = BiomeType::Ocean;
 }
 
-static void add_lakes(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
+static void add_lakes(std::vector<std::unique_ptr<Minimap::Biome>>& biomes, MapConfig const& cfg)
 {
     const siv::PerlinNoise::seed_type seed = cfg.seed + 2;
     const siv::PerlinNoise perlin(seed);
@@ -81,35 +81,35 @@ static void add_lakes(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig con
     for (auto& biome: biomes) {
         auto p = biome->center_point;
         if (perlin.octave2D_01(p.x / (float) cfg.map_w * 2, p.y / (float) cfg.map_h * 2, 4) < cfg.lake_threshold)
-            biome->type = Biome::Ocean;
+            biome->type = BiomeType::Ocean;
     }
 }
 
-static void update_terrain_type(std::vector<std::unique_ptr<Biome>>& biomes)
+static void update_terrain_type(std::vector<std::unique_ptr<Minimap::Biome>>& biomes)
 {
     for (auto& biome: biomes) {
-        if (biome->type != Biome::Type::Unknown)
+        if (biome->type != BiomeType::Unknown)
             continue;;
         if (biome->elevation > .98f) {
-            biome->type = Biome::Type::Snow;
+            biome->type = BiomeType::Snow;
         } else if (biome->elevation > .8f) {
             if (biome->moisture < .25f)
-                biome->type = Biome::Type::Desert;
+                biome->type = BiomeType::Desert;
             else if (biome->moisture < .5f)
-                biome->type = Biome::Type::Tundra;
+                biome->type = BiomeType::Tundra;
             else if (biome->moisture < .75f)
-                biome->type = Biome::Type::Grassland;
+                biome->type = BiomeType::Grassland;
             else
-                biome->type = Biome::Type::PineForest;
+                biome->type = BiomeType::PineForest;
         } else {
             if (biome->moisture < .25f)
-                biome->type = Biome::Type::Desert;
+                biome->type = BiomeType::Desert;
             else if (biome->moisture < .5f)
-                biome->type = Biome::Type::Savannah;
+                biome->type = BiomeType::Savannah;
             else if (biome->moisture < .75f)
-                biome->type = Biome::Type::Forest;
+                biome->type = BiomeType::Forest;
             else
-                biome->type = Biome::Type::RainForest;
+                biome->type = BiomeType::RainForest;
         }
     }
 }
@@ -118,9 +118,9 @@ static void update_terrain_type(std::vector<std::unique_ptr<Biome>>& biomes)
 // CITIES
 //
 
-static std::vector<std::unique_ptr<City>> create_cities_attempt(std::vector<std::unique_ptr<Biome>> const& biomes, MapConfig const& cfg, std::mt19937& rng, size_t city_count)
+static std::vector<std::unique_ptr<Minimap::City>> create_cities_attempt(std::vector<std::unique_ptr<Minimap::Biome>> const& biomes, MapConfig const& cfg, std::mt19937& rng, size_t city_count)
 {
-    std::vector<std::unique_ptr<City>> cities;
+    std::vector<std::unique_ptr<Minimap::City>> cities;
 
     // create distributed points with random component
     size_t cities_h = (size_t) std::round(std::sqrt(city_count * cfg.map_h / cfg.map_w));
@@ -136,8 +136,8 @@ static std::vector<std::unique_ptr<City>> create_cities_attempt(std::vector<std:
     for (auto i: biome_n) {
         for (auto const& p: points) {
             if (biomes.at(i)->polygon.contains_point(p)) {
-                if (biomes.at(i)->type != Biome::Ocean) {
-                    cities.emplace_back(std::make_unique<City>(biomes.at(i).get(), biomes.at(i)->polygon.center()));
+                if (biomes.at(i)->type != BiomeType::Ocean) {
+                    cities.emplace_back(std::make_unique<Minimap::City>(biomes.at(i).get(), biomes.at(i)->polygon.center()));
                     if (cities.size() >= cfg.number_of_cities)
                         goto done;
                 }
@@ -149,10 +149,10 @@ done:
     return cities;
 }
 
-static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
+static std::vector<std::unique_ptr<Minimap::City>> create_cities(std::vector<std::unique_ptr<Minimap::Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
 {
     size_t city_count = cfg.number_of_cities + 10;
-    std::vector<std::unique_ptr<City>> cities;
+    std::vector<std::unique_ptr<Minimap::City>> cities;
 
     // create city list
     do {
@@ -172,11 +172,11 @@ static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_
 // CITY CONNECTIONS
 //
 
-static void find_minimally_connected_cities(std::vector<std::unique_ptr<City>>& cities)
+static void find_minimally_connected_cities(std::vector<std::unique_ptr<Minimap::City>>& cities)
 {
     // create graph
-    std::unordered_map<City*, graaf::vertex_id_t> vertices;
-    graaf::undirected_graph<City*, int> g;
+    std::unordered_map<Minimap::City*, graaf::vertex_id_t> vertices;
+    graaf::undirected_graph<Minimap::City*, int> g;
     for (auto& city: cities)
         vertices[city.get()] = g.add_vertex(city.get());
 
@@ -199,7 +199,7 @@ static void find_minimally_connected_cities(std::vector<std::unique_ptr<City>>& 
     }
 }
 
-static void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, MapConfig const& cfg)
+static void find_connected_cities(std::vector<std::unique_ptr<Minimap::City>>& cities, MapConfig const& cfg)
 {
     // find minimal set of connected cities
     find_minimally_connected_cities(cities);
@@ -227,14 +227,14 @@ static void find_connected_cities(std::vector<std::unique_ptr<City>>& cities, Ma
 // BUILD ROADS
 //
 
-static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<Biome>> const& biomes, std::vector<std::unique_ptr<City>> const& cities, MapConfig const& cfg)
+static std::vector<Minimap::RoadSegment> build_road_segments(std::vector<std::unique_ptr<Minimap::Biome>> const& biomes, std::vector<std::unique_ptr<Minimap::City>> const& cities, MapConfig const& cfg)
 {
-    std::vector<RoadSegment> road_segments;
+    std::vector<Minimap::RoadSegment> road_segments;
 
     // create graph
-    graaf::undirected_graph<Biome*, float> g;
-    std::unordered_map<Biome*, graaf::vertex_id_t> vertices;
-    std::unordered_map<graaf::vertex_id_t, Biome*> biome_vert;
+    graaf::undirected_graph<Minimap::Biome*, float> g;
+    std::unordered_map<Minimap::Biome*, graaf::vertex_id_t> vertices;
+    std::unordered_map<graaf::vertex_id_t, Minimap::Biome*> biome_vert;
     for (auto const& biome: biomes) {
         graaf::vertex_id_t v = g.add_vertex(biome.get());
         vertices[biome.get()] = v;
@@ -246,12 +246,12 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
         for (auto const& biome2: biome1->neighbours) {
             float weight = 1.f;
             switch (biome2->type) {
-                case Biome::Ocean:
+                case BiomeType::Ocean:
                     weight = cfg.road_weight_ocean;
                     break;
-                case Biome::PineForest:
-                case Biome::Forest:
-                case Biome::RainForest:
+                case BiomeType::PineForest:
+                case BiomeType::Forest:
+                case BiomeType::RainForest:
                     weight = cfg.road_weight_forest;
                     break;
                 default: break;
@@ -268,10 +268,10 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
 
             // create road segment
             if (result.has_value()) {
-                std::optional<Biome*> last {};
+                std::optional<Minimap::Biome*> last {};
                 graaf::vertex_id_t last_v_id = -1;
                 for (auto v_id: result->vertices) {
-                    Biome* nw = biome_vert.at(v_id);
+                    Minimap::Biome* nw = biome_vert.at(v_id);
                     if (last) {
                         // add road
                         road_segments.emplace_back(last.value()->center_point, nw->center_point);
@@ -294,7 +294,7 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
 // PUBLIC FUNCTIONS
 //
 
-Map create(MapConfig const& cfg)
+Minimap create(MapConfig const& cfg)
 {
     std::mt19937 rng(cfg.seed);
 
@@ -314,7 +314,7 @@ Map create(MapConfig const& cfg)
     auto cities = create_cities(biomes, cfg, rng);
     find_connected_cities(cities, cfg);
 
-    std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);
+    std::vector<Minimap::RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);
 
     return {
         .w = (size_t) cfg.map_w,

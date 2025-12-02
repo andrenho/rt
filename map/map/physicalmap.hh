@@ -1,7 +1,7 @@
 #ifndef RT_PHYSICALMAP_HH
 #define RT_PHYSICALMAP_HH
 
-#include "map.hh"
+#include "minimap.hh"
 
 #include <unordered_map>
 #include <utility>
@@ -14,7 +14,7 @@ struct PhysicalMap {
     struct Terrain {
         geo::Shape  shape;
         bool        passable;
-        Biome::Type terrain_type;
+        BiomeType   terrain_type;
         std::unordered_map<geo::Point, uint8_t> static_features {};
     };
 
@@ -25,7 +25,7 @@ struct PhysicalMap {
     std::vector<geo::Shape>                 roads;
 };
 
-PhysicalMap generate_physical_map(Map const& map, size_t seed);
+PhysicalMap generate_physical_map(Minimap const& map, size_t seed);
 
 } // map
 

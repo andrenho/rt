@@ -28,38 +28,37 @@ struct MapConfig {
     float  road_weight_reuse            = .7f;
 };
 
-struct Biome {
-    Biome(geo::Point const& center_point_, geo::Shape polygon_)
-        : center_point(center_point_), polygon(std::move(polygon_)) {}
+enum BiomeType { Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
 
-    enum Type { Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
+struct Minimap {
+    struct Biome {
+        Biome(geo::Point const& center_point_, geo::Shape polygon_)
+                : center_point(center_point_), polygon(std::move(polygon_)) {}
 
-    geo::Point   center_point { 0, 0 };
-    geo::Shape   polygon {};
-    float        elevation = .5f;
-    float        moisture = .5f;
-    Type         type = Biome::Type::Unknown;
-    bool         contains_city = false;
-    std::vector<Biome*> neighbours {};
-};
+        geo::Point   center_point { 0, 0 };
+        geo::Shape   polygon {};
+        float        elevation = .5f;
+        float        moisture = .5f;
+        BiomeType    type = BiomeType::Unknown;
+        bool         contains_city = false;
+        std::vector<Biome*> neighbours {};
+    };
 
-struct City {
-    Biome* biome;
-    geo::Point location;
-    std::unordered_set<City*> connected_cities {};
-};
+    struct City {
+        Biome* biome;
+        geo::Point location;
+        std::unordered_set<City*> connected_cities {};
+    };
 
-using RoadSegment = std::pair<geo::Point, geo::Point>;
+    using RoadSegment = std::pair<geo::Point, geo::Point>;
 
-struct Map {
     size_t w = 0, h = 0;
-    size_t tiles_w = 0, tiles_h = 0;
     std::vector<std::unique_ptr<Biome>> biomes {};
     std::vector<std::unique_ptr<City>> cities {};
     std::vector<RoadSegment> road_segments {};
 };
 
-Map create(MapConfig const& cfg);
+Minimap create(MapConfig const& cfg);
 
 } // map
 

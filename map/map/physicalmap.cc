@@ -10,15 +10,15 @@ struct TerrainDef {
     bool                 passable;
     std::optional<float> static_features_prop {};
 };
-static const std::unordered_map<Biome::Type, TerrainDef> terrain_def = {
-        { Biome::Type::Snow,       { true,  0.1f } },
-        { Biome::Type::Tundra,     { true,  0.05f } },
-        { Biome::Type::Desert,     { true,  0.05f } },
-        { Biome::Type::Grassland,  { true,  0.05f } },
-        { Biome::Type::Savannah,   { true,  0.3f } },
-        { Biome::Type::PineForest, { false, 1.f } },
-        { Biome::Type::Forest,     { true,  0.8f } },
-        { Biome::Type::RainForest, { false, 1.f, } },
+static const std::unordered_map<BiomeType, TerrainDef> terrain_def = {
+        { BiomeType::Snow,       { true,  0.1f } },
+        { BiomeType::Tundra,     { true,  0.05f } },
+        { BiomeType::Desert,     { true,  0.05f } },
+        { BiomeType::Grassland,  { true,  0.05f } },
+        { BiomeType::Savannah,   { true,  0.3f } },
+        { BiomeType::PineForest, { false, 1.f } },
+        { BiomeType::Forest,     { true,  0.8f } },
+        { BiomeType::RainForest, { false, 1.f, } },
 };
 
 static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const& shape, float prop, std::mt19937 rng)
@@ -38,9 +38,9 @@ static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const&
     return features;
 }
 
-static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, std::mt19937 rng)
+static void add_terrain(std::unique_ptr<Minimap::Biome> const& biome, PhysicalMap& pmap, std::mt19937 rng)
 {
-    if (biome->type == Biome::Ocean) {
+    if (biome->type == BiomeType::Ocean) {
         pmap.water.emplace_back(biome->polygon);
         return;
     }
@@ -52,7 +52,7 @@ static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, 
         pmap.terrains.emplace_back(biome->polygon, def.passable, biome->type, static_features(biome->polygon, *def.static_features_prop, rng));
 }
 
-PhysicalMap generate_physical_map(Map const& map, size_t seed)
+PhysicalMap generate_physical_map(Minimap const& map, size_t seed)
 {
     PhysicalMap pmap;
     std::mt19937 rng(seed);

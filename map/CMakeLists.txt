@@ -23,7 +23,7 @@ include(../cmake/libs/imgui.cmake)
 
 # library
 
-add_library(rt-map STATIC map/map.hh map/map.cc
+add_library(rt-map STATIC map/minimap.hh map/minimap.cc
         map/physicalmap.cc
         map/physicalmap.hh
         map/quadrants.cc

@@ -12,7 +12,7 @@
 #include "map/quadrants.hh"
 #include "geometry/shapes.hh"
 
-static map::Map map_;
+static map::Minimap map_;
 static map::PhysicalMap pmap;
 static map::Quadrants quadrants;
 
@@ -113,7 +113,7 @@ static void draw_biome_polygons()
                 draw_shape(biome->polygon, BLACK, Color { 0, 0, 0, (uint8_t) (255.f - 255.f * biome->moisture ) });
                 break;
             case State::PolygonFill::Oceans:
-                draw_shape(biome->polygon, BLACK, biome->type == map::Biome::Ocean ? SKYBLUE : BROWN);
+                draw_shape(biome->polygon, BLACK, biome->type == map::BiomeType::Ocean ? SKYBLUE : BROWN);
                 break;
             case State::PolygonFill::Biomes:
                 draw_shape(biome->polygon, BLACK, biome_colors.at((int) biome->type));

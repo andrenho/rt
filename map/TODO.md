@@ -1,4 +1,4 @@
-## Map generation
+## Minimap generation
 
 - [x] UI + render
     - [x] Create rt-common
