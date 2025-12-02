@@ -27,7 +27,9 @@ add_library(rt-map STATIC map/minimap.hh map/minimap.cc
         map/physicalmap.cc
         map/physicalmap.hh
         map/quadrants.cc
-        map/quadrants.hh)
+        map/quadrants.hh
+        map/map.cc
+        map/map.hh)
 target_link_libraries(rt-map PUBLIC rt-common)
 
 # test executable

@@ -294,14 +294,13 @@ static std::vector<Minimap::RoadSegment> build_road_segments(std::vector<std::un
 // PUBLIC FUNCTIONS
 //
 
-Minimap create(MapConfig const& cfg)
+Minimap::Minimap(map::MapConfig const& cfg, std::mt19937& rng)
+    : w(cfg.map_h), h(cfg.map_h)
 {
-    std::mt19937 rng(cfg.seed);
-
     geo::Bounds bounds { { 0, 0 }, { cfg.map_w, cfg.map_h } };
     auto polygon_points = geo::Point::grid(bounds, cfg.point_density, cfg.point_density, rng, cfg.point_randomness);
 
-    auto biomes = generate_biome_tiles(polygon_points, cfg.polygon_relaxation);
+    biomes = generate_biome_tiles(polygon_points, cfg.polygon_relaxation);
 
     update_biome_elevation(biomes, cfg);
     update_biome_moisture(biomes, cfg);
@@ -311,18 +310,10 @@ Minimap create(MapConfig const& cfg)
 
     update_terrain_type(biomes);
 
-    auto cities = create_cities(biomes, cfg, rng);
+    cities = create_cities(biomes, cfg, rng);
     find_connected_cities(cities, cfg);
 
-    std::vector<Minimap::RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);
-
-    return {
-        .w = (size_t) cfg.map_w,
-        .h = (size_t) cfg.map_h,
-        .biomes = std::move(biomes),
-        .cities = std::move(cities),
-        .road_segments = std::move(road_segments),
-    };
+    road_segments = build_road_segments(biomes, cities, cfg);
 }
 
 } // map

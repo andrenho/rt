@@ -9,12 +9,10 @@
 #include "rlImGui.h"
 #include "imgui.h"
 
-#include "map/quadrants.hh"
+#include "map/map.hh"
 #include "geometry/shapes.hh"
 
-static map::Minimap map_;
-static map::PhysicalMap pmap;
-static map::Quadrants quadrants;
+static std::unique_ptr<map::Map> map_;
 
 static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
@@ -30,7 +28,7 @@ struct State {
     bool        show_city_locations;
     bool        show_connected_cities;
     bool        show_roads;
-    int         quadrant_size = 1000;
+    int         quadrant_size;
 } state = {
     .map_type = State::MapType::Quadrants,
     .show_points = false,
@@ -39,6 +37,7 @@ struct State {
     .show_city_locations = true,
     .show_connected_cities = false,
     .show_roads = true,
+    .quadrant_size = 1000,
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
@@ -48,16 +47,14 @@ static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
 static void reset_map()
 {
-    map_ = map::create(map_config);
-    pmap = map::generate_physical_map(map_, map_config.seed + 1);
-    quadrants = map::generate_quadrants(pmap, state.quadrant_size);
+    map_ = std::make_unique<map::Map>(map_config);
 }
 
 static void show_full_map()
 {
     camera.target = { 0, 0 };
     camera.offset = { 0, 0 };
-    camera.zoom = (float) GetScreenWidth() / (float) map_.w;
+    camera.zoom = (float) GetScreenWidth() / (float) map_->w;
 }
 
 static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color={}, std::optional<Color> bg_color={}, float line_width=1.f)
@@ -95,13 +92,13 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
 
 static void draw_points()
 {
-    for (auto const& biome: map_.biomes)
+    for (auto const& biome: map_->minimap().biomes)
         draw_shape(geo::shape::Circle { biome->center_point, 40.f }, BLACK, VIOLET);
 }
 
 static void draw_biome_polygons()
 {
-    for (auto const& biome: map_.biomes) {
+    for (auto const& biome: map_->minimap().biomes) {
         switch (state.polygon_fill) {
             case State::PolygonFill::None:
                 draw_shape(biome->polygon, BLACK);
@@ -126,22 +123,23 @@ static void draw_biome_polygons()
 
 static void draw_city_connections()
 {
-    for (auto const& city: map_.cities)
+    for (auto const& city: map_->minimap().cities)
         for (auto const& other_city: city->connected_cities)
             draw_shape(geo::shape::Line { city->location, other_city->location }, RED, {}, 1.5f);
 }
 
 static void draw_roads()
 {
-    for (auto const& road: map_.road_segments)
+    for (auto const& road: map_->minimap().road_segments)
         draw_shape(geo::shape::Line { road.first, road.second }, BLACK, {}, 3.f);
 }
 
+/*
 static void draw_physical_map(map::PhysicalMap const& pmap_)
 {
     // int ts = (1.f / (float) camera.zoom) * 2.f;
     int ts = 6;
-    for (auto const& t: pmap_.terrains) {
+    for (auto const& t: pmap_->minimap().terrains) {
         if (t.passable)
             draw_shape(t.shape, {}, biome_colors.at(t.terrain_type));
         else
@@ -152,20 +150,20 @@ static void draw_physical_map(map::PhysicalMap const& pmap_)
         }
     }
 
-    for (auto const& shape: pmap_.water)
+    for (auto const& shape: pmap_->minimap().water)
         draw_shape(shape, {}, SKYBLUE);
 
-    for (auto const& shape: pmap_.roads)
+    for (auto const& shape: pmap_->minimap().roads)
         draw_shape(shape, DARKGRAY, DARKGRAY, 4.f);
 }
 
 static void draw_quadrants_grid()
 {
-    for (int x = 0; x <= map_.w; x += state.quadrant_size)
-        DrawLine(x, 0, x, (int) map_.h, BLACK);
+    for (int x = 0; x <= map_->minimap().w; x += state.quadrant_size)
+        DrawLine(x, 0, x, (int) map_->minimap().h, BLACK);
 
-    for (int y = 0; y <= map_.h; y += state.quadrant_size)
-        DrawLine(0, y, (int) map_.w, y, BLACK);
+    for (int y = 0; y <= map_->minimap().h; y += state.quadrant_size)
+        DrawLine(0, y, (int) map_->minimap().w, y, BLACK);
 }
 
 static void draw_visible_quadrants()
@@ -178,6 +176,7 @@ static void draw_visible_quadrants()
     if (it != quadrants.end())
         draw_physical_map(it->second);
 }
+ */
 
 static void draw()
 {
@@ -192,6 +191,7 @@ static void draw()
         if (state.show_roads)
             draw_roads();
         break;
+        /*
     case State::Physical:
         draw_physical_map(pmap);
         break;
@@ -199,6 +199,7 @@ static void draw()
         draw_visible_quadrants();
         draw_quadrants_grid();
         break;
+         */
     }
 }
 

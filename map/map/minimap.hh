@@ -30,7 +30,10 @@ struct MapConfig {
 
 enum BiomeType { Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
 
-struct Minimap {
+class Minimap {
+public:
+    explicit Minimap(MapConfig const& config, std::mt19937& rng);
+
     struct Biome {
         Biome(geo::Point const& center_point_, geo::Shape polygon_)
                 : center_point(center_point_), polygon(std::move(polygon_)) {}
@@ -57,8 +60,6 @@ struct Minimap {
     std::vector<std::unique_ptr<City>> cities {};
     std::vector<RoadSegment> road_segments {};
 };
-
-Minimap create(MapConfig const& cfg);
 
 } // map
 
