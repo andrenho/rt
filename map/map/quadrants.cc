@@ -2,7 +2,7 @@
 
 namespace map {
 
-Quadrants generate_quadrants(PhysicalMap const& pmap, size_t size)
+Quadrants generate_quadrants(PhysicalMap const& pmap, int size)
 {
     Quadrants quadrants;
 

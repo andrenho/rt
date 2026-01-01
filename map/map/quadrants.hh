@@ -12,7 +12,7 @@ using Quadrant = std::pair<int, int>;
 
 using Quadrants = std::unordered_map<Quadrant, PhysicalMap>;
 
-Quadrants generate_quadrants(PhysicalMap const& pmap, size_t size);
+Quadrants generate_quadrants(PhysicalMap const& pmap, int size);
 
 }
 
