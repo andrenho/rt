@@ -19,5 +19,6 @@
   - [ ] Noisy edges
 - [x] Quadrants
   - [ ] Combine quadrants
+  - [ ] Diff quadrants
 
 http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/

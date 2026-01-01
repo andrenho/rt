@@ -30,7 +30,7 @@ struct State {
     bool        show_city_locations;
     bool        show_connected_cities;
     bool        show_roads;
-    int         quadrant_size = 1000;
+    int         quadrant_size = 500;
 } state = {
     .map_type = State::MapType::Quadrants,
     .show_points = false,
