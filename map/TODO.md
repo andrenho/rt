@@ -18,6 +18,7 @@
   - [ ] Rivers
   - [ ] Noisy edges
 - [x] Quadrants
-  - [ ] Combine quadrants
+  - [x] Combine quadrants
+  - [ ] Diff quadrants
 
 http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/
