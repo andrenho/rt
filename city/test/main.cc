@@ -17,14 +17,14 @@ struct State {
     RoadShape road_shape = Terminal;
 } state;
 
-std::vector<geo::Shape> create_road(State::RoadShape road_shape)
+std::vector<geo::Shape> create_road()
 {
     return {}; // TODO
 }
 
 static void reset_map()
 {
-     obstacles = create_road(state.road_shape);
+     obstacles = create_road();
 }
 
 static void handle_events()
