@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cassert>
 
+#define TPH_POISSON_IMPLEMENTATION
+#include "tph_poisson.h"
 #include "shapes.hh"
 
 namespace geo {
@@ -100,6 +102,42 @@ bool Bounds::intersects(Bounds const& a) const
         return false;
 
     return true; // They overlap or touch
+}
+
+std::vector<geo::Point> Point::poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps)
+{
+    const tph_poisson_real bounds_min[2] = { bounds.top_left.x, bounds.top_left.y };
+    const tph_poisson_real bounds_max[2] = { bounds.bottom_right.x, bounds.bottom_right.y };
+
+    const tph_poisson_args args = {
+            .bounds_min = bounds_min,
+            .bounds_max = bounds_max,
+            .seed = seed,
+            .radius = radius * 2,
+            .ndims = INT32_C(2),
+            .max_sample_attempts = max_attemps
+    };
+
+    tph_poisson_sampling sampling {};
+
+    const int ret = tph_poisson_create(&args, nullptr, &sampling);
+    if (ret != TPH_POISSON_SUCCESS)
+        throw std::runtime_error("Failed creating Poisson sampling! Error code: " + std::to_string(ret));
+
+    const tph_poisson_real *samples = tph_poisson_get_samples(&sampling);
+
+    std::vector<geo::Point> points; points.reserve(sampling.nsamples);
+    for (size_t i = 0; i < sampling.nsamples; ++i)
+        points.emplace_back(samples[i*2], samples[i*2+1]);
+
+    tph_poisson_destroy(&sampling);
+
+    return points;
+}
+
+std::vector<geo::Point> Point::closest_points(std::vector<geo::Point> const& points, Point const& center)
+{
+    return {};
 }
 
 }

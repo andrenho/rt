@@ -26,6 +26,9 @@ struct Point {
 
     static std::vector<geo::Point> relax_grid(std::vector<geo::Point> const& grid);
 
+    static std::vector<geo::Point> poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps=30);
+    static std::vector<geo::Point> closest_points(std::vector<geo::Point> const& points, geo::Point const& center);
+
     bool operator==(const Point& other) const;
 };
 

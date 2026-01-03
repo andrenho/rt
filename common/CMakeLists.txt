@@ -17,6 +17,7 @@ include(FetchContent)
 include(../cmake/libs/voronoi.cmake)
 include(../cmake/libs/perlin.cmake)
 include(../cmake/libs/graaf.cmake)
+include(../cmake/libs/poisson.cmake)
 
 #-------------------------
 # Main build
@@ -30,4 +31,4 @@ add_library(rt-common STATIC
         geometry/shapes.cc
         geometry/point.cc)
 target_include_directories(rt-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(rt-common PUBLIC jc_voronoi perlin graaf fmtx)
+target_link_libraries(rt-common PUBLIC jc_voronoi perlin graaf poisson fmtx)
