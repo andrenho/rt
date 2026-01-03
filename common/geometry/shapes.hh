@@ -49,7 +49,8 @@ public:
     Shape(T&& v) : shape_(std::forward<T>(v)) {}
 
     static Shape Polygon(std::vector<geo::Point> const& points) { return shape::Polygon { points }; }
-    static Shape Polygon(std::initializer_list<geo::Point> const& points) { return shape::Polygon { points }; } static Shape Circle(Point const& p, float radius) { return shape::Circle { p, radius }; }
+    static Shape Polygon(std::initializer_list<geo::Point> const& points) { return shape::Polygon { points }; }
+    static Shape Circle(Point const& p, float radius) { return shape::Circle { p, radius }; }
     static Shape Capsule(Point const& p1, Point const& p2, float radius) { return shape::Capsule { p1, p2, radius }; }
     static Shape Line(Point const& p1, Point const& p2) { return shape::Line { p1, p2 }; }
     static Shape Line(float x1, float y1, float x2, float y2) { return shape::Line { x1, y1, x2, y2 }; }
