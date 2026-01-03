@@ -24,6 +24,8 @@ include(../common/include-common-lib.cmake)
 add_library(rt-city STATIC
         city/city.hh
         city/city.cc
+        city/prepare.cc
+        city/prepare.hh
 )
 target_link_libraries(${PROJECT_NAME} PUBLIC rt-common)
 

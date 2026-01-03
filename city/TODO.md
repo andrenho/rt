@@ -1,4 +1,4 @@
-- [ ] Build roads
+- [x] Build roads
 - [ ] Find city location and direction
 - [ ] Poisson disk
 - [ ] Add buildings
