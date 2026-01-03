@@ -1,6 +1,5 @@
 - [x] Build roads
-- [ ] Find city location and direction
-- [ ] Poisson disk
+- [x] Poisson disk
   - [ ] Remove disks over obstacles
   - [ ] Keep only closest buildings
 - [ ] Add buildings
