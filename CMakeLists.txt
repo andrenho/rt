@@ -8,6 +8,7 @@ project(rt
         LANGUAGES C CXX)
 
 include(cmake/common.cmake)
+include(cmake/libs/imgui.cmake)
 
 #-------------------------
 # Build submodules
@@ -16,4 +17,5 @@ include(cmake/common.cmake)
 add_subdirectory(common)
 add_subdirectory(topdown)
 add_subdirectory(map)
+add_subdirectory(city)
 

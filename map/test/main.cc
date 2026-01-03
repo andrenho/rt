@@ -19,6 +19,7 @@ static map::Quadrants quadrants;
 static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::MapConfig map_config {};
+static Vector2 mouse_world_pos { 0, 0 };
 
 struct State {
     enum PolygonFill : int { None, Elevation, Moisture, Oceans, Biomes };
@@ -275,6 +276,8 @@ void draw_ui()
         reset_map();
     }
 
+    ImGui::LabelText("Position", "%.0f, %.0f", mouse_world_pos.x, mouse_world_pos.y);
+
     ImGui::End();
 
     if (show_demo_window)
@@ -298,10 +301,10 @@ static void handle_events()
     }
 
     float wheel = GetMouseWheelMove();
+    mouse_world_pos = GetScreenToWorld2D(GetMousePosition(), camera);
     if (wheel < 0.f || wheel > 0.f) {
-        Vector2 mouseWorldPos = GetScreenToWorld2D(GetMousePosition(), camera);
         camera.offset = GetMousePosition();
-        camera.target = mouseWorldPos;
+        camera.target = mouse_world_pos;
 
         float scale = 0.2f*wheel;
         camera.zoom = Clamp(expf(logf(camera.zoom)+scale), 0, 16.0f);

@@ -25,7 +25,6 @@ add_library(imgui_raylib STATIC
         rlimgui-src/rlImGui.cpp
 )
 
-
 target_compile_options(imgui_raylib PRIVATE
         # GCC / Clang / AppleClang (C and C++)
         $<$<COMPILE_LANG_AND_ID:C,Clang,GNU,AppleClang>:-w>

@@ -15,8 +15,6 @@ include(../cmake/common.cmake)
 
 include(../common/include-common-lib.cmake)
 
-include(../cmake/libs/imgui.cmake)
-
 #-------------------------
 # Main build
 #------------------------
