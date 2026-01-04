@@ -71,6 +71,7 @@ public:
     [[nodiscard]] Bounds aabb() const;
     [[nodiscard]] bool aabb_intersects(Bounds const& bounds) const;
     [[nodiscard]] bool intersects(geo::Shape const& shape) const;
+    [[nodiscard]] geo::Shape expand(float amount) const;
 
     static std::vector<Shape> voronoi(std::vector<Point> const& points, bool relax=false);
     static std::pair<std::vector<std::unique_ptr<Shape>>, std::unordered_map<Shape*, std::vector<Shape*>>>

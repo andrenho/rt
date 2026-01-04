@@ -52,8 +52,12 @@ std::vector<geo::Shape> create_road(std::mt19937& rng, RoadShape road_shape, flo
             break;
         }
         case TwoLines:
-            r.push_back(geo::Shape::Capsule(p1, p2, ROAD_WIDTH));
-            r.push_back(geo::Shape::Capsule(p3, p4, ROAD_WIDTH));
+            r.push_back(geo::Shape::Capsule(
+                   random_point(N, rng, positions, area_size),
+                   random_point(S, rng, positions, area_size), ROAD_WIDTH));
+            r.push_back(geo::Shape::Capsule(
+                    random_point(W, rng, positions, area_size),
+                    random_point(E, rng, positions, area_size), ROAD_WIDTH));
             break;
     }
 

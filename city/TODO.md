@@ -3,8 +3,8 @@
   - [x] Remove disks over obstacles
   - [x] Keep only closest buildings
   - Improvements:
+    - [x] City type X don't generate parallel lines
+    - [x] More spacing between road and disks
     - [ ] City center on the road
-    - [ ] City type X don't generate parallel lines
-    - [ ] More spacing between road and disks
 - [ ] Add buildings
   - [ ] Arrange door direction
