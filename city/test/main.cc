@@ -56,6 +56,7 @@ struct State {
     RoadShape road_shape = Terminal;
     CitySize  city_size = CS_Medium;
     bool      draw_original_poisson_disks = true;
+    bool      draw_poisson_disks = true;
 } state;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
@@ -124,6 +125,12 @@ static void draw()
             draw_shape(disk, LIGHTGRAY);
         }
     }
+    if (state.draw_poisson_disks) {
+        for (auto const& disk: my_city.poisson_disks) {
+            draw_shape(geo::Shape::Circle(disk.center(), 2.f), DARKGRAY, DARKGRAY);
+            draw_shape(disk, DARKGRAY);
+        }
+    }
 }
 
 static void draw_ui()
@@ -146,6 +153,7 @@ static void draw_ui()
 
     ImGui::SeparatorText("View");
     ImGui::Checkbox("Original poisson disks", &state.draw_original_poisson_disks);
+    ImGui::Checkbox("Poisson disks", &state.draw_poisson_disks);
 
     ImGui::Separator();
     if (ImGui::Button("Generate map with new seed")) {

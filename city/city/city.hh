@@ -22,6 +22,7 @@ struct CityConfig {
 
 struct City {
     std::vector<geo::Shape> original_poisson_disks {};
+    std::vector<geo::Shape> poisson_disks {};
 };
 
 City generate_city(CityConfig const& cfg);

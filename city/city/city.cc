@@ -21,10 +21,19 @@ static std::vector<geo::Shape> create_poisson_disks(CityConfig const& cfg)
     return { view.begin(), view.end() };
 }
 
+static std::vector<geo::Shape> remove_obstacle_overlaps(std::vector<geo::Shape> const& disks, CityConfig const& cfg)
+{
+    auto new_disks = disks | std::views::filter([&](geo::Shape const& disk) {
+        return ranges::all_of(cfg.obstacles, [&](geo::Shape const& obstacle) { return !obstacle.intersects(disk); });
+    });
+    return { new_disks.begin(), new_disks.end() };
+}
+
 City generate_city(CityConfig const& cfg)
 {
     City city;
     city.original_poisson_disks = create_poisson_disks(cfg);
+    city.poisson_disks = remove_obstacle_overlaps(city.original_poisson_disks, cfg);
     return city;
 }
 
