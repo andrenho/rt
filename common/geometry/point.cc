@@ -164,4 +164,36 @@ double Point::length_sq() const
     return dot(*this);
 }
 
+bool Point::segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out)
+{
+    constexpr double eps = 1e-12;
+
+    // Solve p1 + t*(p2-p1) = q1 + u*(q2-q1)
+    double r_x = p2.x - p1.x;
+    double r_y = p2.y - p1.y;
+    double s_x = q2.x - q1.x;
+    double s_y = q2.y - q1.y;
+
+    double denom = r_x * s_y - r_y * s_x;
+
+    // Parallel or colinear
+    if (std::abs(denom) < eps)
+        return false;
+
+    double qp_x = q1.x - p1.x;
+    double qp_y = q1.y - p1.y;
+
+    double t = (qp_x * s_y - qp_y * s_x) / denom;
+    double u = (qp_x * r_y - qp_y * r_x) / denom;
+
+    // Intersection occurs within both segments
+    if (t < -eps || t > 1 + eps ||
+            u < -eps || u > 1 + eps)
+        return false;
+
+    out->x = p1.x + t * r_x;
+    out->y = p1.y + t * r_y;
+    return true;
+}
+
 }

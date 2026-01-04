@@ -29,6 +29,8 @@ struct Point {
     static std::vector<geo::Point> poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps=30);
     static std::vector<geo::Point> closest_points(std::vector<geo::Point> const& points, geo::Point const& center, size_t n_points);
 
+    static bool segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out);
+
     [[nodiscard]] double dot(geo::Point const& other) const;
     [[nodiscard]] double length_sq() const;
 

@@ -9,6 +9,6 @@
 
 enum RoadShape : int { Terminal, Across, Y, TwoLines };
 
-std::vector<geo::Shape> create_road(std::mt19937& rng, RoadShape road_shape, float area_size);
+std::vector<geo::Shape> create_road(std::mt19937& rng, RoadShape road_shape, float area_size, geo::Point* center);
 
 #endif //RT_PREPARE_HH

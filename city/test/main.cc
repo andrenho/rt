@@ -65,8 +65,7 @@ static void reset_map()
 {
     std::mt19937 rng(city_config.seed);
 
-    city_config.center = { (float) state.area_size / 2.f, (float) state.area_size / 2.f };
-    city_config.obstacles = create_road(rng, state.road_shape, (float) state.area_size);
+    city_config.obstacles = create_road(rng, state.road_shape, (float) state.area_size, &city_config.center);
     city_config.buildings = city_size[state.city_size];
 
     my_city = city::generate_city(city_config);
