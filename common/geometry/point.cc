@@ -140,4 +140,14 @@ std::vector<geo::Point> Point::closest_points(std::vector<geo::Point> const& poi
     return {};
 }
 
+double Point::dot(Point const& other) const
+{
+    return x * other.x + y * other.y;
+}
+
+double Point::length_sq() const
+{
+    return dot(*this);
+}
+
 }

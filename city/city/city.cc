@@ -12,10 +12,10 @@ static std::vector<geo::Shape> create_poisson_disks(CityConfig const& cfg)
 
     auto points = geo::Point::poisson(
             geo::Bounds({ cfg.center.x - cfg.max_size/2.f, cfg.center.y - cfg.max_size/2.f }, { cfg.center.x + cfg.max_size/2.f, cfg.center.y + cfg.max_size/2.f}),
-            max_building_sz->size, cfg.seed);
+            max_building_sz->size / 2.f + 2.f, cfg.seed);
 
     auto view = points | std::views::transform([&max_building_sz](geo::Point const& p) {
-        return geo::Shape::Circle(p, max_building_sz->size);
+        return geo::Shape::Circle(p, max_building_sz->size / 2.f);
     });
 
     return { view.begin(), view.end() };
@@ -23,9 +23,9 @@ static std::vector<geo::Shape> create_poisson_disks(CityConfig const& cfg)
 
 City generate_city(CityConfig const& cfg)
 {
-    return {
-        .original_poisson_disks = create_poisson_disks(cfg)
-    };
+    City city;
+    city.original_poisson_disks = create_poisson_disks(cfg);
+    return city;
 }
 
 }

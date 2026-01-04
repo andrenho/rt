@@ -19,7 +19,7 @@ using Polygon = std::vector<Point>;
 
 struct Circle {
     Point center;
-    float  radius;
+    float radius;
 };
 
 struct Line {
@@ -33,7 +33,10 @@ struct Capsule {
     float radius;
 
     [[nodiscard]] Shape polygon() const;
+    [[nodiscard]] std::array<Shape, 3> subshapes() const;
 };
+
+std::vector<Line> polygon_lines(Polygon const& poly);
 
 }
 
@@ -60,13 +63,14 @@ public:
     operator const Shapes&() const { return shape_; }
     operator Shapes&() { return shape_; }
 
-    const Shapes& for_visit() const { return shape_; }
+    [[nodiscard]] const Shapes& for_visit() const { return shape_; }
     Shapes& for_visit() { return shape_; }
 
     [[nodiscard]] bool contains_point(Point const& point) const;
     [[nodiscard]] Point center() const;
     [[nodiscard]] Bounds aabb() const;
     [[nodiscard]] bool aabb_intersects(Bounds const& bounds) const;
+    [[nodiscard]] bool intersects(geo::Shape const& shape) const;
 
     static std::vector<Shape> voronoi(std::vector<Point> const& points, bool relax=false);
     static std::pair<std::vector<std::unique_ptr<Shape>>, std::unordered_map<Shape*, std::vector<Shape*>>>
@@ -74,6 +78,12 @@ public:
 
 private:
     Shapes shape_;
+
+    static bool segment_intersection(shape::Line const& ln1, shape::Line const& ln2);
+    static bool segment_circle_intersection(shape::Line const& ln, shape::Circle const& c);
+    static bool polygon_polygon_intersection(shape::Polygon const& p1, shape::Polygon const& p2);
+    static bool polygon_circle_intersection(shape::Polygon const& p, shape::Circle const& c);
+    static bool circle_circle_intersection(shape::Circle const& c1, shape::Circle const& c2);
 };
 
 }
