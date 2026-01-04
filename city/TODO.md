@@ -1,5 +1,10 @@
 - [x] Build roads
-- [ ] Find city location and direction
-- [ ] Poisson disk
+- [x] Poisson disk
+  - [x] Remove disks over obstacles
+  - [x] Keep only closest buildings
+  - Improvements:
+    - [x] City type X don't generate parallel lines
+    - [x] More spacing between road and disks
+    - [x] City center on the road
 - [ ] Add buildings
   - [ ] Arrange door direction

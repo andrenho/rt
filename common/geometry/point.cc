@@ -2,7 +2,10 @@
 
 #include <algorithm>
 #include <cassert>
+#include <ranges>
 
+#define TPH_POISSON_IMPLEMENTATION
+#include "tph_poisson.h"
 #include "shapes.hh"
 
 namespace geo {
@@ -100,6 +103,97 @@ bool Bounds::intersects(Bounds const& a) const
         return false;
 
     return true; // They overlap or touch
+}
+
+std::vector<geo::Point> Point::poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps)
+{
+    const tph_poisson_real bounds_min[2] = { bounds.top_left.x, bounds.top_left.y };
+    const tph_poisson_real bounds_max[2] = { bounds.bottom_right.x, bounds.bottom_right.y };
+
+    const tph_poisson_args args = {
+            .bounds_min = bounds_min,
+            .bounds_max = bounds_max,
+            .seed = seed,
+            .radius = radius * 2,
+            .ndims = INT32_C(2),
+            .max_sample_attempts = max_attemps
+    };
+
+    tph_poisson_sampling sampling {};
+
+    const int ret = tph_poisson_create(&args, nullptr, &sampling);
+    if (ret != TPH_POISSON_SUCCESS)
+        throw std::runtime_error("Failed creating Poisson sampling! Error code: " + std::to_string(ret));
+
+    const tph_poisson_real *samples = tph_poisson_get_samples(&sampling);
+
+    std::vector<geo::Point> points; points.reserve(sampling.nsamples);
+    for (size_t i = 0; i < sampling.nsamples; ++i)
+        points.emplace_back(samples[i*2], samples[i*2+1]);
+
+    tph_poisson_destroy(&sampling);
+
+    return points;
+}
+
+std::vector<Point> Point::closest_points(std::vector<Point> const& points, Point const& center, size_t n_points)
+{
+    if (points.size() <= n_points)
+        return points;
+
+    // find the closest distances to center point
+    auto points_distances = points
+            | std::views::transform([&](Point const& p) { return (center - p).length_sq(); })
+            | std::ranges::to<std::vector>();
+    std::ranges::sort(points_distances);
+    double threshold = points_distances.at(n_points);
+
+    // only return points which are closer to the closest distances
+    return points
+            | std::views::filter([&](Point const& p) { return (center - p).length_sq() <= threshold; })
+            | std::ranges::to<std::vector>();
+}
+
+double Point::dot(Point const& other) const
+{
+    return x * other.x + y * other.y;
+}
+
+double Point::length_sq() const
+{
+    return dot(*this);
+}
+
+bool Point::segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out)
+{
+    constexpr double eps = 1e-12;
+
+    // Solve p1 + t*(p2-p1) = q1 + u*(q2-q1)
+    double r_x = p2.x - p1.x;
+    double r_y = p2.y - p1.y;
+    double s_x = q2.x - q1.x;
+    double s_y = q2.y - q1.y;
+
+    double denom = r_x * s_y - r_y * s_x;
+
+    // Parallel or colinear
+    if (std::abs(denom) < eps)
+        return false;
+
+    double qp_x = q1.x - p1.x;
+    double qp_y = q1.y - p1.y;
+
+    double t = (qp_x * s_y - qp_y * s_x) / denom;
+    double u = (qp_x * r_y - qp_y * r_x) / denom;
+
+    // Intersection occurs within both segments
+    if (t < -eps || t > 1 + eps ||
+            u < -eps || u > 1 + eps)
+        return false;
+
+    out->x = p1.x + t * r_x;
+    out->y = p1.y + t * r_y;
+    return true;
 }
 
 }

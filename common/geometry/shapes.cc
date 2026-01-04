@@ -1,11 +1,15 @@
 #include "shapes.hh"
 
 #include <cassert>
+#include <algorithm>
 #include <numbers>
+#include <ranges>
 #include <unordered_map>
 
 #define JC_VORONOI_IMPLEMENTATION
 #include "jc_voronoi.h"
+
+namespace ranges = std::ranges;
 
 namespace geo {
 
@@ -212,11 +216,194 @@ bool Shape::aabb_intersects(Bounds const& bounds) const
     return aabb().intersects(bounds);
 }
 
+bool Shape::intersects(Shape const& other) const
+{
+    return std::visit(overloaded {
+        [&](shape::Line const& ln)      {
+            return std::visit(overloaded {
+                [&](shape::Line const& oln)      { return segment_intersection(ln, oln); },
+                [&](shape::Polygon const& opoly) { return ranges::any_of(shape::polygon_lines(opoly), [&](auto const& oln) { return segment_intersection(ln, oln); }); },
+                [&](shape::Circle const& oc)     { return segment_circle_intersection(ln, oc); },
+                [&](shape::Capsule const& oc)    { return ranges::any_of(oc.subshapes(), [&](auto const& oshp) { return intersects(oshp); }); }
+            }, other.for_visit());
+        },
+        [&](shape::Polygon const& poly) {
+            return std::visit(overloaded {
+                [&](shape::Line const&)          { return other.intersects(*this); },
+                [&](shape::Polygon const& opoly) { return polygon_polygon_intersection(poly, opoly); },
+                [&](shape::Circle const& oc)     { return polygon_circle_intersection(poly, oc); },
+                [&](shape::Capsule const& oc)    { return ranges::any_of(oc.subshapes(), [&](auto const& oshp) { return intersects(oshp); }); }
+            }, other.for_visit());
+        },
+        [&](shape::Circle const& c)     {
+            return std::visit(overloaded {
+                [&](shape::Line const& oln)      { return segment_circle_intersection(oln, c); },
+                [&](shape::Polygon const& opoly) { return polygon_circle_intersection(opoly, c); },
+                [&](shape::Circle const& oc)     { return circle_circle_intersection(c, oc); },
+                [&](shape::Capsule const& oc)    { return ranges::any_of(oc.subshapes(), [&](auto const& oshp) { return intersects(oshp); }); }
+            }, other.for_visit());
+        },
+        [&](shape::Capsule const& c)    {
+            return std::visit(overloaded {
+                [&](shape::Line const& oln)      { return Shape::Line(oln.p1, oln.p2).intersects(*this); },
+                [&](shape::Polygon const& opoly) { return Shape::Polygon(opoly).intersects(*this); },
+                [&](shape::Circle const& oc)     { return Shape::Circle(oc.center, oc.radius).intersects(*this); },
+                [&](shape::Capsule const& oc)    {
+                    for (auto const& shp1: c.subshapes())
+                        for (auto const& shp2: c.subshapes())
+                            if (shp1.intersects(shp2))
+                                return true;
+                    return false;
+                },
+            }, other.for_visit());
+        }
+    }, for_visit());
+}
+
+bool Shape::segment_intersection(shape::Line const& ln1, shape::Line const& ln2)
+{
+    constexpr double eps = 1e-12;
+
+    auto orient = [&](const geo::Point& a, const geo::Point& b, const geo::Point& c) {
+        return (b.x - a.x) * (c.y - a.y)
+                - (b.y - a.y) * (c.x - a.x);
+    };
+
+    auto onSegment = [&](const geo::Point& a, const geo::Point& b, const geo::Point& p) {
+        return p.x >= std::min(a.x, b.x) - eps &&
+                p.x <= std::max(a.x, b.x) + eps &&
+                p.y >= std::min(a.y, b.y) - eps &&
+                p.y <= std::max(a.y, b.y) + eps;
+    };
+
+    double o1 = orient(ln1.p1, ln1.p2, ln2.p1);
+    double o2 = orient(ln1.p1, ln1.p2, ln2.p2);
+    double o3 = orient(ln2.p1, ln2.p2, ln1.p1);
+    double o4 = orient(ln2.p1, ln2.p2, ln1.p2);
+
+    // Proper intersection
+    if (((o1 > eps && o2 < -eps) || (o1 < -eps && o2 > eps)) && ((o3 > eps && o4 < -eps) || (o3 < -eps && o4 > eps)))
+        return true;
+
+    // Colinear / touching cases
+    if (std::abs(o1) <= eps && onSegment(ln1.p1, ln1.p2, ln2.p1)) return true;
+    if (std::abs(o2) <= eps && onSegment(ln1.p1, ln1.p2, ln2.p2)) return true;
+    if (std::abs(o3) <= eps && onSegment(ln2.p1, ln2.p2, ln1.p1)) return true;
+    if (std::abs(o4) <= eps && onSegment(ln2.p1, ln2.p2, ln1.p2)) return true;
+
+    return false;
+}
+
+bool Shape::segment_circle_intersection(shape::Line const& ln, shape::Circle const& c)
+{
+    // const Vec2& a, const Vec2& b, const Vec2& center, double r
+
+    geo::Point ab = ln.p2 - ln.p1;
+    geo::Point ac = c.center - ln.p1;
+
+    double t = ac.dot(ab) / ab.dot(ab);
+    t = std::max(0.0, std::min(1.0, t));
+
+    geo::Point closest(ln.p1.x + ab.x * t, ln.p1.y + ab.y * t);
+
+    return (closest - c.center).length_sq() <= c.radius * c.radius;
+}
+
+bool Shape::polygon_polygon_intersection(shape::Polygon const& p1, shape::Polygon const& p2)
+{
+    int n1 = p1.size();
+    int n2 = p2.size();
+
+    // 1. Edge–edge intersections
+    for (int i = 0; i < n1; ++i) {
+        shape::Line e1 { p1[i], p1[(i + 1) % n1] };
+
+        for (int j = 0; j < n2; ++j) {
+            shape::Line e2 { p2[j], p2[(j + 1) % n2] };
+            if (segment_intersection(e1, e2))
+                return true;
+        }
+    }
+
+    // 2. Containment checks
+    if (Shape::Polygon(p2).contains_point(p1[0]))
+        return true;
+    if (Shape::Polygon(p1).contains_point(p2[0]))
+        return true;
+
+    return false;
+}
+
+bool Shape::polygon_circle_intersection(shape::Polygon const& p, shape::Circle const& c)
+{
+    int n = p.size();
+
+    // 1. Edge–circle intersections
+    for (int i = 0; i < n; ++i) {
+        shape::Line e { p[i], p[(i + 1) % n] };
+        if (segment_circle_intersection(e, c))
+            return true;
+    }
+
+    // 2. Circle center inside polygon
+    if (Shape::Polygon(p).contains_point(c.center))
+        return true;
+
+    // 3. Polygon vertex inside circle
+    double r2 = c.radius * c.radius;
+    for (auto const& v : p) {
+        double dx = v.x - c.center.x;
+        double dy = v.y - c.center.y;
+        if (dx*dx + dy*dy <= r2)
+            return true;
+    }
+
+    return false;
+}
+
+bool Shape::circle_circle_intersection(shape::Circle const& c1, shape::Circle const& c2)
+{
+    double dx = c1.center.x - c2.center.x;
+    double dy = c1.center.y - c2.center.y;
+    double r  = c1.radius + c2.radius;
+
+    return dx*dx + dy*dy <= r*r;
+}
+
+geo::Shape Shape::expand(float amount) const
+{
+    return std::visit(overloaded {
+        [&](shape::Line const&)         { throw std::runtime_error("Can't expand single lines"); return Line({0,0},{0,0}); },
+        [&](shape::Polygon const& _)    { throw std::runtime_error("Sorry, not implemented yet.");  return Line({0,0},{0,0}); /* TODO */ },
+        [&](shape::Circle const& c)     { return Shape::Circle(c.center, c.radius + amount); },
+        [&](shape::Capsule const& c)    { return Shape::Capsule(c.p1, c.p2, c.radius + amount); }
+    }, for_visit());
+}
+
 namespace shape {
 
 Shape Capsule::polygon() const
 {
     return Shape::ThickLine(p1, p2, radius);
+}
+
+std::array<Shape, 3> Capsule::subshapes() const
+{
+    return {
+        Shape::Circle(p1, radius),
+        Shape::Circle(p2, radius),
+        Shape::ThickLine(p1, p2, radius)
+    };
+}
+
+std::vector<Line> polygon_lines(Polygon const& poly)
+{
+    std::vector<Line> lines;
+    lines.reserve(poly.size());
+    for (size_t i = 0; i < poly.size() - 1; ++i)
+        lines.emplace_back(poly.at(i), poly.at(i + 1));
+    lines.emplace_back(poly.at(poly.size() - 1), poly.at(0));
+    return lines;
 }
 
 }
