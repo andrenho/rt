@@ -5,6 +5,6 @@
   - Improvements:
     - [x] City type X don't generate parallel lines
     - [x] More spacing between road and disks
-    - [ ] City center on the road
+    - [x] City center on the road
 - [ ] Add buildings
   - [ ] Arrange door direction
