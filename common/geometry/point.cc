@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <ranges>
 
 #define TPH_POISSON_IMPLEMENTATION
 #include "tph_poisson.h"
@@ -135,9 +136,22 @@ std::vector<geo::Point> Point::poisson(struct Bounds const& bounds, float radius
     return points;
 }
 
-std::vector<geo::Point> Point::closest_points(std::vector<geo::Point> const& points, Point const& center)
+std::vector<Point> Point::closest_points(std::vector<Point> const& points, Point const& center, size_t n_points)
 {
-    return {};
+    if (points.size() <= n_points)
+        return points;
+
+    // find the closest distances to center point
+    auto points_distances = points
+            | std::views::transform([&](Point const& p) { return (center - p).length_sq(); })
+            | std::ranges::to<std::vector>();
+    std::ranges::sort(points_distances);
+    double threshold = points_distances.at(n_points);
+
+    // only return points which are closer to the closest distances
+    return points
+            | std::views::filter([&](Point const& p) { return (center - p).length_sq() <= threshold; })
+            | std::ranges::to<std::vector>();
 }
 
 double Point::dot(Point const& other) const

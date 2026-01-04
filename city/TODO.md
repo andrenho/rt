@@ -1,6 +1,10 @@
 - [x] Build roads
 - [x] Poisson disk
-  - [ ] Remove disks over obstacles
-  - [ ] Keep only closest buildings
+  - [x] Remove disks over obstacles
+  - [x] Keep only closest buildings
+  - Improvements:
+    - [ ] City center on the road
+    - [ ] City type X don't generate parallel lines
+    - [ ] More spacing between road and disks
 - [ ] Add buildings
   - [ ] Arrange door direction
