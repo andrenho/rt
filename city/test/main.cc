@@ -139,7 +139,7 @@ static void draw()
     if (state.draw_buildings) {
         for (auto const& building: my_city.buildings) {
             draw_shape(building.shape, BLACK, SKYBLUE, 2.f);
-            // TODO - draw door
+            draw_shape(geo::Shape::Circle(building.door_position, 3.f), PURPLE);
         }
     }
 }

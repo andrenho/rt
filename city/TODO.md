@@ -8,4 +8,5 @@
     - [x] City center on the road
 - [x] Add buildings
   - [x] Randomly crooked buildings
-  - [ ] Arrange door direction
+  - [x] Arrange door direction
+  - [ ] All houses, look at center point
