@@ -29,7 +29,7 @@ static std::vector<geo::Shape> remove_obstacle_overlaps(std::vector<geo::Shape> 
 
 City generate_city(CityConfig const& cfg)
 {
-    auto max_building_sz = ranges::max_element(cfg.buildings, [](BuildingConfig const& b, BuildingConfig const& c) { return b.size < c.size; })->size / 2.f;
+    auto max_building_sz = ranges::max_element(cfg.buildings, [](BuildingConfig const& b, BuildingConfig const& c) { return b.size() < c.size(); })->size() / 2.f;
     auto total_building_count = std::accumulate(cfg.buildings.begin(), cfg.buildings.end(), 0, [](int s, BuildingConfig const& b) { return b.count + s; });
 
     City city;

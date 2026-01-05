@@ -8,30 +8,32 @@
 #include "geometry/shapes.hh"
 #include "city/prepare.hh"
 
-static constexpr float BUILDING_SMALL  = 10;
-static constexpr float BUILDING_MEDIUM = 15;
-static constexpr float BUILDING_LARGE  = 20;
+#define BUILDING_SMALL  .w = 10, .h = 10
+#define BUILDING_MEDIUM .w = 15, .h = 12
+#define BUILDING_LARGE  .w = 20, .h = 15
+#define BUILDING_HUGE   .w = 25, .h = 18, .door_position = .8f
 
 static std::vector<city::BuildingConfig> city_size[] = {
     {
-        { .size = BUILDING_SMALL,  .count = 3 },
-        { .size = BUILDING_MEDIUM, .count = 2 },
-        { .size = BUILDING_LARGE,  .count = 0 },
+        { BUILDING_SMALL,  .count = 3 },
+        { BUILDING_MEDIUM, .count = 2 },
+        { BUILDING_LARGE,  .count = 0 },
     },
     {
-        { .size = BUILDING_SMALL,  .count = 4 },
-        { .size = BUILDING_MEDIUM, .count = 3 },
-        { .size = BUILDING_LARGE,  .count = 1 },
+        { BUILDING_SMALL,  .count = 5 },
+        { BUILDING_MEDIUM, .count = 3 },
+        { BUILDING_LARGE,  .count = 1 },
     },
     {
-        { .size = BUILDING_SMALL,  .count = 6 },
-        { .size = BUILDING_MEDIUM, .count = 4 },
-        { .size = BUILDING_LARGE,  .count = 2 },
+        { BUILDING_SMALL,  .count = 7 },
+        { BUILDING_MEDIUM, .count = 4 },
+        { BUILDING_LARGE,  .count = 2 },
     },
     {
-        { .size = BUILDING_SMALL,  .count = 10 },
-        { .size = BUILDING_MEDIUM, .count = 6 },
-        { .size = BUILDING_LARGE,  .count = 3 },
+        { BUILDING_SMALL,  .count = 10 },
+        { BUILDING_MEDIUM, .count = 6 },
+        { BUILDING_LARGE,  .count = 3 },
+        { BUILDING_HUGE,   .count = 1 },
     },
 };
 
@@ -55,8 +57,9 @@ struct State {
     int       area_size = 500;
     RoadShape road_shape = Terminal;
     CitySize  city_size = CS_Medium;
-    bool      draw_original_poisson_disks = true;
+    bool      draw_original_poisson_disks = false;
     bool      draw_poisson_disks = true;
+    bool      show_buildings = true;
 } state;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
@@ -128,6 +131,12 @@ static void draw()
         for (auto const& disk: my_city.poisson_disks) {
             draw_shape(geo::Shape::Circle(disk.center(), 2.f), DARKGRAY, DARKGRAY);
             draw_shape(disk, DARKGRAY);
+        }
+    }
+    if (state.show_buildings) {
+        for (auto const& building: my_city.buildings) {
+            draw_shape(building.shape, BLACK, SKYBLUE, 2.f);
+            // TODO - draw door
         }
     }
 }
