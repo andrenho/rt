@@ -42,13 +42,17 @@ static std::vector<City::Building> create_buildings(std::vector<BuildingConfig> 
     std::vector<City::Building> r;
     for (size_t i = 0; i < std::min(bs.size(), poisson_disks.size()); ++i) {
         BuildingConfig const& config = bs[i];
+        if (config.door_position < 0.f || config.door_position >= 1.f)
+            throw std::runtime_error("'door_position' needs to be between 0 and 1");
+
         auto box = geo::Shape::Box(poisson_disks.at(i).center() - geo::Point(config.w / 2.f, config.h / 2.f), { config.w, config.h }, angle + dist(rng));
         auto door_line = geo::shape::polygon_lines(std::get<geo::shape::Polygon>(box.for_visit())).at(0);
-
-        r.emplace_back(
-            box,
-            geo::Point(0, 0)  // TODO
+        auto door_point = geo::Point(
+            door_line.p1.x + config.door_position * (door_line.p2.x - door_line.p1.x),
+            door_line.p1.y + config.door_position * (door_line.p2.y - door_line.p1.y)
         );
+
+        r.emplace_back(box, door_point);
     }
     return r;
 }
