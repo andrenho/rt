@@ -27,7 +27,7 @@ static std::vector<geo::Shape> remove_obstacle_overlaps(std::vector<geo::Shape> 
     return { new_disks.begin(), new_disks.end() };
 }
 
-static std::vector<City::Building> create_buildings(std::vector<BuildingConfig> const& buildings, geo::Point const& center,
+static std::vector<City::Building> create_buildings(std::vector<BuildingConfig> const& buildings,
     std::vector<geo::Shape> const& poisson_disks, float angle, float angle_variation, std::mt19937& rng)
 {
     std::vector<BuildingConfig> bs;
@@ -42,8 +42,11 @@ static std::vector<City::Building> create_buildings(std::vector<BuildingConfig> 
     std::vector<City::Building> r;
     for (size_t i = 0; i < std::min(bs.size(), poisson_disks.size()); ++i) {
         BuildingConfig const& config = bs[i];
+        auto box = geo::Shape::Box(poisson_disks.at(i).center() - geo::Point(config.w / 2.f, config.h / 2.f), { config.w, config.h }, angle + dist(rng));
+        auto door_line = geo::shape::polygon_lines(std::get<geo::shape::Polygon>(box.for_visit())).at(0);
+
         r.emplace_back(
-            geo::Shape::Box(poisson_disks.at(i).center() - geo::Point(config.w / 2.f, config.h / 2.f), { config.w, config.h }, angle + dist(rng)),
+            box,
             geo::Point(0, 0)  // TODO
         );
     }
@@ -66,7 +69,7 @@ City generate_city(CityConfig const& cfg)
     city.poisson_disks = { circles.begin(), circles.end() };
 
     std::mt19937 rng(cfg.seed);
-    city.buildings = create_buildings(cfg.buildings, cfg.center, city.poisson_disks, cfg.angle, cfg.angle_variation, rng);
+    city.buildings = create_buildings(cfg.buildings, city.poisson_disks, cfg.angle, cfg.angle_variation, rng);
 
     return city;
 }
