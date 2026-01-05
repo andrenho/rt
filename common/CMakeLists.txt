@@ -31,4 +31,4 @@ add_library(rt-common STATIC
         geometry/shapes.cc
         geometry/point.cc)
 target_include_directories(rt-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(rt-common PUBLIC jc_voronoi perlin graaf poisson fmtx)
+target_link_libraries(rt-common PUBLIC poisson jc_voronoi perlin graaf fmtx)
