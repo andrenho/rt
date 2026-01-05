@@ -27,6 +27,26 @@ static std::vector<geo::Shape> remove_obstacle_overlaps(std::vector<geo::Shape> 
     return { new_disks.begin(), new_disks.end() };
 }
 
+static std::vector<City::Building> create_buildings(std::vector<BuildingConfig> const& buildings, geo::Point const& center, std::vector<geo::Shape> const& poisson_disks)
+{
+    std::vector<BuildingConfig> bs;
+    for (auto const& b: buildings) {
+        for (size_t i = 0; i < b.count; ++i) {
+            bs.emplace_back(b.w, b.h, b.door_position, 1);
+        }
+    }
+
+    std::vector<City::Building> r;
+    for (size_t i = 0; i < std::min(bs.size(), poisson_disks.size()); ++i) {
+        BuildingConfig const& config = bs[i];
+        r.emplace_back(
+            geo::Shape::Box(poisson_disks.at(i).center() - geo::Point(config.w / 2.f, config.h / 2.f), { config.w, config.h }),
+            geo::Point(0, 0)  // TODO
+        );
+    }
+    return r;
+}
+
 City generate_city(CityConfig const& cfg)
 {
     auto max_building_sz = ranges::max_element(cfg.buildings, [](BuildingConfig const& b, BuildingConfig const& c) { return b.size() < c.size(); })->size() / 2.f;
@@ -41,6 +61,8 @@ City generate_city(CityConfig const& cfg)
 
     auto circles = closest_points | std::views::transform([&](geo::Point const& p) { return geo::Shape::Circle(p, max_building_sz); });
     city.poisson_disks = { circles.begin(), circles.end() };
+
+    city.buildings = create_buildings(cfg.buildings, cfg.center, city.poisson_disks);
 
     return city;
 }
