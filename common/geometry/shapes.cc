@@ -13,6 +13,31 @@ namespace ranges = std::ranges;
 
 namespace geo {
 
+Shape Shape::Box(Point const& p, Point const& sz, float angle)
+{
+    // Unrotated corners
+    Point c0 = p;
+    Point c1 = { p.x,         p.y + sz.y };
+    Point c2 = p + sz;
+    Point c3 = { p.x + sz.x,  p.y };
+
+    // Center of the box
+    Point center = { p.x + sz.x * 0.5f, p.y + sz.y * 0.5f };
+
+    float s = std::sin(angle);
+    float c = std::cos(angle);
+
+    auto rotate = [&](Point const& v) {
+        Point d = v - center;
+        return Point{
+                center.x + d.x * c - d.y * s,
+                center.y + d.x * s + d.y * c
+        };
+    };
+
+    return Polygon({ rotate(c0), rotate(c1), rotate(c2), rotate(c3) });
+}
+
 bool Shape::contains_point(Point const& p) const
 {
     return std::visit([&](auto const& s) -> bool {

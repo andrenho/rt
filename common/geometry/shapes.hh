@@ -58,7 +58,7 @@ public:
     static Shape Line(Point const& p1, Point const& p2) { return shape::Line { p1, p2 }; }
     static Shape Line(float x1, float y1, float x2, float y2) { return shape::Line { x1, y1, x2, y2 }; }
     static Shape ThickLine(geo::Point const& p1, geo::Point const& p2, float width);
-    static Shape Box(Point const& p, Point const& sz) { return Polygon({  p, { p.x, p.y + sz.y }, p + sz, { p.x + sz.x, p.y } }); }
+    static Shape Box(Point const& p, Point const& sz, float angle=.0f);
 
     operator const Shapes&() const { return shape_; }
     operator Shapes&() { return shape_; }
