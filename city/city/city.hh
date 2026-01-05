@@ -22,6 +22,7 @@ struct CityConfig {
     std::vector<BuildingConfig> buildings;
     float                       max_size;
     float                       angle;
+    float                       angle_variation;
 };
 
 struct City {

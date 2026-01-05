@@ -6,6 +6,6 @@
     - [x] City type X don't generate parallel lines
     - [x] More spacing between road and disks
     - [x] City center on the road
-- [ ] Add buildings
+- [x] Add buildings
+  - [x] Randomly crooked buildings
   - [ ] Arrange door direction
-  - [ ] Randomly crooked buildings

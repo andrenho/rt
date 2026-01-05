@@ -43,6 +43,8 @@ static city::CityConfig city_config {
     .center = { 250, 250 },
     .buildings = city_size[1],
     .max_size = 200,
+    .angle = .0f,
+    .angle_variation = .5f,
 };
 static city::City my_city;
 
@@ -58,8 +60,8 @@ struct State {
     RoadShape road_shape = Terminal;
     CitySize  city_size = CS_Medium;
     bool      draw_original_poisson_disks = false;
-    bool      draw_poisson_disks = true;
-    bool      show_buildings = true;
+    bool      draw_poisson_disks = false;
+    bool      draw_buildings = true;
 } state;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
@@ -70,6 +72,7 @@ static void reset_map()
 
     city_config.obstacles = create_road(rng, state.road_shape, (float) state.area_size, &city_config.center);
     city_config.buildings = city_size[state.city_size];
+    city_config.angle = std::uniform_real_distribution<float>(0, 2 * M_PI)(rng);
 
     my_city = city::generate_city(city_config);
 
@@ -133,7 +136,7 @@ static void draw()
             draw_shape(disk, DARKGRAY);
         }
     }
-    if (state.show_buildings) {
+    if (state.draw_buildings) {
         for (auto const& building: my_city.buildings) {
             draw_shape(building.shape, BLACK, SKYBLUE, 2.f);
             // TODO - draw door
@@ -154,14 +157,16 @@ static void draw_ui()
     static const char* m_road_shapes[] = { "Terminal", "Across", "Y shape", "Two lines across" };
     ImGui::Combo("Road shape", (int *) &state.road_shape, m_road_shapes, IM_ARRAYSIZE(m_road_shapes));
 
-    ImGui::SeparatorText("City area");
-    ImGui::InputFloat("Max building area", &city_config.max_size, .1f, .0f, "%.f");
+    ImGui::SeparatorText("City config");
+    ImGui::SliderFloat("Max building area", &city_config.max_size, 100.f, 500.f, "%.f");
     static const char* m_city_sizes[] = { "Small", "Medium", "Large", "Very Large" };
     ImGui::Combo("City size", (int *) &state.city_size, m_city_sizes, IM_ARRAYSIZE(m_city_sizes));
+    ImGui::SliderFloat("Crooked buildings angle", &city_config.angle_variation, 0.f, M_PI);
 
     ImGui::SeparatorText("View");
     ImGui::Checkbox("Original poisson disks", &state.draw_original_poisson_disks);
     ImGui::Checkbox("Poisson disks", &state.draw_poisson_disks);
+    ImGui::Checkbox("Buildings", &state.draw_buildings);
 
     ImGui::Separator();
     if (ImGui::Button("Generate map with new seed")) {
