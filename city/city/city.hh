@@ -21,6 +21,7 @@ struct CityConfig {
     geo::Point                  center { 0, 0 };
     std::vector<BuildingConfig> buildings;
     float                       max_size;
+    float                       angle;
 };
 
 struct City {
