@@ -43,7 +43,7 @@ static city::CityConfig city_config {
     .center = { 250, 250 },
     .buildings = city_size[1],
     .max_size = 200,
-    .angle_variation = .5f,
+    .angle_variation = .7f,
     .city_direction = 0.f,
 };
 static city::City my_city;
@@ -146,6 +146,9 @@ static void draw()
             draw_shape(geo::Shape::Circle(building.door_position, 3.f), PURPLE);
         }
     }
+
+    // city center
+    draw_shape(geo::Shape::Circle(city_config.center, 5.f), BLACK, MAGENTA);
 }
 
 static void draw_ui()

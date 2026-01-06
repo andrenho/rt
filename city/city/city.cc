@@ -47,10 +47,10 @@ static std::vector<City::Building> create_buildings(std::vector<BuildingConfig> 
 
         float angle = std::visit(overloaded {
             [&](float a) { return a; },
-            [&](geo::Point const& center) { return poisson_disks.at(i).center().angle(center); }
+            [&](geo::Point const& center) { return center.angle(poisson_disks.at(i).center()); }
         }, city_direction);
 
-        auto box = geo::Shape::Box(poisson_disks.at(i).center() - geo::Point(config.w / 2.f, config.h / 2.f), { config.w, config.h }, angle + dist(rng));
+        auto box = geo::Shape::Box(poisson_disks.at(i).center() - geo::Point(config.h / 2.f, config.w / 2.f), { config.h, config.w }, angle + dist(rng));
         auto door_line = geo::shape::polygon_lines(std::get<geo::shape::Polygon>(box.for_visit())).at(0);
         auto door_point = geo::Point(
             door_line.p1.x + config.door_position * (door_line.p2.x - door_line.p1.x),

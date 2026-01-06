@@ -156,8 +156,11 @@ std::vector<Point> Point::closest_points(std::vector<Point> const& points, Point
 
 float Point::angle(Point const& other) const
 {
-    double angle = atan2(other.x - x, other.y - y);
-    return angle * (180.f / M_PI);
+    /*
+    float det = (x * other.y) - (y * other.x);
+    return atan2(det, dot(other));
+    */
+    return atan2(other.y - y, other.x - x);
 }
 
 float Point::dot(Point const& other) const

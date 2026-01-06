@@ -9,4 +9,4 @@
 - [x] Add buildings
   - [x] Randomly crooked buildings
   - [x] Arrange door direction
-  - [ ] All houses, look at center point
+  - [x] All houses, look at center point
