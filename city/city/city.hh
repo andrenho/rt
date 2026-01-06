@@ -16,13 +16,13 @@ struct BuildingConfig {
 };
 
 struct CityConfig {
-    int                         seed;
-    std::vector<geo::Shape>     obstacles;
-    geo::Point                  center { 0, 0 };
-    std::vector<BuildingConfig> buildings;
-    float                       max_size;
-    float                       angle;
-    float                       angle_variation;
+    int                             seed;
+    std::vector<geo::Shape>         obstacles;
+    geo::Point                      center { 0, 0 };
+    std::vector<BuildingConfig>     buildings;
+    float                           max_size;
+    float                           angle_variation;
+    std::variant<float, geo::Point> city_direction;
 };
 
 struct City {

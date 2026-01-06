@@ -43,8 +43,8 @@ static city::CityConfig city_config {
     .center = { 250, 250 },
     .buildings = city_size[1],
     .max_size = 200,
-    .angle = .0f,
     .angle_variation = .5f,
+    .city_direction = 0.f,
 };
 static city::City my_city;
 
@@ -62,6 +62,7 @@ struct State {
     bool      draw_original_poisson_disks = false;
     bool      draw_poisson_disks = false;
     bool      draw_buildings = true;
+    bool      orient_to_center = true;
 } state;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
@@ -72,7 +73,10 @@ static void reset_map()
 
     city_config.obstacles = create_road(rng, state.road_shape, (float) state.area_size, &city_config.center);
     city_config.buildings = city_size[state.city_size];
-    city_config.angle = std::uniform_real_distribution<float>(0, 2 * M_PI)(rng);
+    if (state.orient_to_center)
+        city_config.city_direction = city_config.center;
+    else
+        city_config.city_direction = std::uniform_real_distribution<float>(0, 2 * M_PI)(rng);
 
     my_city = city::generate_city(city_config);
 
@@ -162,6 +166,7 @@ static void draw_ui()
     static const char* m_city_sizes[] = { "Small", "Medium", "Large", "Very Large" };
     ImGui::Combo("City size", (int *) &state.city_size, m_city_sizes, IM_ARRAYSIZE(m_city_sizes));
     ImGui::SliderFloat("Crooked buildings angle", &city_config.angle_variation, 0.f, M_PI);
+    ImGui::Checkbox("Orient city to centerpoint", &state.orient_to_center);
 
     ImGui::SeparatorText("View");
     ImGui::Checkbox("Original poisson disks", &state.draw_original_poisson_disks);
