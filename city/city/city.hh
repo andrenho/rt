@@ -8,21 +8,31 @@
 namespace city {
 
 struct BuildingConfig {
-    float size;
+    float w, h;
+    float door_position = .5;
     size_t count;
+
+    [[nodiscard]] float size() const { return std::max(w, h); }
 };
 
 struct CityConfig {
-    int                         seed;
-    std::vector<geo::Shape>     obstacles;
-    geo::Point                  center { 0, 0 };
-    std::vector<BuildingConfig> buildings;
-    float                       max_size;
+    int                             seed;
+    std::vector<geo::Shape>         obstacles;
+    geo::Point                      center { 0, 0 };
+    std::vector<BuildingConfig>     buildings;
+    float                           max_size;
+    float                           angle_variation;
+    std::variant<float, geo::Point> city_direction;
 };
 
 struct City {
+    struct Building {
+        geo::Shape shape;
+        geo::Point door_position;
+    };
     std::vector<geo::Shape> original_poisson_disks {};
     std::vector<geo::Shape> poisson_disks {};
+    std::vector<Building>   buildings {};
 };
 
 City generate_city(CityConfig const& cfg);

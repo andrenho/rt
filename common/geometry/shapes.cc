@@ -13,6 +13,31 @@ namespace ranges = std::ranges;
 
 namespace geo {
 
+Shape Shape::Box(Point const& p, Point const& sz, float angle)
+{
+    // Unrotated corners
+    Point c0 = p;
+    Point c1 = { p.x,         p.y + sz.y };
+    Point c2 = p + sz;
+    Point c3 = { p.x + sz.x,  p.y };
+
+    // Center of the box
+    Point center = { p.x + sz.x * 0.5f, p.y + sz.y * 0.5f };
+
+    float s = std::sin(angle);
+    float c = std::cos(angle);
+
+    auto rotate = [&](Point const& v) {
+        Point d = v - center;
+        return Point{
+                center.x + d.x * c - d.y * s,
+                center.y + d.x * s + d.y * c
+        };
+    };
+
+    return Polygon({ rotate(c0), rotate(c1), rotate(c2), rotate(c3) });
+}
+
 bool Shape::contains_point(Point const& p) const
 {
     return std::visit([&](auto const& s) -> bool {
@@ -248,7 +273,7 @@ bool Shape::intersects(Shape const& other) const
                 [&](shape::Line const& oln)      { return Shape::Line(oln.p1, oln.p2).intersects(*this); },
                 [&](shape::Polygon const& opoly) { return Shape::Polygon(opoly).intersects(*this); },
                 [&](shape::Circle const& oc)     { return Shape::Circle(oc.center, oc.radius).intersects(*this); },
-                [&](shape::Capsule const& oc)    {
+                [&](shape::Capsule const&) {
                     for (auto const& shp1: c.subshapes())
                         for (auto const& shp2: c.subshapes())
                             if (shp1.intersects(shp2))
@@ -374,7 +399,7 @@ geo::Shape Shape::expand(float amount) const
 {
     return std::visit(overloaded {
         [&](shape::Line const&)         { throw std::runtime_error("Can't expand single lines"); return Line({0,0},{0,0}); },
-        [&](shape::Polygon const& _)    { throw std::runtime_error("Sorry, not implemented yet.");  return Line({0,0},{0,0}); /* TODO */ },
+        [&](shape::Polygon const&)      { throw std::runtime_error("Sorry, not implemented yet.");  return Line({0,0},{0,0}); /* TODO */ },
         [&](shape::Circle const& c)     { return Shape::Circle(c.center, c.radius + amount); },
         [&](shape::Capsule const& c)    { return Shape::Capsule(c.p1, c.p2, c.radius + amount); }
     }, for_visit());

@@ -19,17 +19,17 @@ Point::operator struct Size() const
 // POINT GENERATION
 //
 
-static std::vector<geo::Point>& remove_points_not_in_shape(std::vector<geo::Point>& points, Shape const& area)
+static std::vector<Point>& remove_points_not_in_shape(std::vector<Point>& points, Shape const& area)
 {
     points.erase(
-            std::remove_if(points.begin(), points.end(), [&](geo::Point const& p) { return !area.contains_point(p); }),
+            std::remove_if(points.begin(), points.end(), [&](Point const& p) { return !area.contains_point(p); }),
             points.end());
     return points;
 }
 
-std::vector<geo::Point> Point::grid(Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h)
+std::vector<Point> Point::grid(Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h)
 {
-    std::vector<geo::Point> points;
+    std::vector<Point> points;
 
     for (float x = bounds.top_left.x; x < bounds.bottom_right.x; x += avg_point_distance_w) {
         for (float y = bounds.top_left.y; y < bounds.bottom_right.y; y += avg_point_distance_h) {
@@ -40,18 +40,18 @@ std::vector<geo::Point> Point::grid(Bounds const& bounds, float avg_point_distan
     return points;
 }
 
-std::vector<geo::Point> Point::grid(Shape const& area, float avg_point_distance_w, float avg_point_distance_h)
+std::vector<Point> Point::grid(Shape const& area, float avg_point_distance_w, float avg_point_distance_h)
 {
     Bounds bounds = area.aabb();
-    std::vector<geo::Point> points = grid(bounds, avg_point_distance_w, avg_point_distance_h);
+    std::vector<Point> points = grid(bounds, avg_point_distance_w, avg_point_distance_h);
     return remove_points_not_in_shape(points, area);
 }
 
-std::vector<geo::Point> Point::grid(Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness)
+std::vector<Point> Point::grid(Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness)
 {
     assert(randomness >= 0.f && randomness <= 1.f);
 
-    std::vector<geo::Point> points = grid(bounds, avg_point_distance_w, avg_point_distance_h);
+    std::vector<Point> points = grid(bounds, avg_point_distance_w, avg_point_distance_h);
 
     std::uniform_real_distribution<float> distances_x(0.0, avg_point_distance_w * randomness);
     std::uniform_real_distribution<float> distances_y(0.0, avg_point_distance_h * randomness);
@@ -64,18 +64,18 @@ std::vector<geo::Point> Point::grid(Bounds const& bounds, float avg_point_distan
     return points;
 }
 
-std::vector<geo::Point> Point::grid(Shape const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness)
+std::vector<Point> Point::grid(Shape const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness)
 {
     Bounds bounds = area.aabb();
     auto points = grid(bounds, avg_point_distance_w, avg_point_distance_h, rng, randomness);
     return remove_points_not_in_shape(points, area);
 }
 
-std::vector<geo::Point> Point::relax_grid(std::vector<geo::Point> const& grid)
+std::vector<Point> Point::relax_grid(std::vector<Point> const& grid)
 {
     auto polygons = Shape::voronoi(grid, false);
 
-    std::vector<geo::Point> points;
+    std::vector<Point> points;
     points.reserve(polygons.size());
     for (auto const& shape: polygons)
         points.emplace_back(shape.center());
@@ -105,7 +105,7 @@ bool Bounds::intersects(Bounds const& a) const
     return true; // They overlap or touch
 }
 
-std::vector<geo::Point> Point::poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps)
+std::vector<Point> Point::poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps)
 {
     const tph_poisson_real bounds_min[2] = { bounds.top_left.x, bounds.top_left.y };
     const tph_poisson_real bounds_max[2] = { bounds.bottom_right.x, bounds.bottom_right.y };
@@ -127,7 +127,7 @@ std::vector<geo::Point> Point::poisson(struct Bounds const& bounds, float radius
 
     const tph_poisson_real *samples = tph_poisson_get_samples(&sampling);
 
-    std::vector<geo::Point> points; points.reserve(sampling.nsamples);
+    std::vector<Point> points; points.reserve(sampling.nsamples);
     for (size_t i = 0; i < sampling.nsamples; ++i)
         points.emplace_back(samples[i*2], samples[i*2+1]);
 
@@ -154,12 +154,21 @@ std::vector<Point> Point::closest_points(std::vector<Point> const& points, Point
             | std::ranges::to<std::vector>();
 }
 
-double Point::dot(Point const& other) const
+float Point::angle(Point const& other) const
+{
+    /*
+    float det = (x * other.y) - (y * other.x);
+    return atan2(det, dot(other));
+    */
+    return atan2(other.y - y, other.x - x);
+}
+
+float Point::dot(Point const& other) const
 {
     return x * other.x + y * other.y;
 }
 
-double Point::length_sq() const
+float Point::length_sq() const
 {
     return dot(*this);
 }

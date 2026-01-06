@@ -19,20 +19,21 @@ struct Point {
 
     float x, y;
 
-    static std::vector<geo::Point> grid(struct Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h);
-    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h);
-    static std::vector<geo::Point> grid(struct Bounds const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
-    static std::vector<geo::Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
+    [[nodiscard]] float angle(Point const& other) const;
+    [[nodiscard]] float dot(Point const& other) const;
+    [[nodiscard]] float length_sq() const;
 
-    static std::vector<geo::Point> relax_grid(std::vector<geo::Point> const& grid);
+    static std::vector<Point> grid(struct Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h);
+    static std::vector<Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h);
+    static std::vector<Point> grid(struct Bounds const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
+    static std::vector<Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
 
-    static std::vector<geo::Point> poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps=30);
-    static std::vector<geo::Point> closest_points(std::vector<geo::Point> const& points, geo::Point const& center, size_t n_points);
+    static std::vector<Point> relax_grid(std::vector<Point> const& grid);
+
+    static std::vector<Point> poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps=30);
+    static std::vector<Point> closest_points(std::vector<Point> const& points, Point const& center, size_t n_points);
 
     static bool segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out);
-
-    [[nodiscard]] double dot(geo::Point const& other) const;
-    [[nodiscard]] double length_sq() const;
 
     bool operator==(const Point& other) const;
 };

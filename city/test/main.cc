@@ -8,30 +8,32 @@
 #include "geometry/shapes.hh"
 #include "city/prepare.hh"
 
-static constexpr float BUILDING_SMALL  = 10;
-static constexpr float BUILDING_MEDIUM = 15;
-static constexpr float BUILDING_LARGE  = 20;
+#define BUILDING_SMALL  .w = 10, .h = 10
+#define BUILDING_MEDIUM .w = 15, .h = 12
+#define BUILDING_LARGE  .w = 20, .h = 15
+#define BUILDING_HUGE   .w = 25, .h = 18, .door_position = .8f
 
 static std::vector<city::BuildingConfig> city_size[] = {
     {
-        { .size = BUILDING_SMALL,  .count = 3 },
-        { .size = BUILDING_MEDIUM, .count = 2 },
-        { .size = BUILDING_LARGE,  .count = 0 },
+        { BUILDING_SMALL,  .count = 3 },
+        { BUILDING_MEDIUM, .count = 2 },
+        { BUILDING_LARGE,  .count = 0 },
     },
     {
-        { .size = BUILDING_SMALL,  .count = 4 },
-        { .size = BUILDING_MEDIUM, .count = 3 },
-        { .size = BUILDING_LARGE,  .count = 1 },
+        { BUILDING_SMALL,  .count = 5 },
+        { BUILDING_MEDIUM, .count = 3 },
+        { BUILDING_LARGE,  .count = 1 },
     },
     {
-        { .size = BUILDING_SMALL,  .count = 6 },
-        { .size = BUILDING_MEDIUM, .count = 4 },
-        { .size = BUILDING_LARGE,  .count = 2 },
+        { BUILDING_SMALL,  .count = 7 },
+        { BUILDING_MEDIUM, .count = 4 },
+        { BUILDING_LARGE,  .count = 2 },
     },
     {
-        { .size = BUILDING_SMALL,  .count = 10 },
-        { .size = BUILDING_MEDIUM, .count = 6 },
-        { .size = BUILDING_LARGE,  .count = 3 },
+        { BUILDING_SMALL,  .count = 10 },
+        { BUILDING_MEDIUM, .count = 6 },
+        { BUILDING_LARGE,  .count = 3 },
+        { BUILDING_HUGE,   .count = 1 },
     },
 };
 
@@ -41,6 +43,8 @@ static city::CityConfig city_config {
     .center = { 250, 250 },
     .buildings = city_size[1],
     .max_size = 200,
+    .angle_variation = .7f,
+    .city_direction = 0.f,
 };
 static city::City my_city;
 
@@ -55,8 +59,10 @@ struct State {
     int       area_size = 500;
     RoadShape road_shape = Terminal;
     CitySize  city_size = CS_Medium;
-    bool      draw_original_poisson_disks = true;
-    bool      draw_poisson_disks = true;
+    bool      draw_original_poisson_disks = false;
+    bool      draw_poisson_disks = false;
+    bool      draw_buildings = true;
+    bool      orient_to_center = true;
 } state;
 
 static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
@@ -67,6 +73,10 @@ static void reset_map()
 
     city_config.obstacles = create_road(rng, state.road_shape, (float) state.area_size, &city_config.center);
     city_config.buildings = city_size[state.city_size];
+    if (state.orient_to_center)
+        city_config.city_direction = city_config.center;
+    else
+        city_config.city_direction = std::uniform_real_distribution<float>(0, 2 * M_PI)(rng);
 
     my_city = city::generate_city(city_config);
 
@@ -130,6 +140,15 @@ static void draw()
             draw_shape(disk, DARKGRAY);
         }
     }
+    if (state.draw_buildings) {
+        for (auto const& building: my_city.buildings) {
+            draw_shape(building.shape, BLACK, SKYBLUE, 2.f);
+            draw_shape(geo::Shape::Circle(building.door_position, 3.f), PURPLE);
+        }
+    }
+
+    // city center
+    draw_shape(geo::Shape::Circle(city_config.center, 5.f), BLACK, MAGENTA);
 }
 
 static void draw_ui()
@@ -145,14 +164,17 @@ static void draw_ui()
     static const char* m_road_shapes[] = { "Terminal", "Across", "Y shape", "Two lines across" };
     ImGui::Combo("Road shape", (int *) &state.road_shape, m_road_shapes, IM_ARRAYSIZE(m_road_shapes));
 
-    ImGui::SeparatorText("City area");
-    ImGui::InputFloat("Max building area", &city_config.max_size, .1f, .0f, "%.f");
+    ImGui::SeparatorText("City config");
+    ImGui::SliderFloat("Max building area", &city_config.max_size, 100.f, 500.f, "%.f");
     static const char* m_city_sizes[] = { "Small", "Medium", "Large", "Very Large" };
     ImGui::Combo("City size", (int *) &state.city_size, m_city_sizes, IM_ARRAYSIZE(m_city_sizes));
+    ImGui::SliderFloat("Crooked buildings angle", &city_config.angle_variation, 0.f, M_PI);
+    ImGui::Checkbox("Orient city to centerpoint", &state.orient_to_center);
 
     ImGui::SeparatorText("View");
     ImGui::Checkbox("Original poisson disks", &state.draw_original_poisson_disks);
     ImGui::Checkbox("Poisson disks", &state.draw_poisson_disks);
+    ImGui::Checkbox("Buildings", &state.draw_buildings);
 
     ImGui::Separator();
     if (ImGui::Button("Generate map with new seed")) {
