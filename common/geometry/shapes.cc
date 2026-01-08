@@ -434,3 +434,36 @@ std::vector<Line> polygon_lines(Polygon const& poly)
 }
 
 }
+
+size_t std::hash<geo::Shape>::operator()(const geo::Shape& shp) const noexcept
+{
+    auto hash_combine = [](size_t seed, size_t value) {
+        const size_t magic = 0x9e3779b97f4a7c15ULL;
+        seed ^= value + magic + (seed << 6) + (seed >> 2);
+        return seed;
+    };
+
+    return std::visit(overloaded {
+        [&](geo::shape::Polygon const& poly) {
+            size_t seed = 0;
+            for (auto const& p: poly)
+                seed = hash_combine(seed, std::hash<geo::Point>()(p));
+            return seed;
+        },
+        [&](geo::shape::Circle const& c) {
+            uint32_t float_bits;
+            std::memcpy(&float_bits, &c.radius, sizeof(float_bits));
+            return hash_combine(std::hash<geo::Point>()(c.center), float_bits);
+        },
+        [&](geo::shape::Line const& ln) {
+            size_t a = std::hash<geo::Point>()(ln.p1);
+            size_t b = std::hash<geo::Point>()(ln.p2);
+            return hash_combine(a, b);
+        },
+        [&](geo::shape::Capsule const& c) {
+            auto const ss = c.subshapes();
+            return hash_combine(hash_combine(std::hash<geo::Shape>()(ss[0]), std::hash<geo::Shape>()(ss[1])), std::hash<geo::Shape>()(ss[2]));
+        },
+    }, shp.for_visit());
+
+}

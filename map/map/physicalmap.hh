@@ -18,11 +18,11 @@ struct PhysicalMap {
         std::unordered_map<geo::Point, uint8_t> static_features {};
     };
 
-    int                                     w, h;
-    std::vector<geo::Shape>                 water;
-    std::vector<Terrain>                    terrains;
-    std::vector<geo::Shape>                 unpassable_terrains;
-    std::vector<geo::Shape>                 roads;
+    int                     w, h;
+    std::vector<geo::Shape> water;
+    std::vector<Terrain>    terrains;
+    std::vector<geo::Shape> unpassable_terrains;
+    std::vector<geo::Shape> roads;
 };
 
 PhysicalMap generate_physical_map(Map const& map, size_t seed);
