@@ -8,30 +8,26 @@ static constexpr float ROAD_WIDTH = 8.f;
 
 struct TerrainDef {
     bool                 passable;
-    std::optional<float> static_features_prop {};
+    std::optional<float> static_features_distance {};
 };
 static const std::unordered_map<Biome::Type, TerrainDef> terrain_def = {
-        { Biome::Type::Snow,       { true,  0.1f } },
-        { Biome::Type::Tundra,     { true,  0.05f } },
-        { Biome::Type::Desert,     { true,  0.05f } },
-        { Biome::Type::Grassland,  { true,  0.05f } },
-        { Biome::Type::Savannah,   { true,  0.3f } },
-        { Biome::Type::PineForest, { false, 1.f } },
-        { Biome::Type::Forest,     { true,  0.8f } },
-        { Biome::Type::RainForest, { false, 1.f, } },
+        { Biome::Type::Snow,       { true,  40.f } },
+        { Biome::Type::Tundra,     { true,  80.f } },
+        { Biome::Type::Desert,     { true,  80.f } },
+        { Biome::Type::Grassland,  { true,  80.f } },
+        { Biome::Type::Savannah,   { true,  30.f } },
+        { Biome::Type::PineForest, { false, 15.f } },
+        { Biome::Type::Forest,     { true,  10.f } },
+        { Biome::Type::RainForest, { false, 15.f, } },
 };
 
-static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const& shape, float prop, std::mt19937 rng)
+static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const& shape, float distance, std::mt19937 rng)
 {
     std::unordered_map<geo::Point, uint8_t> features;
 
-    geo::Bounds bounds = shape.aabb();
-    float prop_x = (bounds.bottom_right.x - bounds.top_left.x) * prop;
-    float prop_y = (bounds.bottom_right.y - bounds.top_left.y) * prop;
+    auto points = geo::Point::poisson(shape, distance, 0, 4);
 
     std::uniform_int_distribution<uint8_t> random_data;
-    auto points = geo::Point::grid(shape, prop_x, prop_y, rng, .7f);
-    // points = geo::Point::relax_grid(points);
     for (auto const& point: points)
         features[point] = random_data(rng);
 
@@ -46,10 +42,10 @@ static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, 
     }
 
     TerrainDef const& def = terrain_def.at(biome->type);
-    if (!def.static_features_prop)
+    if (!def.static_features_distance)
         pmap.terrains.emplace_back(biome->polygon, def.passable, biome->type);
     else
-        pmap.terrains.emplace_back(biome->polygon, def.passable, biome->type, static_features(biome->polygon, *def.static_features_prop, rng));
+        pmap.terrains.emplace_back(biome->polygon, def.passable, biome->type, static_features(biome->polygon, *def.static_features_distance, rng));
 }
 
 PhysicalMap generate_physical_map(Map const& map, size_t seed)

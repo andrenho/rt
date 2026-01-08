@@ -33,7 +33,7 @@ struct State {
     bool        show_roads;
     int         quadrant_size = 500;
 } state = {
-    .map_type = State::MapType::Quadrants,
+    .map_type = State::MapType::Physical,
     .show_points = false,
     .show_polygons = true,
     .polygon_fill = State::PolygonFill::Biomes,

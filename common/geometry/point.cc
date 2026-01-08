@@ -105,8 +105,10 @@ bool Bounds::intersects(Bounds const& a) const
     return true; // They overlap or touch
 }
 
-std::vector<Point> Point::poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps)
+std::vector<Point> Point::poisson(class Shape const& shape, float radius, uint64_t seed, uint32_t max_attemps)
 {
+    Bounds bounds = shape.aabb();
+
     const tph_poisson_real bounds_min[2] = { bounds.top_left.x, bounds.top_left.y };
     const tph_poisson_real bounds_max[2] = { bounds.bottom_right.x, bounds.bottom_right.y };
 
@@ -133,7 +135,7 @@ std::vector<Point> Point::poisson(struct Bounds const& bounds, float radius, uin
 
     tph_poisson_destroy(&sampling);
 
-    return points;
+    return remove_points_not_in_shape(points, shape);
 }
 
 std::vector<Point> Point::closest_points(std::vector<Point> const& points, Point const& center, size_t n_points)

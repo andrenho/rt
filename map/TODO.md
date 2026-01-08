@@ -10,11 +10,13 @@
 - [x] Roads
   - [x] Fix min number of cities
   - [x] Fix warnings
+- [ ] Improve static features
 - [ ] Generate single output
   - [ ] Rework quadrants
 - [ ] Physical objects generation
   - [x] Roads
   - [ ] City structures
+  - [ ] Remove features on top of roads/cities
   - [ ] Partition impassable terrain
 - [ ] Improvements
   - [ ] Rivers

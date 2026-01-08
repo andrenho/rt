@@ -30,7 +30,7 @@ struct Point {
 
     static std::vector<Point> relax_grid(std::vector<Point> const& grid);
 
-    static std::vector<Point> poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps=30);
+    static std::vector<Point> poisson(class Shape const& bounds, float radius, uint64_t seed, uint32_t max_attemps=30);
     static std::vector<Point> closest_points(std::vector<Point> const& points, Point const& center, size_t n_points);
 
     static bool segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out);
