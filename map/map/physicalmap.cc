@@ -52,7 +52,24 @@ static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, 
     pmap.objects[hash] = std::move(object);
 }
 
-PhysicalMap generate_physical_map(Map const& map, size_t seed)
+void create_quadrants(PhysicalMap& pmap, size_t quadrant_sz)
+{
+    pmap.quads_w = pmap.w / quadrant_sz;
+    pmap.quads_h = pmap.h / quadrant_sz;
+
+    for (int x = 0; x < pmap.quads_w; x++) {
+        for (int y = 0; y < pmap.quads_h; y++) {
+            geo::Bounds bounds { { (x-1) * pmap.quads_w, (y-1) * pmap.quads_h }, { (x+1) * pmap.quads_w, (y+1) * pmap.quads_h } };
+
+            for (auto const& [hash, obj]: pmap.objects) {
+                if (obj.shape.aabb_intersects(bounds))
+                    pmap.quadrants[geo::UPoint(x, y)] = hash;
+            }
+        }
+    }
+}
+
+PhysicalMap generate_physical_map(Map const& map, size_t seed, size_t quadrant_sz)
 {
     PhysicalMap pmap;
     std::mt19937 rng(seed);
@@ -73,6 +90,9 @@ PhysicalMap generate_physical_map(Map const& map, size_t seed)
     // terrains
     for (auto const& biome: map.biomes)
         add_terrain(biome, pmap, rng);
+
+    // create quadrants
+    create_quadrants(pmap, quadrant_sz);
 
     return pmap;
 }

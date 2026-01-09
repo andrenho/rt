@@ -9,12 +9,11 @@
 #include "rlImGui.h"
 #include "imgui.h"
 
-#include "map/quadrants.hh"
 #include "geometry/shapes.hh"
+#include "map/physicalmap.hh"
 
 static map::Map map_;
 static map::PhysicalMap pmap;
-static map::Quadrants quadrants;
 
 static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
@@ -50,8 +49,7 @@ static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 static void reset_map()
 {
     map_ = map::create(map_config);
-    pmap = map::generate_physical_map(map_, map_config.seed + 1);
-    quadrants = map::generate_quadrants(pmap, state.quadrant_size);
+    pmap = map::generate_physical_map(map_, map_config.seed + 1, state.quadrant_size);
 }
 
 static void show_full_map()
@@ -176,9 +174,11 @@ static void draw_visible_quadrants()
     int tx = (int) mx / state.quadrant_size;
     int ty = (int) my / state.quadrant_size;
 
+    /*
     auto it = quadrants.find({ tx, ty });
     if (it != quadrants.end())
         draw_physical_map(it->second);
+    */
 }
 
 static void draw()

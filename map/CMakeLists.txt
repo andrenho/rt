@@ -24,8 +24,6 @@ include(../common/include-common-lib.cmake)
 add_library(rt-map STATIC map/map.hh map/map.cc
         map/physicalmap.cc
         map/physicalmap.hh
-        map/quadrants.cc
-        map/quadrants.hh
         city/prepare.hh
         city/prepare.cc
         city/city.hh
