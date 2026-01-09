@@ -11,6 +11,7 @@ struct TerrainDef {
     std::optional<float> static_features_distance {};
 };
 static const std::unordered_map<Biome::Type, TerrainDef> terrain_def = {
+        { Biome::Type::Ocean,      { false, {} } },
         { Biome::Type::Snow,       { true,  40.f } },
         { Biome::Type::Tundra,     { true,  80.f } },
         { Biome::Type::Desert,     { true,  80.f } },
@@ -36,16 +37,19 @@ static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const&
 
 static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, std::mt19937 rng)
 {
-    if (biome->type == Biome::Ocean) {
-        pmap.water.emplace_back(biome->polygon);
-        return;
-    }
+    size_t hash = std::hash<geo::Shape>()(biome->polygon);
+
+    PhysicalMap::Object object {
+        .shape = biome->polygon,
+        .type = PhysicalMap::Object::Type::Terrain,
+        .terrain_type = biome->type,
+    };
 
     TerrainDef const& def = terrain_def.at(biome->type);
-    if (!def.static_features_distance)
-        pmap.terrains.emplace_back(biome->polygon, def.passable, biome->type);
-    else
-        pmap.terrains.emplace_back(biome->polygon, def.passable, biome->type, static_features(biome->polygon, *def.static_features_distance, rng));
+    if (def.static_features_distance)
+        object.static_features = static_features(biome->polygon, *def.static_features_distance, rng);
+
+    pmap.objects[hash] = std::move(object);
 }
 
 PhysicalMap generate_physical_map(Map const& map, size_t seed)
@@ -57,8 +61,14 @@ PhysicalMap generate_physical_map(Map const& map, size_t seed)
     pmap.h = map.h;
 
     // roads
-    for (auto const& road_segment: map.road_segments)
-        pmap.roads.emplace_back(geo::Shape::Capsule(road_segment.first, road_segment.second, ROAD_WIDTH));
+    for (auto const& road_segment: map.road_segments) {
+        geo::Shape shape = geo::Shape::Capsule(road_segment.first, road_segment.second, ROAD_WIDTH);
+        size_t hash = std::hash<geo::Shape>()(shape);
+        pmap.objects[hash] = {
+            .shape = shape,
+            .type = PhysicalMap::Object::Type::Road,
+        };
+    }
 
     // terrains
     for (auto const& biome: map.biomes)

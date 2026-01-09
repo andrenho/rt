@@ -38,6 +38,12 @@ struct Point {
     bool operator==(const Point& other) const;
 };
 
+struct UPoint {
+    UPoint() : x(0), y(0) {}
+    UPoint(size_t x, size_t y) : x(x), y(y) {}
+
+    size_t x, y;
+};
 
 struct Size {
     Size() : w(0), h(0) {}
@@ -67,5 +73,13 @@ struct std::hash<geo::Point> {
     }
 };
 
+template<>
+struct std::hash<geo::UPoint> {
+    std::size_t operator()(const geo::UPoint& p) const noexcept {
+        std::size_t h1 = std::hash<int>{}(static_cast<int>(std::round(p.x * 1000)));
+        std::size_t h2 = std::hash<int>{}(static_cast<int>(std::round(p.y * 1000)));
+        return h1 ^ (h2 + 0x9e3779b9 + (h1 << 6) + (h1 >> 2));
+    }
+};
 
 #endif //POINT_HH

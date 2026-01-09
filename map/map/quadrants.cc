@@ -7,6 +7,7 @@ Quadrants generate_quadrants(PhysicalMap const& pmap, int size)
     Quadrants quadrants;
 
     // create quadrants and bounds
+    /*
     for (int x = 0; x < pmap.w; x += (int) size) {
         for (int y = 0; y < pmap.h; y += (int) size) {
             geo::Bounds bounds { { x - size, y - size }, { x + (size * 2), y + (size * 2) } };
@@ -37,6 +38,7 @@ Quadrants generate_quadrants(PhysicalMap const& pmap, int size)
             quadrants[{ x / size, y / size }] = std::move(pp);
         }
     }
+    */
 
     return quadrants;
 }
