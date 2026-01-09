@@ -143,22 +143,22 @@ static void draw_physical_map(map::PhysicalMap const& pmap_)
     // int ts = (1.f / (float) camera.zoom) * 2.f;
     int ts = 6;
     for (auto const& [_, obj]: pmap_.objects) {
-        switch (obj.type) {
-            case map::PhysicalMap::Object::Type::Terrain:
-                draw_shape(obj.shape, {}, biome_colors.at(obj.terrain_type));
-                for (auto const& [point, _]: obj.static_features) {
-                    DrawTriangle({ point.x, point.y + ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
-                    DrawTriangle({ point.x, point.y - ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
-                }
-                break;
-            case map::PhysicalMap::Object::Type::Road:
-                draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
-                break;
-            case map::PhysicalMap::Object::Type::UnpassableArea:
-                draw_shape(obj.shape, BLACK);
-                break;
+        if (obj.type == map::PhysicalMap::Object::Type::Terrain) {
+            draw_shape(obj.shape, {}, biome_colors.at(obj.terrain_type));
+            for (auto const& [point, _]: obj.static_features) {
+                DrawTriangle({ point.x, point.y + ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+                DrawTriangle({ point.x, point.y - ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+            }
         }
     }
+
+    for (auto const& [_, obj]: pmap_.objects)
+        if (obj.type == map::PhysicalMap::Object::Type::Road)
+            draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
+
+    for (auto const& [_, obj]: pmap_.objects)
+        if (obj.type == map::PhysicalMap::Object::Type::UnpassableArea)
+            draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
 }
 
 static void draw_quadrants_grid()
