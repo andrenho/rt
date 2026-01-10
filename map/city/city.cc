@@ -9,7 +9,7 @@ namespace city {
 static std::vector<geo::Shape> create_poisson_disks(CityConfig const& cfg, float max_building_sz)
 {
     auto points = geo::Point::poisson(
-            geo::Bounds({ cfg.center.x - cfg.max_size/2.f, cfg.center.y - cfg.max_size/2.f }, { cfg.center.x + cfg.max_size/2.f, cfg.center.y + cfg.max_size/2.f}),
+            geo::Shape::Box({ cfg.center.x - cfg.max_size/2.f, cfg.center.y - cfg.max_size/2.f }, { cfg.center.x + cfg.max_size/2.f, cfg.center.y + cfg.max_size/2.f}),
             max_building_sz + 2.f, cfg.seed);
 
     auto view = points | std::views::transform([&max_building_sz](geo::Point const& p) {

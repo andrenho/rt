@@ -89,4 +89,9 @@ private:
 
 }
 
-#endif //TOPDOWN_SHAPES_HH
+template<>
+struct std::hash<geo::Shape> {
+    std::size_t operator()(const geo::Shape& shp) const noexcept;
+};
+
+#endif //GEO_SHAPES_HH

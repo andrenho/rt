@@ -4,16 +4,15 @@
 #include <memory>
 #include <unordered_set>
 #include <utility>
-#include <random>
 #include <vector>
 
+#include "random/random.hh"
 #include "geometry/point.hh"
 #include "geometry/shapes.hh"
 
 namespace map {
 
 struct MapConfig {
-    int    seed                         = rand();
     int    map_w                        = 20000;
     int    map_h                        = 20000;
     int    point_density                = 500;
@@ -59,7 +58,7 @@ struct Map {
     std::vector<RoadSegment> road_segments {};
 };
 
-Map create(MapConfig const& cfg);
+Map create(MapConfig const& cfg, Random& random);
 
 } // map
 

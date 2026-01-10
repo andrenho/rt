@@ -2,6 +2,7 @@
 #include <ctime>
 
 #include <optional>
+#include <ranges>
 
 #include <raylib.h>
 #include <raymath.h>
@@ -9,37 +10,41 @@
 #include "rlImGui.h"
 #include "imgui.h"
 
-#include "map/quadrants.hh"
 #include "geometry/shapes.hh"
+#include "random/random.hh"
+#include "map/physicalmap.hh"
 
 static map::Map map_;
 static map::PhysicalMap pmap;
-static map::Quadrants quadrants;
 
 static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::MapConfig map_config {};
 static Vector2 mouse_world_pos { 0, 0 };
+static Random random_;
 
 struct State {
     enum PolygonFill : int { None, Elevation, Moisture, Oceans, Biomes };
     enum MapType : int { Political, Physical, Quadrants };
     MapType     map_type;
+    int         seed;
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
     bool        show_city_locations;
     bool        show_connected_cities;
     bool        show_roads;
-    int         quadrant_size = 500;
+    int         quadrant_size;
 } state = {
-    .map_type = State::MapType::Quadrants,
+    .map_type = State::MapType::Physical,
+    .seed = (int) Random::random_seed(),
     .show_points = false,
     .show_polygons = true,
     .polygon_fill = State::PolygonFill::Biomes,
     .show_city_locations = true,
     .show_connected_cities = false,
     .show_roads = true,
+    .quadrant_size = 500,
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
@@ -49,9 +54,9 @@ static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
 static void reset_map()
 {
-    map_ = map::create(map_config);
-    pmap = map::generate_physical_map(map_, map_config.seed + 1);
-    quadrants = map::generate_quadrants(pmap, state.quadrant_size);
+    random_ = Random(state.seed);
+    map_ = map::create(map_config, random_);
+    pmap = map::generate_physical_map(map_, state.quadrant_size, random_);
 }
 
 static void show_full_map()
@@ -138,26 +143,39 @@ static void draw_roads()
         draw_shape(geo::shape::Line { road.first, road.second }, BLACK, {}, 3.f);
 }
 
-static void draw_physical_map(map::PhysicalMap const& pmap_)
+static void draw_map_objects(map::PhysicalMap const& pmap_, std::vector<size_t> const& obj_ids)
 {
-    // int ts = (1.f / (float) camera.zoom) * 2.f;
     int ts = 6;
-    for (auto const& t: pmap_.terrains) {
-        if (t.passable)
-            draw_shape(t.shape, {}, biome_colors.at(t.terrain_type));
-        else
-            draw_shape(t.shape, {}, BLACK);
-        for (auto const& [point, _]: t.static_features) {
-            DrawTriangle({ point.x, point.y + ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
-            DrawTriangle({ point.x, point.y - ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
+        if (obj.type == map::PhysicalMap::Object::Type::Terrain) {
+            draw_shape(obj.shape, {}, biome_colors.at(obj.terrain_type));
+            for (auto const& [point, _]: obj.static_features) {
+                DrawTriangle({ point.x, point.y + ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+                DrawTriangle({ point.x, point.y - ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+            }
         }
     }
 
-    for (auto const& shape: pmap_.water)
-        draw_shape(shape, {}, SKYBLUE);
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
+        if (obj.type == map::PhysicalMap::Object::Type::Road)
+            draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
+    }
 
-    for (auto const& shape: pmap_.roads)
-        draw_shape(shape, DARKGRAY, DARKGRAY, 4.f);
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
+        if (obj.type == map::PhysicalMap::Object::Type::UnpassableArea)
+            draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
+    }
+}
+
+static void draw_physical_map(map::PhysicalMap const& pmap_)
+{
+    auto obj_ids = pmap_.objects
+            | std::views::keys
+            | std::ranges::to<std::vector>();
+    draw_map_objects(pmap_, obj_ids);
 }
 
 static void draw_quadrants_grid()
@@ -175,9 +193,8 @@ static void draw_visible_quadrants()
     int tx = (int) mx / state.quadrant_size;
     int ty = (int) my / state.quadrant_size;
 
-    auto it = quadrants.find({ tx, ty });
-    if (it != quadrants.end())
-        draw_physical_map(it->second);
+    auto const& obj_ids = pmap.quadrants.at(geo::UPoint(tx, ty));
+    draw_map_objects(pmap, obj_ids);
 }
 
 static void draw()
@@ -215,9 +232,9 @@ void draw_ui()
         if (ImGui::BeginTabItem("Map generation")) {
 
             ImGui::SeparatorText("Map definition");
-            ImGui::InputInt("Seed", &map_config.seed); ImGui::SameLine();
+            ImGui::InputInt("Seed", &state.seed); ImGui::SameLine();
             if (ImGui::Button("New seed"))
-                map_config.seed = rand();
+                state.seed = Random::random_seed();
             ImGui::InputInt("Map width", &map_config.map_w);
             ImGui::InputInt("Map height", &map_config.map_h);
 
@@ -272,7 +289,7 @@ void draw_ui()
         reset_map();
     ImGui::SameLine();
     if (ImGui::Button("Generate map with new seed")) {
-        map_config.seed = rand();
+        state.seed = Random::random_seed();
         reset_map();
     }
 
@@ -313,9 +330,6 @@ static void handle_events()
 
 int main()
 {
-    srand((unsigned int) time(nullptr));
-    map_config.seed = rand();
-
     reset_map();
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);

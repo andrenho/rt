@@ -47,27 +47,24 @@ std::vector<Point> Point::grid(Shape const& area, float avg_point_distance_w, fl
     return remove_points_not_in_shape(points, area);
 }
 
-std::vector<Point> Point::grid(Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness)
+std::vector<Point> Point::grid(Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h, Random& random, float randomness)
 {
     assert(randomness >= 0.f && randomness <= 1.f);
 
     std::vector<Point> points = grid(bounds, avg_point_distance_w, avg_point_distance_h);
 
-    std::uniform_real_distribution<float> distances_x(0.0, avg_point_distance_w * randomness);
-    std::uniform_real_distribution<float> distances_y(0.0, avg_point_distance_h * randomness);
-    std::uniform_real_distribution<float> angles(0.0, 2.0);
     for (auto& p: points) {
-        p.x += distances_x(rng) * (float) cos(angles(rng));
-        p.y += distances_y(rng) * (float) sin(angles(rng));
+        p.x += (float) random.next_ufloat(avg_point_distance_w * randomness) * (float) cos(random.next_ufloat(2.0));
+        p.y += (float) random.next_ufloat(avg_point_distance_h * randomness) * (float) sin(random.next_ufloat(2.0));
     }
 
     return points;
 }
 
-std::vector<Point> Point::grid(Shape const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness)
+std::vector<Point> Point::grid(Shape const& area, float avg_point_distance_w, float avg_point_distance_h, Random& random, float randomness)
 {
     Bounds bounds = area.aabb();
-    auto points = grid(bounds, avg_point_distance_w, avg_point_distance_h, rng, randomness);
+    auto points = grid(bounds, avg_point_distance_w, avg_point_distance_h, random, randomness);
     return remove_points_not_in_shape(points, area);
 }
 
@@ -105,8 +102,10 @@ bool Bounds::intersects(Bounds const& a) const
     return true; // They overlap or touch
 }
 
-std::vector<Point> Point::poisson(struct Bounds const& bounds, float radius, uint64_t seed, uint32_t max_attemps)
+std::vector<Point> Point::poisson(class Shape const& shape, float radius, uint64_t seed, uint32_t max_attemps)
 {
+    Bounds bounds = shape.aabb();
+
     const tph_poisson_real bounds_min[2] = { bounds.top_left.x, bounds.top_left.y };
     const tph_poisson_real bounds_max[2] = { bounds.bottom_right.x, bounds.bottom_right.y };
 
@@ -133,7 +132,7 @@ std::vector<Point> Point::poisson(struct Bounds const& bounds, float radius, uin
 
     tph_poisson_destroy(&sampling);
 
-    return points;
+    return remove_points_not_in_shape(points, shape);
 }
 
 std::vector<Point> Point::closest_points(std::vector<Point> const& points, Point const& center, size_t n_points)
