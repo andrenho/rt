@@ -22,7 +22,7 @@ struct PhysicalMap {
     size_t quads_w, quads_h;
 
     std::unordered_map<size_t, Object> objects;
-    std::unordered_map<geo::UPoint, size_t> quadrants;
+    std::unordered_map<geo::UPoint, std::vector<size_t>> quadrants;
 };
 
 PhysicalMap generate_physical_map(Map const& map, size_t seed, size_t quadrant_sz);

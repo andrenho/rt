@@ -1,6 +1,7 @@
 #include "shapes.hh"
 
 #include <cassert>
+#include <cstring>
 #include <algorithm>
 #include <numbers>
 #include <ranges>

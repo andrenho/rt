@@ -59,12 +59,17 @@ void create_quadrants(PhysicalMap& pmap, size_t quadrant_sz)
 
     for (int x = 0; x < pmap.quads_w; x++) {
         for (int y = 0; y < pmap.quads_h; y++) {
-            geo::Bounds bounds { { (x-1) * pmap.quads_w, (y-1) * pmap.quads_h }, { (x+1) * pmap.quads_w, (y+1) * pmap.quads_h } };
+            geo::Bounds bounds {
+                { (x-1) * (int) quadrant_sz, (y-1) * (int) quadrant_sz },
+                { (x+2) * (int) quadrant_sz, (y+2) * (int) quadrant_sz }
+            };
 
+            std::vector<size_t> obj_ids;
             for (auto const& [hash, obj]: pmap.objects) {
                 if (obj.shape.aabb_intersects(bounds))
-                    pmap.quadrants[geo::UPoint(x, y)] = hash;
+                    obj_ids.push_back(hash);
             }
+            pmap.quadrants[geo::UPoint(x, y)] = std::move(obj_ids);
         }
     }
 }

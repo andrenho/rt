@@ -40,7 +40,7 @@ struct Point {
 
 struct UPoint {
     UPoint() : x(0), y(0) {}
-    UPoint(size_t x, size_t y) : x(x), y(y) {}
+    UPoint(size_t x_, size_t y_) : x(x_), y(y_) {}
 
     bool operator==(const UPoint& other) const { return x == other.x && y == other.y; }
 

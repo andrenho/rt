@@ -2,6 +2,7 @@
 #include <ctime>
 
 #include <optional>
+#include <ranges>
 
 #include <raylib.h>
 #include <raymath.h>
@@ -136,11 +137,11 @@ static void draw_roads()
         draw_shape(geo::shape::Line { road.first, road.second }, BLACK, {}, 3.f);
 }
 
-static void draw_physical_map(map::PhysicalMap const& pmap_)
+static void draw_map_objects(map::PhysicalMap const& pmap_, std::vector<size_t> const& obj_ids)
 {
-    // int ts = (1.f / (float) camera.zoom) * 2.f;
     int ts = 6;
-    for (auto const& [_, obj]: pmap_.objects) {
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
         if (obj.type == map::PhysicalMap::Object::Type::Terrain) {
             draw_shape(obj.shape, {}, biome_colors.at(obj.terrain_type));
             for (auto const& [point, _]: obj.static_features) {
@@ -150,13 +151,25 @@ static void draw_physical_map(map::PhysicalMap const& pmap_)
         }
     }
 
-    for (auto const& [_, obj]: pmap_.objects)
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
         if (obj.type == map::PhysicalMap::Object::Type::Road)
             draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
+    }
 
-    for (auto const& [_, obj]: pmap_.objects)
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
         if (obj.type == map::PhysicalMap::Object::Type::UnpassableArea)
             draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
+    }
+}
+
+static void draw_physical_map(map::PhysicalMap const& pmap_)
+{
+    auto obj_ids = pmap_.objects
+            | std::views::keys
+            | std::ranges::to<std::vector>();
+    draw_map_objects(pmap_, obj_ids);
 }
 
 static void draw_quadrants_grid()
@@ -174,11 +187,8 @@ static void draw_visible_quadrants()
     int tx = (int) mx / state.quadrant_size;
     int ty = (int) my / state.quadrant_size;
 
-    /*
-    auto it = quadrants.find({ tx, ty });
-    if (it != quadrants.end())
-        draw_physical_map(it->second);
-    */
+    auto const& obj_ids = pmap.quadrants.at(geo::UPoint(tx, ty));
+    draw_map_objects(pmap, obj_ids);
 }
 
 static void draw()
