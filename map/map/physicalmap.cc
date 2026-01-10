@@ -22,20 +22,19 @@ static const std::unordered_map<Biome::Type, TerrainDef> terrain_def = {
         { Biome::Type::RainForest, { false, 15.f, } },
 };
 
-static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const& shape, float distance, std::mt19937 rng)
+static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const& shape, float distance, Random& random)
 {
     std::unordered_map<geo::Point, uint8_t> features;
 
     auto points = geo::Point::poisson(shape, distance, 0, 4);
 
-    std::uniform_int_distribution<uint8_t> random_data;
     for (auto const& point: points)
-        features[point] = random_data(rng);
+        features[point] = random.next_uint8();
 
     return features;
 }
 
-static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, std::mt19937 rng)
+static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, Random& random)
 {
     size_t hash = std::hash<geo::Shape>()(biome->polygon);
 
@@ -47,7 +46,7 @@ static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, 
 
     TerrainDef const& def = terrain_def.at(biome->type);
     if (def.static_features_distance)
-        object.static_features = static_features(biome->polygon, *def.static_features_distance, rng);
+        object.static_features = static_features(biome->polygon, *def.static_features_distance, random);
 
     pmap.objects[hash] = std::move(object);
 }
@@ -74,10 +73,9 @@ void create_quadrants(PhysicalMap& pmap, size_t quadrant_sz)
     }
 }
 
-PhysicalMap generate_physical_map(Map const& map, size_t seed, size_t quadrant_sz)
+PhysicalMap generate_physical_map(Map const& map, size_t quadrant_sz, Random& random)
 {
     PhysicalMap pmap;
-    std::mt19937 rng(seed);
 
     pmap.w = map.w;
     pmap.h = map.h;
@@ -94,7 +92,7 @@ PhysicalMap generate_physical_map(Map const& map, size_t seed, size_t quadrant_s
 
     // terrains
     for (auto const& biome: map.biomes)
-        add_terrain(biome, pmap, rng);
+        add_terrain(biome, pmap, random);
 
     // create quadrants
     create_quadrants(pmap, quadrant_sz);

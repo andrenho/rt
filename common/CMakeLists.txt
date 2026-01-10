@@ -29,6 +29,8 @@ add_library(rt-common STATIC
         geometry/point.hh
         geometry/shapes.hh
         geometry/shapes.cc
-        geometry/point.cc)
+        geometry/point.cc
+        random/random.cc
+        random/random.hh)
 target_include_directories(rt-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(rt-common PUBLIC poisson jc_voronoi perlin graaf fmtx)

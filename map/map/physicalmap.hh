@@ -25,7 +25,7 @@ struct PhysicalMap {
     std::unordered_map<geo::UPoint, std::vector<size_t>> quadrants;
 };
 
-PhysicalMap generate_physical_map(Map const& map, size_t seed, size_t quadrant_sz);
+PhysicalMap generate_physical_map(Map const& map, size_t quadrant_sz, Random& random);
 
 } // map
 

@@ -41,9 +41,9 @@ static std::vector<std::unique_ptr<Biome>> generate_biome_tiles(std::vector<geo:
 // TERRAIN GENERATION
 //
 
-static void update_biome_elevation(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
+static void update_biome_elevation(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, Random& random)
 {
-    const siv::PerlinNoise::seed_type seed = cfg.seed;
+    const siv::PerlinNoise::seed_type seed = random.seed() + 1;
     const siv::PerlinNoise perlin(seed);
 
     for (auto& biome: biomes) {
@@ -55,9 +55,9 @@ static void update_biome_elevation(std::vector<std::unique_ptr<Biome>>& biomes, 
     }
 }
 
-static void update_biome_moisture(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
+static void update_biome_moisture(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, Random& random)
 {
-    const siv::PerlinNoise::seed_type seed = cfg.seed + 1;
+    const siv::PerlinNoise::seed_type seed = random.seed() + 2;
     const siv::PerlinNoise perlin(seed);
 
     for (auto& biome: biomes) {
@@ -73,9 +73,9 @@ static void update_biome_ocean(std::vector<std::unique_ptr<Biome>>& biomes, MapC
             biome->type = Biome::Ocean;
 }
 
-static void add_lakes(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg)
+static void add_lakes(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, Random& random)
 {
-    const siv::PerlinNoise::seed_type seed = cfg.seed + 2;
+    const siv::PerlinNoise::seed_type seed = random.seed();
     const siv::PerlinNoise perlin(seed);
 
     for (auto& biome: biomes) {
@@ -118,7 +118,7 @@ static void update_terrain_type(std::vector<std::unique_ptr<Biome>>& biomes)
 // CITIES
 //
 
-static std::vector<std::unique_ptr<City>> create_cities_attempt(std::vector<std::unique_ptr<Biome>> const& biomes, MapConfig const& cfg, std::mt19937& rng, size_t city_count)
+static std::vector<std::unique_ptr<City>> create_cities_attempt(std::vector<std::unique_ptr<Biome>> const& biomes, MapConfig const& cfg, Random& random, size_t city_count)
 {
     std::vector<std::unique_ptr<City>> cities;
 
@@ -129,10 +129,10 @@ static std::vector<std::unique_ptr<City>> create_cities_attempt(std::vector<std:
     float diff_y = cfg.map_h / cities_h / 2.f;
 
     geo::Bounds bounds { { 0, 0 }, { cfg.map_w, cfg.map_h } };
-    auto points = geo::Point::grid(bounds, diff_x, diff_y, rng, 1.f);
+    auto points = geo::Point::grid(bounds, diff_x, diff_y, random, 1.f);
 
     // find biomes
-    std::vector<int> biome_n(biomes.size()); std::iota(biome_n.begin(), biome_n.end(), 0); std::shuffle(biome_n.begin(), biome_n.end(), rng);
+    std::vector<int> biome_n(biomes.size()); std::iota(biome_n.begin(), biome_n.end(), 0); std::shuffle(biome_n.begin(), biome_n.end(), random.rng());
     for (auto i: biome_n) {
         for (auto const& p: points) {
             if (biomes.at(i)->polygon.contains_point(p)) {
@@ -149,14 +149,14 @@ done:
     return cities;
 }
 
-static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, std::mt19937& rng)
+static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, Random& random)
 {
     size_t city_count = cfg.number_of_cities + 10;
     std::vector<std::unique_ptr<City>> cities;
 
     // create city list
     do {
-        cities = create_cities_attempt(biomes, cfg, rng, city_count);
+        cities = create_cities_attempt(biomes, cfg, random, city_count);
         city_count += 10;
         if (city_count > cfg.number_of_cities * 3)   // sanity check
             break;
@@ -294,24 +294,22 @@ static std::vector<RoadSegment> build_road_segments(std::vector<std::unique_ptr<
 // PUBLIC FUNCTIONS
 //
 
-Map create(MapConfig const& cfg)
+Map create(MapConfig const& cfg, Random& random)
 {
-    std::mt19937 rng(cfg.seed);
-
     geo::Bounds bounds { { 0, 0 }, { cfg.map_w, cfg.map_h } };
-    auto polygon_points = geo::Point::grid(bounds, cfg.point_density, cfg.point_density, rng, cfg.point_randomness);
+    auto polygon_points = geo::Point::grid(bounds, cfg.point_density, cfg.point_density, random, cfg.point_randomness);
 
     auto biomes = generate_biome_tiles(polygon_points, cfg.polygon_relaxation);
 
-    update_biome_elevation(biomes, cfg);
-    update_biome_moisture(biomes, cfg);
+    update_biome_elevation(biomes, cfg, random);
+    update_biome_moisture(biomes, cfg, random);
 
     update_biome_ocean(biomes, cfg);
-    add_lakes(biomes, cfg);
+    add_lakes(biomes, cfg, random);
 
     update_terrain_type(biomes);
 
-    auto cities = create_cities(biomes, cfg, rng);
+    auto cities = create_cities(biomes, cfg, random);
     find_connected_cities(cities, cfg);
 
     std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);

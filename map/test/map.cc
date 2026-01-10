@@ -11,6 +11,7 @@
 #include "imgui.h"
 
 #include "geometry/shapes.hh"
+#include "random/random.hh"
 #include "map/physicalmap.hh"
 
 static map::Map map_;
@@ -20,26 +21,30 @@ static bool show_demo_window = false;
 static Camera2D camera { { 0, 0 }, { 0, 0 }, 0, 1.0f };
 static map::MapConfig map_config {};
 static Vector2 mouse_world_pos { 0, 0 };
+static Random random_;
 
 struct State {
     enum PolygonFill : int { None, Elevation, Moisture, Oceans, Biomes };
     enum MapType : int { Political, Physical, Quadrants };
     MapType     map_type;
+    int         seed;
     bool        show_points;
     bool        show_polygons;
     PolygonFill polygon_fill;
     bool        show_city_locations;
     bool        show_connected_cities;
     bool        show_roads;
-    int         quadrant_size = 500;
+    int         quadrant_size;
 } state = {
     .map_type = State::MapType::Physical,
+    .seed = (int) Random::random_seed(),
     .show_points = false,
     .show_polygons = true,
     .polygon_fill = State::PolygonFill::Biomes,
     .show_city_locations = true,
     .show_connected_cities = false,
     .show_roads = true,
+    .quadrant_size = 500,
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
@@ -49,8 +54,9 @@ static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
 static void reset_map()
 {
-    map_ = map::create(map_config);
-    pmap = map::generate_physical_map(map_, map_config.seed + 1, state.quadrant_size);
+    random_ = Random(state.seed);
+    map_ = map::create(map_config, random_);
+    pmap = map::generate_physical_map(map_, state.quadrant_size, random_);
 }
 
 static void show_full_map()
@@ -226,9 +232,9 @@ void draw_ui()
         if (ImGui::BeginTabItem("Map generation")) {
 
             ImGui::SeparatorText("Map definition");
-            ImGui::InputInt("Seed", &map_config.seed); ImGui::SameLine();
+            ImGui::InputInt("Seed", &state.seed); ImGui::SameLine();
             if (ImGui::Button("New seed"))
-                map_config.seed = rand();
+                state.seed = Random::random_seed();
             ImGui::InputInt("Map width", &map_config.map_w);
             ImGui::InputInt("Map height", &map_config.map_h);
 
@@ -283,7 +289,7 @@ void draw_ui()
         reset_map();
     ImGui::SameLine();
     if (ImGui::Button("Generate map with new seed")) {
-        map_config.seed = rand();
+        state.seed = Random::random_seed();
         reset_map();
     }
 
@@ -324,9 +330,6 @@ static void handle_events()
 
 int main()
 {
-    srand((unsigned int) time(nullptr));
-    map_config.seed = rand();
-
     reset_map();
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);

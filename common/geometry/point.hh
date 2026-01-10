@@ -2,8 +2,9 @@
 #define POINT_HH
 
 #include <cmath>
-#include <random>
 #include <vector>
+
+#include "random/random.hh"
 
 namespace geo {
 
@@ -25,8 +26,8 @@ struct Point {
 
     static std::vector<Point> grid(struct Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h);
     static std::vector<Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h);
-    static std::vector<Point> grid(struct Bounds const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
-    static std::vector<Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h, std::mt19937& rng, float randomness);
+    static std::vector<Point> grid(struct Bounds const& area, float avg_point_distance_w, float avg_point_distance_h, Random& random, float randomness);
+    static std::vector<Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h, Random& rng, float randomness);
 
     static std::vector<Point> relax_grid(std::vector<Point> const& grid);
 
