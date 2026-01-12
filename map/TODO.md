@@ -18,6 +18,7 @@
   - [x] Roads
   - [ ] City structures
     - [x] Ids on cities
+    - [ ] Determine city area
   - [ ] Remove static features on top of roads/cities
   - [ ] Partition impassable terrain
 - [ ] Improvements
