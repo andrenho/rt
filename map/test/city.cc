@@ -8,36 +8,38 @@
 #include "geometry/shapes.hh"
 #include "city/prepare.hh"
 
-#define BUILDING_SMALL  .w = 10, .h = 10
-#define BUILDING_MEDIUM .w = 15, .h = 12
-#define BUILDING_LARGE  .w = 20, .h = 15
-#define BUILDING_HUGE   .w = 25, .h = 18, .door_position = .8f
+#define BD_SMALL  { .id = id_counter++, .w = 10, .h = 10 }
+#define BD_MEDIUM { .id = id_counter++, .w = 15, .h = 12 }
+#define BD_LARGE  { .id = id_counter++, .w = 20, .h = 15 }
+#define BD_HUGE   { .id = id_counter++, .w = 25, .h = 18, .door_position = .8f }
+
+static size_t id_counter = 0;
 
 static std::vector<city::BuildingConfig> city_size[] = {
     {
-        { BUILDING_SMALL,  .count = 3 },
-        { BUILDING_MEDIUM, .count = 2 },
-        { BUILDING_LARGE,  .count = 0 },
+        BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM
     },
     {
-        { BUILDING_SMALL,  .count = 5 },
-        { BUILDING_MEDIUM, .count = 3 },
-        { BUILDING_LARGE,  .count = 1 },
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE
     },
     {
-        { BUILDING_SMALL,  .count = 7 },
-        { BUILDING_MEDIUM, .count = 4 },
-        { BUILDING_LARGE,  .count = 2 },
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE, BD_LARGE,
     },
     {
-        { BUILDING_SMALL,  .count = 10 },
-        { BUILDING_MEDIUM, .count = 6 },
-        { BUILDING_LARGE,  .count = 3 },
-        { BUILDING_HUGE,   .count = 1 },
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE, BD_LARGE, BD_LARGE,
+        BD_HUGE, BD_HUGE
     },
 };
 
 static city::CityConfig city_config {
+    .id = 0,
     .seed = 0,
     .obstacles = {},
     .center = { 250, 250 },
