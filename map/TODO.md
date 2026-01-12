@@ -17,7 +17,7 @@
 - [ ] Physical objects generation
   - [x] Roads
   - [ ] City structures
-    - [ ] Ids on cities
+    - [x] Ids on cities
   - [ ] Remove static features on top of roads/cities
   - [ ] Partition impassable terrain
 - [ ] Improvements
