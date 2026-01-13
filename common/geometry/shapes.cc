@@ -456,9 +456,9 @@ std::vector<Line> polygon_lines(Polygon const& poly)
     return lines;
 }
 
-}
+}  // namespace shape
 
-}
+}  // namespace geo
 
 size_t std::hash<geo::Shape>::operator()(const geo::Shape& shp) const noexcept
 {
