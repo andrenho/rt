@@ -19,6 +19,7 @@
   - [ ] City structures
     - [x] Ids on cities
     - [ ] Determine city area
+    - [ ] Remove rnd from city
   - [ ] Remove static features on top of roads/cities
   - [ ] Partition impassable terrain
 - [ ] Improvements

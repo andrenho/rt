@@ -18,6 +18,7 @@ include(../cmake/libs/voronoi.cmake)
 include(../cmake/libs/perlin.cmake)
 include(../cmake/libs/graaf.cmake)
 include(../cmake/libs/poisson.cmake)
+include(../cmake/libs/quickhull.cmake)
 
 #-------------------------
 # Main build
@@ -33,4 +34,4 @@ add_library(rt-common STATIC
         random/random.cc
         random/random.hh)
 target_include_directories(rt-common PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(rt-common PUBLIC poisson jc_voronoi perlin graaf fmtx)
+target_link_libraries(rt-common PUBLIC quickhull poisson jc_voronoi perlin graaf fmtx)

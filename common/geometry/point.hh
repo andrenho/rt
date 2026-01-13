@@ -36,6 +36,8 @@ struct Point {
 
     static bool segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out);
 
+    static Shape convex_hull(std::vector<Point> const& points);
+
     bool operator==(const Point& other) const;
 };
 

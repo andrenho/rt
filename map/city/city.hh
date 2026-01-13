@@ -24,6 +24,7 @@ struct CityConfig {
     float                           max_size;
     float                           angle_variation;
     std::variant<float, geo::Point> city_direction;
+    float                           boundary_size;
 };
 
 struct City {
@@ -36,6 +37,7 @@ struct City {
     std::vector<geo::Shape> original_poisson_disks {};
     std::vector<geo::Shape> poisson_disks {};
     std::vector<Building>   buildings {};
+    geo::Shape              boundary;
 };
 
 City generate_city(CityConfig const& cfg);

@@ -47,6 +47,7 @@ static city::CityConfig city_config {
     .max_size = 200,
     .angle_variation = .7f,
     .city_direction = 0.f,
+    .boundary_size = 20.f,
 };
 static city::City my_city;
 
