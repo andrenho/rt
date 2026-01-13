@@ -9,6 +9,8 @@
 namespace geo {
 
 struct Point {
+    Point() = default;
+
     template <typename T, typename U>
     Point(T x_, U y_) : x((float) x_), y((float) y_) {}
 
@@ -17,6 +19,8 @@ struct Point {
     Point operator+(Point const& a) const { return { x + a.x, y + a.y }; }
     Point operator-(Point const& a) const { return { x - a.x, y - a.y }; }
     Point operator*(float w) const { return { x * w, y * w }; }
+
+    bool operator<(Point const& other) const;
 
     float x, y;
 
@@ -36,7 +40,8 @@ struct Point {
 
     static bool segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out);
 
-    static Shape convex_hull(std::vector<Point> const& points);
+    static double cross(Point const& O, Point const& A, Point const& B);
+    static Shape convex_hull(std::vector<Point> points);
 
     bool operator==(const Point& other) const;
 };

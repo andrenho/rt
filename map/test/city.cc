@@ -152,6 +152,8 @@ static void draw()
 
     // city center
     draw_shape(geo::Shape::Circle(city_config.center, 5.f), BLACK, MAGENTA);
+
+    draw_shape(my_city.boundary, PURPLE);
 }
 
 static void draw_ui()

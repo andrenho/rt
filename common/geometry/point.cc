@@ -17,6 +17,13 @@ Point::operator struct Size() const
     return { x, y };
 }
 
+bool Point::operator<(Point const& o) const
+{
+    if (x < o.x) return true;
+    if (o.x < x) return false;
+    return y < o.y;
+}
+
 //
 // POINT GENERATION
 //
@@ -204,6 +211,40 @@ bool Point::segment_intersection(Point const& p1, Point const& p2, Point const& 
     out->x = p1.x + t * r_x;
     out->y = p1.y + t * r_y;
     return true;
+}
+
+double Point::cross(Point const& O, Point const& A, Point const& B)
+{
+    return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+}
+
+Shape Point::convex_hull(std::vector<Point> pts)
+{
+    if (pts.size() <= 1) return pts;
+
+    std::sort(pts.begin(), pts.end());
+    std::vector<Point> hull;
+
+    // Lower hull
+    for (auto const& p : pts) {
+        while (hull.size() >= 2 &&
+                cross(hull[hull.size()-2], hull.back(), p) <= 0)
+            hull.pop_back();
+        hull.push_back(p);
+    }
+
+    // Upper hull
+    size_t lower_size = hull.size();
+    for (int i = (int)pts.size() - 2; i >= 0; --i) {
+        auto const& p = pts[i];
+        while (hull.size() > lower_size &&
+                cross(hull[hull.size()-2], hull.back(), p) <= 0)
+            hull.pop_back();
+        hull.push_back(p);
+    }
+
+    hull.pop_back();
+    return Shape::Polygon(hull);
 }
 
 }

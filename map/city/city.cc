@@ -76,6 +76,13 @@ City generate_city(CityConfig const& cfg)
     std::mt19937 rng(cfg.seed);
     city.buildings = create_buildings(cfg.buildings, city.poisson_disks, cfg.city_direction, cfg.angle_variation, rng);
 
+    std::vector<geo::Point> bpoints;
+    for (auto const& building: city.buildings)
+        bpoints.insert(bpoints.end(),
+                std::get<geo::shape::Polygon>(building.shape.for_visit()).cbegin(),
+                std::get<geo::shape::Polygon>(building.shape.for_visit()).cend());
+    city.boundary = geo::Point::convex_hull(bpoints);
+
     return city;
 }
 
