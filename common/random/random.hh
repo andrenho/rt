@@ -14,7 +14,7 @@ public:
     [[nodiscard]] int   next_int(int min=std::numeric_limits<int>::min(), int max=std::numeric_limits<int>::max());
     [[nodiscard]] float next_float(float min=std::numeric_limits<float>::min(), float max=std::numeric_limits<float>::max());
 
-    [[nodiscard]] int   next_unit(int max=std::numeric_limits<int>::max()) { return next_int(0, max); }
+    [[nodiscard]] int   next_uint(int max=std::numeric_limits<int>::max()) { return next_int(0, max); }
     [[nodiscard]] int   next_ufloat(int max=std::numeric_limits<float>::max()) { return next_float(0.f, max); }
 
     [[nodiscard]] uint8_t next_uint8();

@@ -400,7 +400,31 @@ geo::Shape Shape::expand(float amount) const
 {
     return std::visit(overloaded {
         [&](shape::Line const&)         { throw std::runtime_error("Can't expand single lines"); return Line({0,0},{0,0}); },
-        [&](shape::Polygon const&)      { throw std::runtime_error("Sorry, not implemented yet.");  return Line({0,0},{0,0}); /* TODO */ },
+        [&](shape::Polygon const& poly) {
+
+            Point c = center();
+
+            float R = 0.0f;
+            for (auto const& p : poly)
+                R = std::max(R, (c - p).length());
+
+            if (R == 0.0f)
+                return geo::Shape::Polygon(poly);
+
+            float k = (R + amount) / R;
+
+            std::vector<Point> out;
+            out.reserve(poly.size());
+
+            for (auto const& p : poly) {
+                out.push_back({
+                        c.x + (p.x - c.x) * k,
+                        c.y + (p.y - c.y) * k
+                });
+            }
+
+            return geo::Shape::Polygon(out);
+        },
         [&](shape::Circle const& c)     { return Shape::Circle(c.center, c.radius + amount); },
         [&](shape::Capsule const& c)    { return Shape::Capsule(c.p1, c.p2, c.radius + amount); }
     }, for_visit());

@@ -17,7 +17,6 @@ struct BuildingConfig {
 
 struct CityConfig {
     size_t                          id;
-    int                             seed;
     std::vector<geo::Shape>         obstacles;
     geo::Point                      center { 0, 0 };
     std::vector<BuildingConfig>     buildings;
@@ -40,7 +39,7 @@ struct City {
     geo::Shape              boundary;
 };
 
-City generate_city(CityConfig const& cfg);
+City generate_city(CityConfig const& cfg, Random& random);
 
 }
 

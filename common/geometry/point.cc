@@ -163,10 +163,6 @@ std::vector<Point> Point::closest_points(std::vector<Point> const& points, Point
 
 float Point::angle(Point const& other) const
 {
-    /*
-    float det = (x * other.y) - (y * other.x);
-    return atan2(det, dot(other));
-    */
     return atan2(other.y - y, other.x - x);
 }
 
@@ -178,6 +174,16 @@ float Point::dot(Point const& other) const
 float Point::length_sq() const
 {
     return dot(*this);
+}
+
+float Point::length() const
+{
+    return sqrt(length_sq());
+}
+
+Point Point::normalize() const
+{
+    return *this * (1.0f / length());
 }
 
 bool Point::segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out)

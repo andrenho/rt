@@ -40,7 +40,6 @@ static std::vector<city::BuildingConfig> city_size[] = {
 
 static city::CityConfig city_config {
     .id = 0,
-    .seed = 0,
     .obstacles = {},
     .center = { 250, 250 },
     .buildings = city_size[1],
@@ -72,16 +71,16 @@ static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
 static void reset_map()
 {
-    std::mt19937 rng(city_config.seed);
+    Random random;
 
-    city_config.obstacles = create_road(rng, state.road_shape, (float) state.area_size, &city_config.center);
+    city_config.obstacles = create_road(state.road_shape, (float) state.area_size, &city_config.center, random);
     city_config.buildings = city_size[state.city_size];
     if (state.orient_to_center)
         city_config.city_direction = city_config.center;
     else
-        city_config.city_direction = std::uniform_real_distribution<float>(0, 2 * M_PI)(rng);
+        city_config.city_direction = float(random.next_ufloat(2 * M_PI));
 
-    my_city = city::generate_city(city_config);
+    my_city = city::generate_city(city_config, random);
 
     camera.zoom = (float) GetScreenHeight() / (float) state.area_size;
 }
@@ -183,7 +182,6 @@ static void draw_ui()
 
     ImGui::Separator();
     if (ImGui::Button("Generate map with new seed")) {
-        city_config.seed = rand();
         reset_map();
     }
     ImGui::SameLine();
@@ -201,7 +199,6 @@ static void draw_ui()
 int main()
 {
     srand((unsigned int) time(nullptr));
-    city_config.seed = rand();
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1600, 900, "rt-city-test");

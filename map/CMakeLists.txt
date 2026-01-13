@@ -24,8 +24,6 @@ include(../common/include-common-lib.cmake)
 add_library(rt-map STATIC map/map.hh map/map.cc
         map/physicalmap.cc
         map/physicalmap.hh
-        city/prepare.hh
-        city/prepare.cc
         city/city.hh
         city/city.cc
 )
@@ -37,7 +35,10 @@ add_executable(rt-map-test EXCLUDE_FROM_ALL test/map.cc)
 target_include_directories(rt-map-test PRIVATE rt-map)
 target_link_libraries(rt-map-test PRIVATE rt-map raylib imgui_raylib)
 
-add_executable(rt-city-test EXCLUDE_FROM_ALL test/city.cc)
+add_executable(rt-city-test EXCLUDE_FROM_ALL
+        city/prepare.hh
+        city/prepare.cc
+        test/city.cc)
 target_include_directories(rt-city-test PRIVATE rt-map)
 target_link_libraries(rt-city-test PRIVATE rt-map raylib imgui_raylib)
 

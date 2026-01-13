@@ -27,6 +27,8 @@ struct Point {
     [[nodiscard]] float angle(Point const& other) const;
     [[nodiscard]] float dot(Point const& other) const;
     [[nodiscard]] float length_sq() const;
+    [[nodiscard]] float length() const;
+    [[nodiscard]] Point normalize() const;
 
     static std::vector<Point> grid(struct Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h);
     static std::vector<Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h);
