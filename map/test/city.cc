@@ -43,7 +43,7 @@ static city::CityConfig city_config {
     .obstacles = {},
     .center = { 250, 250 },
     .buildings = city_size[1],
-    .max_size = 200,
+    .max_size = 300,
     .angle_variation = .7f,
     .city_direction = 0.f,
     .boundary_size = 20.f,
@@ -64,6 +64,7 @@ struct State {
     bool      draw_original_poisson_disks = false;
     bool      draw_poisson_disks = false;
     bool      draw_buildings = true;
+    bool      draw_border = true;
     bool      orient_to_center = true;
 } state;
 
@@ -152,7 +153,8 @@ static void draw()
     // city center
     draw_shape(geo::Shape::Circle(city_config.center, 5.f), BLACK, MAGENTA);
 
-    draw_shape(my_city.boundary, PURPLE);
+    if (state.draw_border)
+        draw_shape(my_city.boundary, PURPLE);
 }
 
 static void draw_ui()
@@ -179,6 +181,7 @@ static void draw_ui()
     ImGui::Checkbox("Original poisson disks", &state.draw_original_poisson_disks);
     ImGui::Checkbox("Poisson disks", &state.draw_poisson_disks);
     ImGui::Checkbox("Buildings", &state.draw_buildings);
+    ImGui::Checkbox("Border", &state.draw_border);
 
     ImGui::Separator();
     if (ImGui::Button("Generate map with new seed")) {
