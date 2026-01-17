@@ -1,6 +1,7 @@
 #ifndef RT_CITY_HH
 #define RT_CITY_HH
 
+#include <optional>
 #include <vector>
 
 #include "geometry/shapes.hh"
@@ -10,7 +11,13 @@ namespace city {
 struct BuildingConfig {
     size_t id;
     float  w, h;
-    float  door_position = .5;
+
+    struct Entrance {
+        float position = .5;
+        float entrance_sz = 1.5f;
+        float wall_width = 2.f;
+    };
+    std::optional<Entrance> entrance = Entrance();
 
     [[nodiscard]] float size() const { return std::max(w, h); }
 };
@@ -30,6 +37,8 @@ struct City {
     struct Building {
         size_t     id;
         geo::Shape shape;
+        std::vector<geo::Shape> walls;
+        std::optional<geo::Shape> entrance_sensor;
         geo::Point door_position;
     };
     size_t                  id;

@@ -252,4 +252,9 @@ Shape Point::convex_hull(std::vector<Point> pts)
     return Shape::Polygon(hull);
 }
 
+Point Point::point_at_distance(Point const& direction_point, float distance) const
+{
+    return *this + (direction_point - *this).normalize() * distance;
+}
+
 }

@@ -27,34 +27,76 @@ static std::vector<geo::Shape> remove_obstacle_overlaps(std::vector<geo::Shape> 
     return { new_disks.begin(), new_disks.end() };
 }
 
+static std::tuple<std::vector<geo::Shape>, geo::Shape, geo::Point> open_building_shape(geo::shape::Polygon const& box,
+        geo::Point const& building_center, BuildingConfig::Entrance const& entrance)
+{
+    auto lines = geo::shape::polygon_lines(box);
+
+    // wall containing door
+    auto door_line = lines.at(0);
+    auto door_point = geo::Point(
+            door_line.p1.x + entrance.position * (door_line.p2.x - door_line.p1.x),
+            door_line.p1.y + entrance.position * (door_line.p2.y - door_line.p1.y)
+    );
+
+    // other walls
+    std::vector<geo::Shape> walls;
+    for (size_t i = 0; i < lines.size(); ++i) {
+        auto const& line = lines.at(i);
+        auto p1 = line.p1;
+        auto p2 = line.p2;
+        auto p3 = line.p2.point_at_distance(building_center, entrance.wall_width);
+        auto p4 = line.p1.point_at_distance(building_center, entrance.wall_width);
+        walls.push_back(geo::Shape::Polygon({ p1, p2, p3, p4 }));
+    }
+
+    return { walls, {}, door_point };
+}
+
+static City::Building create_building(BuildingConfig const& config, std::variant<float, geo::Point> const& city_direction,
+        float angle_variation, Random& random, geo::Point const& disk_center)
+{
+    // calculate outer box
+    float angle = std::visit(overloaded {
+            [&](float a) { return a; },
+            [&](geo::Point const& center) { return center.angle(disk_center); }
+    }, city_direction);
+
+    auto box = geo::Shape::Box(disk_center - geo::Point(config.h / 2.f, config.w / 2.f),
+            { config.h, config.w }, angle + random.next_float(-angle_variation, angle_variation));
+
+    std::vector<geo::Shape> walls;
+    std::optional<geo::Shape> entrance;
+    geo::Point door_position {};
+
+    // entrance
+    if (config.entrance) {
+        if (config.entrance->position < 0.f || config.entrance->position >= 1.f)
+            throw std::runtime_error("'entrance.position' needs to be between 0 and 1");
+
+        std::tie(walls, entrance, door_position) = open_building_shape(std::get<geo::shape::Polygon>(box.for_visit()), box.center(), *config.entrance);
+    }
+
+    return {
+        .id = config.id,
+        .shape = box,
+        .walls = walls,
+        .entrance_sensor = entrance,
+        .door_position = door_position,
+    };
+}
+
 static std::vector<City::Building> create_buildings(std::vector<BuildingConfig> const& buildings,
-    std::vector<geo::Shape> const& poisson_disks, std::variant<float, geo::Point> city_direction, float angle_variation, Random& random)
+    std::vector<geo::Shape> const& poisson_disks, std::variant<float, geo::Point> const& city_direction, float angle_variation, Random& random)
 {
     if (buildings.size() > poisson_disks.size())
         throw std::runtime_error("Too few poisson disks generated in city building.");
 
-    std::vector<City::Building> r;
-    for (size_t i = 0; i < std::min(buildings.size(), poisson_disks.size()); ++i) {
-        BuildingConfig const& config = buildings[i];
-        if (config.door_position < 0.f || config.door_position >= 1.f)
-            throw std::runtime_error("'door_position' needs to be between 0 and 1");
-
-        float angle = std::visit(overloaded {
-            [&](float a) { return a; },
-            [&](geo::Point const& center) { return center.angle(poisson_disks.at(i).center()); }
-        }, city_direction);
-
-        auto box = geo::Shape::Box(poisson_disks.at(i).center() - geo::Point(config.h / 2.f, config.w / 2.f),
-                { config.h, config.w }, angle + random.next_float(-angle_variation, angle_variation));
-        auto door_line = geo::shape::polygon_lines(std::get<geo::shape::Polygon>(box.for_visit())).at(0);
-        auto door_point = geo::Point(
-            door_line.p1.x + config.door_position * (door_line.p2.x - door_line.p1.x),
-            door_line.p1.y + config.door_position * (door_line.p2.y - door_line.p1.y)
-        );
-
-        r.emplace_back(config.id, box, door_point);
-    }
-    return r;
+    return std::views::iota(0ULL, std::min(buildings.size(), poisson_disks.size()))
+        | std::views::transform([&](size_t i) {
+            return create_building(buildings.at(i), city_direction, angle_variation, random, poisson_disks.at(i).center());
+        })
+        | std::ranges::to<std::vector>();
 }
 
 City generate_city(CityConfig const& cfg, Random& random)

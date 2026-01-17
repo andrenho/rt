@@ -11,7 +11,7 @@
 #define BD_SMALL  { .id = id_counter++, .w = 10, .h = 10 }
 #define BD_MEDIUM { .id = id_counter++, .w = 15, .h = 12 }
 #define BD_LARGE  { .id = id_counter++, .w = 20, .h = 15 }
-#define BD_HUGE   { .id = id_counter++, .w = 25, .h = 18, .door_position = .8f }
+#define BD_HUGE   { .id = id_counter++, .w = 25, .h = 18, .entrance = city::BuildingConfig::Entrance { .position = .8f } }
 
 static size_t id_counter = 0;
 
@@ -63,6 +63,7 @@ struct State {
     CitySize  city_size = CS_Medium;
     bool      draw_original_poisson_disks = false;
     bool      draw_poisson_disks = false;
+    bool      draw_building_shapes = false;
     bool      draw_buildings = true;
     bool      draw_border = true;
     bool      orient_to_center = true;
@@ -143,12 +144,16 @@ static void draw()
             draw_shape(disk, DARKGRAY);
         }
     }
-    if (state.draw_buildings) {
+    if (state.draw_building_shapes) {
         for (auto const& building: my_city.buildings) {
-            draw_shape(building.shape, BLACK, SKYBLUE, 2.f);
+            draw_shape(building.shape, SKYBLUE, SKYBLUE, 1.f);
             draw_shape(geo::Shape::Circle(building.door_position, 3.f), PURPLE);
         }
     }
+    if (state.draw_buildings)
+        for (auto const& building: my_city.buildings)
+            for (auto const& shape: building.walls)
+                draw_shape(shape, BLACK, SKYBLUE, .5f);
 
     // city center
     draw_shape(geo::Shape::Circle(city_config.center, 5.f), BLACK, MAGENTA);
