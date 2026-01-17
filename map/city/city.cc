@@ -47,7 +47,17 @@ static std::tuple<std::vector<geo::Shape>, geo::Shape, geo::Point> open_building
         auto p2 = line.p2;
         auto p3 = line.p2.point_at_distance(building_center, entrance.wall_width);
         auto p4 = line.p1.point_at_distance(building_center, entrance.wall_width);
-        walls.push_back(geo::Shape::Polygon({ p1, p2, p3, p4 }));
+
+        if (i == 0) {    // door
+            auto pd1 = p1.point_at_distance(p2, entrance.position);//  - (entrance.entrance_sz / 2.f));
+            auto pd2 = p1.point_at_distance(p2, entrance.position + (entrance.entrance_sz / 2.f));
+            auto pd3 = p4.point_at_distance(p3, entrance.position + (entrance.entrance_sz / 2.f));
+            auto pd4 = p4.point_at_distance(p3, entrance.position);// - (entrance.entrance_sz / 2.f));
+            walls.push_back(geo::Shape::Polygon({ p1, pd1, pd4, p4 }));
+            // walls.push_back(geo::Shape::Polygon({ pd2, p2, p3, pd3 }));
+        } else {
+            walls.push_back(geo::Shape::Polygon({ p1, p2, p3, p4 }));
+        }
     }
 
     return { walls, {}, door_point };
