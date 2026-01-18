@@ -144,16 +144,20 @@ static void draw()
             draw_shape(disk, DARKGRAY);
         }
     }
+    if (state.draw_buildings) {
+        for (auto const& building: my_city.buildings) {
+            for (auto const& shape: building.walls)
+                draw_shape(shape, BLACK, SKYBLUE, .5f);
+            if (building.entrance_sensor)
+                draw_shape(*building.entrance_sensor, BLUE, BLUE, .5f);
+        }
+    }
     if (state.draw_building_shapes) {
         for (auto const& building: my_city.buildings) {
-            draw_shape(building.shape, SKYBLUE, SKYBLUE, 1.f);
+            draw_shape(building.shape, PURPLE, PURPLE, 2.f);
             draw_shape(geo::Shape::Circle(building.door_position, 3.f), PURPLE);
         }
     }
-    if (state.draw_buildings)
-        for (auto const& building: my_city.buildings)
-            for (auto const& shape: building.walls)
-                draw_shape(shape, BLACK, SKYBLUE, .5f);
 
     // city center
     draw_shape(geo::Shape::Circle(city_config.center, 5.f), BLACK, MAGENTA);
@@ -186,6 +190,7 @@ static void draw_ui()
     ImGui::Checkbox("Original poisson disks", &state.draw_original_poisson_disks);
     ImGui::Checkbox("Poisson disks", &state.draw_poisson_disks);
     ImGui::Checkbox("Buildings", &state.draw_buildings);
+    ImGui::Checkbox("Building shapes", &state.draw_building_shapes);
     ImGui::Checkbox("Border", &state.draw_border);
 
     ImGui::Separator();

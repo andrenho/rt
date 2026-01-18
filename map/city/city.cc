@@ -6,6 +6,8 @@ namespace ranges = std::ranges;
 
 namespace city {
 
+static constexpr float DOOR_LENGTH = 1.5f;
+
 static std::vector<geo::Shape> create_poisson_disks(CityConfig const& cfg, float max_building_sz, Random const& random)
 {
     auto points = geo::Point::poisson(
@@ -31,6 +33,7 @@ static std::tuple<std::vector<geo::Shape>, geo::Shape, geo::Point> open_building
         geo::Point const& building_center, BuildingConfig::Entrance const& entrance)
 {
     auto lines = geo::shape::polygon_lines(box);
+    geo::Shape entrance_sensor;
 
     // wall containing door
     auto door_line = lines.at(0);
@@ -45,23 +48,25 @@ static std::tuple<std::vector<geo::Shape>, geo::Shape, geo::Point> open_building
         auto const& line = lines.at(i);
         auto p1 = line.p1;
         auto p2 = line.p2;
-        auto p3 = line.p2.point_at_distance(building_center, entrance.wall_width);
-        auto p4 = line.p1.point_at_distance(building_center, entrance.wall_width);
+        auto p3 = p1.perpendicular_endpoint(p2, -entrance.wall_width);
+        auto p4 = p2.perpendicular_endpoint(p1, entrance.wall_width);
 
         if (i == 0) {    // door
-            auto pd1 = p1.point_at_distance(p2, 8.0f);
-            auto pd2 = p1.point_at_distance(p2, 12.0f);
+            auto midpoint1 = (p2-p1).length() * entrance.position - (DOOR_LENGTH / 2.f);
+            auto midpoint2 = (p2-p1).length() * entrance.position + (DOOR_LENGTH / 2.f);
+            auto pd1 = p1.point_at_distance(p2, midpoint1);
+            auto pd2 = p1.point_at_distance(p2, midpoint2);
             auto pd3 = p1.perpendicular_endpoint(pd2, -entrance.wall_width);
             auto pd4 = p1.perpendicular_endpoint(pd1, -entrance.wall_width);
-            // walls.push_back(geo::Shape::Polygon({ pd1, pd2, pd3, pd4 }));
             walls.push_back(geo::Shape::Polygon({ p1, pd1, pd4, p4 }));
-            // walls.push_back(geo::Shape::Polygon({ pd2, p2, p3, pd3 }));
+            walls.push_back(geo::Shape::Polygon({ pd2, p2, p3, pd3 }));
+            entrance_sensor = geo::Shape::Polygon({ pd1, pd2, pd3, pd4 });
         } else {
             walls.push_back(geo::Shape::Polygon({ p1, p2, p3, p4 }));
         }
     }
 
-    return { walls, {}, door_point };
+    return { walls, entrance_sensor, door_point };
 }
 
 static City::Building create_building(BuildingConfig const& config, std::variant<float, geo::Point> const& city_direction,

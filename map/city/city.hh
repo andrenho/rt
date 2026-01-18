@@ -15,7 +15,7 @@ struct BuildingConfig {
     struct Entrance {
         float position = .5;
         float entrance_sz = 1.5f;
-        float wall_width = 5.f;
+        float wall_width = 2.f;
     };
     std::optional<Entrance> entrance = Entrance();
 
