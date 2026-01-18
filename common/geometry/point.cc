@@ -257,4 +257,20 @@ Point Point::point_at_distance(Point const& direction_point, float distance) con
     return *this + (direction_point - *this).normalize() * distance;
 }
 
+Point Point::perpendicular_endpoint(Point const& first_line_endpoint, float distance) const
+{
+    double dx = first_line_endpoint.x - x;
+    double dy = first_line_endpoint.y - y;
+
+    double mag = std::hypot(dx, dy);
+    if (mag == 0.0)
+        throw std::invalid_argument("Line has zero length");
+
+    // Unit direction
+    dx /= mag;
+    dy /= mag;
+
+    return { first_line_endpoint.x - dy * distance, first_line_endpoint.y + dx * distance };
+}
+
 }

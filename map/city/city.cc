@@ -49,10 +49,11 @@ static std::tuple<std::vector<geo::Shape>, geo::Shape, geo::Point> open_building
         auto p4 = line.p1.point_at_distance(building_center, entrance.wall_width);
 
         if (i == 0) {    // door
-            auto pd1 = p1.point_at_distance(p2, entrance.position);//  - (entrance.entrance_sz / 2.f));
-            auto pd2 = p1.point_at_distance(p2, entrance.position + (entrance.entrance_sz / 2.f));
-            auto pd3 = p4.point_at_distance(p3, entrance.position + (entrance.entrance_sz / 2.f));
-            auto pd4 = p4.point_at_distance(p3, entrance.position);// - (entrance.entrance_sz / 2.f));
+            auto pd1 = p1.point_at_distance(p2, 8.0f);
+            auto pd2 = p1.point_at_distance(p2, 12.0f);
+            auto pd3 = p1.perpendicular_endpoint(pd2, -entrance.wall_width);
+            auto pd4 = p1.perpendicular_endpoint(pd1, -entrance.wall_width);
+            // walls.push_back(geo::Shape::Polygon({ pd1, pd2, pd3, pd4 }));
             walls.push_back(geo::Shape::Polygon({ p1, pd1, pd4, p4 }));
             // walls.push_back(geo::Shape::Polygon({ pd2, p2, p3, pd3 }));
         } else {
