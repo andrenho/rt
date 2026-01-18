@@ -20,7 +20,7 @@
     - [x] Ids on cities
     - [x] Determine city area
     - [x] Remove rnd from city
-    - [ ] Doors
+    - [x] Doors
   - [ ] Remove static features on top of roads/cities
   - [ ] Partition impassable terrain
 - [ ] Improvements
