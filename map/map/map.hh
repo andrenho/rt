@@ -13,12 +13,9 @@
 
 namespace map {
 
-struct MapConfig {
-    struct CityDef {
-        size_t           count;
-        city::CityConfig config;
-    };
+enum class CitySize : uint8_t { TradingPost, Village, Town, City };
 
+struct MapConfig {
     int    map_w                        = 20000;
     int    map_h                        = 20000;
     int    point_density                = 500;
@@ -30,9 +27,9 @@ struct MapConfig {
     float  road_weight_ocean            = 3.f;
     float  road_weight_forest           = 1.2f;
     float  road_weight_reuse            = .7f;
-    std::vector<CityDef> cities {};
+    std::vector<size_t> city_size { 6, 4, 3, 2 };
 
-    size_t number_of_cities() const;
+    [[nodiscard]] size_t number_of_cities() const;
 };
 
 struct Biome {
@@ -51,9 +48,11 @@ struct Biome {
 };
 
 struct City {
-    Biome* biome;
-    geo::Point location;
+    Biome*                    biome;
+    geo::Point                location;
     std::unordered_set<City*> connected_cities {};
+    CitySize                  size;
+    city::City                city {};
 };
 
 using RoadSegment = std::pair<geo::Point, geo::Point>;
@@ -62,8 +61,8 @@ struct Map {
     size_t w = 0, h = 0;
     size_t tiles_w = 0, tiles_h = 0;
     std::vector<std::unique_ptr<Biome>> biomes {};
-    std::vector<std::unique_ptr<City>> cities {};
-    std::vector<RoadSegment> road_segments {};
+    std::vector<std::unique_ptr<City>>  cities {};
+    std::vector<RoadSegment>            road_segments {};
 };
 
 Map create(MapConfig const& cfg, Random& random);

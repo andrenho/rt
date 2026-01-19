@@ -14,9 +14,37 @@
 
 namespace map {
 
+#define BD_SMALL  { .id = 0, .w = 10, .h = 10 }
+#define BD_MEDIUM { .id = 0, .w = 15, .h = 12 }
+#define BD_LARGE  { .id = 0, .w = 20, .h = 15 }
+#define BD_HUGE   { .id = 0, .w = 25, .h = 18, .entrance = city::BuildingConfig::Entrance { .position = .8f } }
+
+static std::vector<city::BuildingConfig> city_buildings[] = {
+    {
+        BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM
+    },
+    {
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE
+    },
+    {
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE, BD_LARGE,
+    },
+    {
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE, BD_LARGE, BD_LARGE,
+        BD_HUGE, BD_HUGE
+    },
+};
+
 size_t MapConfig::number_of_cities() const
 {
-    return std::accumulate(cities.cbegin(), cities.cend(), 0ULL, [](size_t n, CityDef const& c) { return n + c.count; });
+    return std::accumulate(city_size.cbegin(), city_size.cend(), 0ULL);
 }
 
 //
@@ -155,7 +183,7 @@ done:
     return cities;
 }
 
-static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, Random& random)
+static std::vector<std::unique_ptr<City>> determine_city_locations(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, Random& random)
 {
     size_t city_count = cfg.number_of_cities() + 10;
     std::vector<std::unique_ptr<City>> cities;
@@ -172,6 +200,44 @@ static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_
         city->biome->contains_city = true;
 
     return cities;
+}
+
+static void determine_city_sizes(std::vector<std::unique_ptr<City>>& cities, MapConfig const& cfg, Random& random)
+{
+    std::vector<CitySize> sizes; sizes.reserve(cfg.number_of_cities());
+    for (size_t i = 0; i < 4; ++i)
+        sizes.insert(sizes.end(), cfg.city_size.at(i), (CitySize) i);
+    std::shuffle(sizes.begin(), sizes.end(), random.rng());
+
+    size_t i = 0;
+    for (auto& city: cities)
+        city->size = (i < sizes.size()) ? sizes.at(i++) : CitySize::TradingPost;
+}
+
+static void create_city_buildings(std::vector<std::unique_ptr<City>>& cities, Random& random)
+{
+    size_t city_id = 0;
+    size_t building_id = 0;
+
+    std::vector<geo::Shape> obstacles {};  // TODO - add roads
+
+    for (auto& city: cities) {
+        auto buildings = city_buildings[(size_t) city->size];
+        for (auto& b: buildings)
+            b.id = building_id++;
+
+        city::CityConfig city_config {
+            .id = city_id++,
+            .obstacles = obstacles,
+            .center = city->location,
+            .buildings = buildings,
+            .max_size = 300,
+            .angle_variation = .7f,
+            .city_direction = city->location,
+            .boundary_size = 20.f,
+        };
+        city->city = city::generate_city(city_config, random);
+    }
 }
 
 //
@@ -315,7 +381,9 @@ Map create(MapConfig const& cfg, Random& random)
 
     update_terrain_type(biomes);
 
-    auto cities = create_cities(biomes, cfg, random);
+    auto cities = determine_city_locations(biomes, cfg, random);
+    determine_city_sizes(cities, cfg, random);
+    create_city_buildings(cities, random);
     find_connected_cities(cities, cfg);
 
     std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);
