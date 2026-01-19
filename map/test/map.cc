@@ -35,6 +35,7 @@ struct State {
     bool        show_connected_cities;
     bool        show_roads;
     int         quadrant_size;
+    int         number_of_cities[4];
 } state = {
     .map_type = State::MapType::Physical,
     .seed = (int) Random::random_seed(),
@@ -45,6 +46,7 @@ struct State {
     .show_connected_cities = false,
     .show_roads = true,
     .quadrant_size = 500,
+    .number_of_cities = { 6, 4, 3, 2 },
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
@@ -247,8 +249,12 @@ void draw_ui()
             ImGui::SliderFloat("Ocean elevation", &map_config.ocean_elevation, 0.0f, 1.0f, "%.3f");
             ImGui::SliderFloat("Lake threshold", &map_config.lake_threshold, 0.0f, 1.0f, "%.3f");
 
-            ImGui::SeparatorText("Cities & Roads");
-            ImGui::SliderInt("Number of cities", &map_config.number_of_cities, 3, 50);
+            ImGui::SeparatorText("Cities");
+            ImGui::SliderInt("Number of trading posts", &state.number_of_cities[0], 0, 10);
+            ImGui::SliderInt("Number of villages", &state.number_of_cities[1], 0, 10);
+            ImGui::SliderInt("Number of towns", &state.number_of_cities[2], 0, 10);
+            ImGui::SliderInt("Number of cities", &state.number_of_cities[3], 0, 10);
+            ImGui::SeparatorText("Roads");
             ImGui::SliderFloat("Connected city distance", &map_config.connect_city_distance, 0.0f, 20000.0f, "%.0f");
             ImGui::SliderFloat("Road weight - Ocean", &map_config.road_weight_ocean, 0.f, 5.f, "%.1f");
             ImGui::SliderFloat("Road weight - Forest", &map_config.road_weight_forest, 0.f, 5.f, "%.1f");

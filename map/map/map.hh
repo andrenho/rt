@@ -9,10 +9,16 @@
 #include "random/random.hh"
 #include "geometry/point.hh"
 #include "geometry/shapes.hh"
+#include "city/city.hh"
 
 namespace map {
 
 struct MapConfig {
+    struct CityDef {
+        size_t           count;
+        city::CityConfig config;
+    };
+
     int    map_w                        = 20000;
     int    map_h                        = 20000;
     int    point_density                = 500;
@@ -20,11 +26,13 @@ struct MapConfig {
     bool   polygon_relaxation           = true;
     float  ocean_elevation              = .4f;
     float  lake_threshold               = .28f;
-    int    number_of_cities             = 15;
     float  connect_city_distance        = 4500;
     float  road_weight_ocean            = 3.f;
     float  road_weight_forest           = 1.2f;
     float  road_weight_reuse            = .7f;
+    std::vector<CityDef> cities {};
+
+    size_t number_of_cities() const;
 };
 
 struct Biome {
