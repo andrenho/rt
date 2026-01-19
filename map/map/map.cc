@@ -214,6 +214,7 @@ static void determine_city_sizes(std::vector<std::unique_ptr<City>>& cities, Map
         city->size = (i < sizes.size()) ? sizes.at(i++) : CitySize::TradingPost;
 }
 
+/*
 static void create_city_buildings(std::vector<std::unique_ptr<City>>& cities, Random& random)
 {
     size_t city_id = 0;
@@ -239,6 +240,7 @@ static void create_city_buildings(std::vector<std::unique_ptr<City>>& cities, Ra
         city->city = city::generate_city(city_config, random);
     }
 }
+ */
 
 //
 // CITY CONNECTIONS
@@ -383,7 +385,6 @@ Map create(MapConfig const& cfg, Random& random)
 
     auto cities = determine_city_locations(biomes, cfg, random);
     determine_city_sizes(cities, cfg, random);
-    create_city_buildings(cities, random);
     find_connected_cities(cities, cfg);
 
     std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);

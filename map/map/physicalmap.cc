@@ -94,6 +94,9 @@ PhysicalMap generate_physical_map(Map const& map, size_t quadrant_sz, Random& ra
     for (auto const& biome: map.biomes)
         add_terrain(biome, pmap, random);
 
+    // create cities
+
+
     // create quadrants
     create_quadrants(pmap, quadrant_sz);
 

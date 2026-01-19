@@ -52,7 +52,6 @@ struct City {
     geo::Point                location;
     std::unordered_set<City*> connected_cities {};
     CitySize                  size;
-    city::City                city {};
 };
 
 using RoadSegment = std::pair<geo::Point, geo::Point>;
