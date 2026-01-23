@@ -15,7 +15,7 @@ struct BuildingConfig {
     struct Entrance {
         float position = .5;
         float entrance_sz = 1.5f;
-        float wall_width = 2.f;
+        float wall_width = .5f;
     };
     std::optional<Entrance> entrance = Entrance();
 
@@ -38,7 +38,7 @@ struct City {
         size_t     id;
         geo::Shape shape;
         std::vector<geo::Shape> walls;
-        std::optional<geo::Shape> entrance_sensor;
+        std::optional<geo::Shape> sensor;
         geo::Point door_position;
     };
     size_t                  id;

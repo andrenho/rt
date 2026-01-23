@@ -33,7 +33,7 @@ static std::tuple<std::vector<geo::Shape>, geo::Shape, geo::Point> open_building
         geo::Point const& building_center, BuildingConfig::Entrance const& entrance)
 {
     auto lines = geo::shape::polygon_lines(box);
-    geo::Shape entrance_sensor;
+    geo::Shape sensor;
 
     // wall containing door
     auto door_line = lines.at(0);
@@ -60,13 +60,13 @@ static std::tuple<std::vector<geo::Shape>, geo::Shape, geo::Point> open_building
             auto pd4 = p1.perpendicular_endpoint(pd1, -entrance.wall_width);
             walls.push_back(geo::Shape::Polygon({ p1, pd1, pd4, p4 }));
             walls.push_back(geo::Shape::Polygon({ pd2, p2, p3, pd3 }));
-            entrance_sensor = geo::Shape::Polygon({ pd1, pd2, pd3, pd4 });
+            sensor = box;
         } else {
             walls.push_back(geo::Shape::Polygon({ p1, p2, p3, p4 }));
         }
     }
 
-    return { walls, entrance_sensor, door_point };
+    return { walls, sensor, door_point };
 }
 
 static City::Building create_building(BuildingConfig const& config, std::variant<float, geo::Point> const& city_direction,
@@ -82,7 +82,7 @@ static City::Building create_building(BuildingConfig const& config, std::variant
             { config.h, config.w }, angle + random.next_float(-angle_variation, angle_variation));
 
     std::vector<geo::Shape> walls;
-    std::optional<geo::Shape> entrance;
+    std::optional<geo::Shape> sensor;
     geo::Point door_position {};
 
     // entrance
@@ -90,14 +90,14 @@ static City::Building create_building(BuildingConfig const& config, std::variant
         if (config.entrance->position < 0.f || config.entrance->position >= 1.f)
             throw std::runtime_error("'entrance.position' needs to be between 0 and 1");
 
-        std::tie(walls, entrance, door_position) = open_building_shape(std::get<geo::shape::Polygon>(box.for_visit()), box.center(), *config.entrance);
+        std::tie(walls, sensor, door_position) = open_building_shape(std::get<geo::shape::Polygon>(box.for_visit()), box.center(), *config.entrance);
     }
 
     return {
         .id = config.id,
         .shape = box,
         .walls = walls,
-        .entrance_sensor = entrance,
+        .sensor = sensor,
         .door_position = door_position,
     };
 }

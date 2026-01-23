@@ -148,8 +148,8 @@ static void draw()
         for (auto const& building: my_city.buildings) {
             for (auto const& shape: building.walls)
                 draw_shape(shape, BLACK, SKYBLUE, .5f);
-            if (building.entrance_sensor)
-                draw_shape(*building.entrance_sensor, BLUE, BLUE, .5f);
+            if (building.sensor)
+                draw_shape(*building.sensor, BLUE, BLUE, .5f);
         }
     }
     if (state.draw_building_shapes) {

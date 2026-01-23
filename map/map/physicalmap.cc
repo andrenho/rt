@@ -141,10 +141,10 @@ void add_city(City const& city_, size_t id, size_t* building_id, std::vector<geo
             };
         }
 
-        if (building.entrance_sensor) {
-            size_t hash = std::hash<geo::Shape>()(*building.entrance_sensor);
+        if (building.sensor) {
+            size_t hash = std::hash<geo::Shape>()(*building.sensor);
             pmap->objects[hash] = {
-                .shape = *building.entrance_sensor,
+                .shape = *building.sensor,
                 .type = PhysicalMap::Object::Type::Sensor,
                 .sensor_id = building.id,
             };

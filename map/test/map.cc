@@ -9,6 +9,7 @@
 
 #include "rlImGui.h"
 #include "imgui.h"
+#include "rlgl.h"
 
 #include "geometry/shapes.hh"
 #include "random/random.hh"
@@ -73,9 +74,10 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
     std::visit(overloaded {
             [&](geo::shape::Polygon const& p) {
                 if (bg_color) {
-                    for (size_t i = 0; i < p.size() - 1; i++)
-                        DrawTriangle(V(p.at(i+1)), V(p.at(i)), V(shape.center()), *bg_color);
-                    DrawTriangle(V(p.at(0)), V(p.at(p.size() - 1)), V(shape.center()), *bg_color);
+                    std::vector<Vector2> points = p
+                            | std::views::transform([](geo::Point const& p) { return V(p); })
+                            | std::ranges::to<std::vector>();
+                    DrawTriangleFan(points.data(), (int) points.size(), *bg_color);
                 }
                 if (line_color) {
                     for (size_t i = 0; i < p.size(); i++) {
@@ -358,6 +360,8 @@ int main()
 
         BeginDrawing();
         ClearBackground(WHITE);
+
+        rlDisableBackfaceCulling();
 
         BeginMode2D(camera);
         draw();
