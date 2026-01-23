@@ -71,6 +71,7 @@ struct Bounds {
     Bounds(Point top_left_, Point bottom_right_) : top_left(top_left_), bottom_right(bottom_right_) {}
 
     [[nodiscard]] bool intersects(Bounds const& a) const;
+    [[nodiscard]] bool contains_point(Point const& p) const;
 
     Point top_left;
     Point bottom_right;

@@ -149,16 +149,10 @@ static void draw_roads()
 
 static void draw_map_objects(map::PhysicalMap const& pmap_, std::vector<size_t> const& obj_ids)
 {
-    int ts = 6;
     for (auto const id: obj_ids) {
         map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
-        if (obj.type == map::PhysicalMap::Object::Type::Terrain) {
+        if (obj.type == map::PhysicalMap::Object::Type::Terrain)
             draw_shape(obj.shape, {}, biome_colors.at(obj.terrain_type));
-            for (auto const& [point, _]: obj.static_features) {
-                DrawTriangle({ point.x, point.y + ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
-                DrawTriangle({ point.x, point.y - ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
-            }
-        }
     }
 
     for (auto const id: obj_ids) {
@@ -177,6 +171,17 @@ static void draw_map_objects(map::PhysicalMap const& pmap_, std::vector<size_t> 
         map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
         if (obj.type == map::PhysicalMap::Object::Type::UnpassableArea || obj.type == map::PhysicalMap::Object::Type::Wall)
             draw_shape(obj.shape, DARKGRAY, DARKGRAY, 2.f);
+    }
+
+    int ts = 6;
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
+        if (obj.type == map::PhysicalMap::Object::Type::Terrain) {
+            for (auto const& [point, _]: obj.static_features) {
+                DrawTriangle({ point.x, point.y + ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+                DrawTriangle({ point.x, point.y - ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+            }
+        }
     }
 }
 

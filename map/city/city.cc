@@ -24,7 +24,7 @@ static std::vector<geo::Shape> create_poisson_disks(CityConfig const& cfg, float
 static std::vector<geo::Shape> remove_obstacle_overlaps(std::vector<geo::Shape> const& disks, CityConfig const& cfg)
 {
     auto new_disks = disks | std::views::filter([&](geo::Shape const& disk) {
-        return ranges::all_of(cfg.obstacles, [&](geo::Shape const& obstacle) { return !obstacle.expand(2.f).intersects(disk); });
+        return ranges::all_of(cfg.obstacles, [&](geo::Shape const& obstacle) { return !obstacle.intersects(disk); });
     });
     return { new_disks.begin(), new_disks.end() };
 }

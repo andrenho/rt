@@ -110,6 +110,11 @@ bool Bounds::intersects(Bounds const& a) const
     return true; // They overlap or touch
 }
 
+bool Bounds::contains_point(Point const& p) const
+{
+    return p.x >= top_left.x && p.y >= top_left.y && p.x < bottom_right.x && p.y < bottom_right.y;
+}
+
 std::vector<Point> Point::poisson(class Shape const& shape, float radius, uint64_t seed, uint32_t max_attemps)
 {
     Bounds bounds = shape.aabb();

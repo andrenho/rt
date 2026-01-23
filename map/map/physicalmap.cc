@@ -1,10 +1,12 @@
 #include "physicalmap.hh"
 
 #include <optional>
+#include <ranges>
 
 namespace map {
 
 static constexpr float ROAD_WIDTH = 8.f;
+static constexpr float ROAD_CLEARANCE = 3.f;
 
 struct TerrainDef {
     bool                 passable;
@@ -22,19 +24,33 @@ static const std::unordered_map<Biome::Type, TerrainDef> terrain_def = {
         { Biome::Type::RainForest, { false, 15.f, } },
 };
 
-static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const& shape, float distance, Random& random)
+static std::unordered_map<geo::Point, uint8_t> static_features(geo::Shape const& shape, float distance, std::vector<geo::Shape> const& areas_to_avoid, Random& random)
 {
     std::unordered_map<geo::Point, uint8_t> features;
 
     auto points = geo::Point::poisson(shape, distance, 0, 4);
 
-    for (auto const& point: points)
+    auto areas_to_avoid_aabb = areas_to_avoid | std::views::transform([](auto const& a) { return a.aabb(); }) | std::ranges::to<std::vector>();
+
+    // add points
+    for (auto const& point: points) {
+        for (size_t i = 0; i < areas_to_avoid_aabb.size(); i++) {
+#ifdef NDEBUG
+            if (areas_to_avoid[i].contains_point(point))
+                goto skip;
+#else
+            if (areas_to_avoid_aabb[i].contains_point(point))
+                goto skip;
+#endif
+        }
         features[point] = random.next_uint8();
+skip:
+    }
 
     return features;
 }
 
-static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, Random& random)
+static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, std::vector<geo::Shape> const& areas_to_avoid, Random& random)
 {
     size_t hash = std::hash<geo::Shape>()(biome->polygon);
 
@@ -46,7 +62,7 @@ static void add_terrain(std::unique_ptr<Biome> const& biome, PhysicalMap& pmap, 
 
     TerrainDef const& def = terrain_def.at(biome->type);
     if (def.static_features_distance)
-        object.static_features = static_features(biome->polygon, *def.static_features_distance, random);
+        object.static_features = static_features(biome->polygon, *def.static_features_distance, areas_to_avoid, random);
 
     pmap.objects[hash] = std::move(object);
 }
@@ -125,7 +141,7 @@ void add_city(City const& city_, size_t id, size_t* building_id, std::vector<geo
         .max_size = 300,
         .angle_variation = .7f,
         .city_direction = city_.location,
-        .boundary_size = 20.f,
+        .boundary_size = 30.f,
     };
     auto gcity = city::generate_city(cfg, random);
 
@@ -163,7 +179,7 @@ PhysicalMap generate_physical_map(Map const& map, size_t quadrant_sz, Random& ra
     std::vector<geo::Shape> all_obstacles;
     for (auto const& road_segment: map.road_segments) {
         geo::Shape shape = geo::Shape::Capsule(road_segment.first, road_segment.second, ROAD_WIDTH);
-        all_obstacles.push_back(shape);
+        all_obstacles.push_back(shape.expand(ROAD_CLEARANCE));
         size_t hash = std::hash<geo::Shape>()(shape);
         pmap.objects[hash] = {
             .shape = std::move(shape),
@@ -177,12 +193,13 @@ PhysicalMap generate_physical_map(Map const& map, size_t quadrant_sz, Random& ra
     for (auto const& city: map.cities) {
         geo::Shape city_area;
         add_city(*city, id++, &building_id, all_obstacles, &pmap, &city_area, random);
-        city_areas.emplace_back(std::move(city_area));
+        city_areas.emplace_back(city_area.expand(ROAD_CLEARANCE));
     }
 
     // terrains
+    all_obstacles.insert(all_obstacles.end(), city_areas.begin(), city_areas.end());
     for (auto const& biome: map.biomes)
-        add_terrain(biome, pmap, random);
+        add_terrain(biome, pmap, all_obstacles, random);
 
     // create quadrants
     create_quadrants(pmap, quadrant_sz);
