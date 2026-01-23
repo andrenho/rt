@@ -73,6 +73,85 @@ void create_quadrants(PhysicalMap& pmap, size_t quadrant_sz)
     }
 }
 
+std::vector<city::BuildingConfig> city_buildings(CitySize city_size, size_t* building_id)
+{
+#define BD_SMALL  { .id = (*building_id)++, .w = 10, .h = 10 }
+#define BD_MEDIUM { .id = (*building_id)++, .w = 15, .h = 12 }
+#define BD_LARGE  { .id = (*building_id)++, .w = 20, .h = 15 }
+#define BD_HUGE   { .id = (*building_id)++, .w = 25, .h = 18, .entrance = city::BuildingConfig::Entrance { .position = .8f } }
+
+    switch (city_size) {
+        case CitySize::TradingPost:
+            return {
+                BD_SMALL, BD_SMALL, BD_SMALL,
+                BD_MEDIUM, BD_MEDIUM
+            };
+        case CitySize::Village:
+            return {
+                BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+                BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+                BD_LARGE
+            };
+        case CitySize::Town:
+            return {
+                BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+                BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+                BD_LARGE, BD_LARGE,
+            };
+        case CitySize::City:
+            return {
+                BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+                BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+                BD_LARGE, BD_LARGE, BD_LARGE,
+                BD_HUGE, BD_HUGE
+            };
+    }
+    abort();
+
+#undef BD_SMALL
+#undef BD_MEDIUM
+#undef BD_LARGE
+#undef BD_HUGE
+}
+
+void add_city(City const& city_, size_t id, size_t* building_id, std::vector<geo::Shape> const& obstacles, PhysicalMap* pmap, geo::Shape* city_area, Random& random)
+{
+    // generate city layout
+    city::CityConfig cfg {
+        .id = id,
+        .obstacles = obstacles,
+        .center = city_.location,
+        .buildings = city_buildings(city_.size, building_id),
+        .max_size = 300,
+        .angle_variation = .7f,
+        .city_direction = city_.location,
+        .boundary_size = 20.f,
+    };
+    auto gcity = city::generate_city(cfg, random);
+
+    // add to physical map
+    *city_area = gcity.boundary;
+
+    for (auto const& building: gcity.buildings) {
+        for (auto const& wall: building.walls) {
+            size_t hash = std::hash<geo::Shape>()(wall);
+            pmap->objects[hash] = {
+                .shape = wall,
+                .type = PhysicalMap::Object::Type::Wall,
+            };
+        }
+
+        if (building.entrance_sensor) {
+            size_t hash = std::hash<geo::Shape>()(*building.entrance_sensor);
+            pmap->objects[hash] = {
+                .shape = *building.entrance_sensor,
+                .type = PhysicalMap::Object::Type::Sensor,
+                .sensor_id = building.id,
+            };
+        };
+    }
+}
+
 PhysicalMap generate_physical_map(Map const& map, size_t quadrant_sz, Random& random)
 {
     PhysicalMap pmap;
@@ -81,21 +160,29 @@ PhysicalMap generate_physical_map(Map const& map, size_t quadrant_sz, Random& ra
     pmap.h = map.h;
 
     // roads
+    std::vector<geo::Shape> all_obstacles;
     for (auto const& road_segment: map.road_segments) {
         geo::Shape shape = geo::Shape::Capsule(road_segment.first, road_segment.second, ROAD_WIDTH);
+        all_obstacles.push_back(shape);
         size_t hash = std::hash<geo::Shape>()(shape);
         pmap.objects[hash] = {
-            .shape = shape,
+            .shape = std::move(shape),
             .type = PhysicalMap::Object::Type::Road,
         };
+    }
+
+    // create cities
+    std::vector<geo::Shape> city_areas;
+    size_t id = 0, building_id = 0;
+    for (auto const& city: map.cities) {
+        geo::Shape city_area;
+        add_city(*city, id++, &building_id, all_obstacles, &pmap, &city_area, random);
+        city_areas.emplace_back(std::move(city_area));
     }
 
     // terrains
     for (auto const& biome: map.biomes)
         add_terrain(biome, pmap, random);
-
-    // create cities
-
 
     // create quadrants
     create_quadrants(pmap, quadrant_sz);

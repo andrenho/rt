@@ -167,8 +167,14 @@ static void draw_map_objects(map::PhysicalMap const& pmap_, std::vector<size_t> 
 
     for (auto const id: obj_ids) {
         map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
-        if (obj.type == map::PhysicalMap::Object::Type::UnpassableArea)
-            draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
+        if (obj.type == map::PhysicalMap::Object::Type::Sensor)
+            draw_shape(obj.shape, PINK, PINK);
+    }
+
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
+        if (obj.type == map::PhysicalMap::Object::Type::UnpassableArea || obj.type == map::PhysicalMap::Object::Type::Wall)
+            draw_shape(obj.shape, DARKGRAY, DARKGRAY, 2.f);
     }
 }
 

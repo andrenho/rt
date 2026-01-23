@@ -21,6 +21,7 @@
     - [x] Determine city area
     - [x] Remove rnd from city
     - [x] Doors
+    - [ ] Make sensor as large as the house
   - [ ] Remove static features on top of roads/cities
   - [ ] Partition impassable terrain
 - [ ] Improvements
