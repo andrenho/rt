@@ -13,8 +13,12 @@ struct PhysicalMap {
 
     struct Object {
         geo::Shape shape;
-        enum class Type { Terrain, Road, UnpassableArea } type;
-        Biome::Type terrain_type = Biome::Unknown;
+        enum class Type { Terrain, Road, UnpassableArea, Wall, Sensor } type;
+        union {
+            nullptr_t def = nullptr;
+            Biome::Type terrain_type;
+            size_t sensor_id;
+        };
         std::unordered_map<geo::Point, uint8_t> static_features {};
     };
 

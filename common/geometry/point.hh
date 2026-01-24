@@ -9,6 +9,8 @@
 namespace geo {
 
 struct Point {
+    Point() = default;
+
     template <typename T, typename U>
     Point(T x_, U y_) : x((float) x_), y((float) y_) {}
 
@@ -18,11 +20,17 @@ struct Point {
     Point operator-(Point const& a) const { return { x - a.x, y - a.y }; }
     Point operator*(float w) const { return { x * w, y * w }; }
 
+    bool operator<(Point const& other) const;
+
     float x, y;
 
     [[nodiscard]] float angle(Point const& other) const;
     [[nodiscard]] float dot(Point const& other) const;
     [[nodiscard]] float length_sq() const;
+    [[nodiscard]] float length() const;
+    [[nodiscard]] Point normalize() const;
+    [[nodiscard]] Point point_at_distance(Point const& direction_point, float distance) const;
+    [[nodiscard]] Point perpendicular_endpoint(Point const& first_line_endpoint, float distance) const;
 
     static std::vector<Point> grid(struct Bounds const& bounds, float avg_point_distance_w, float avg_point_distance_h);
     static std::vector<Point> grid(class Shape const& area, float avg_point_distance_w, float avg_point_distance_h);
@@ -35,6 +43,9 @@ struct Point {
     static std::vector<Point> closest_points(std::vector<Point> const& points, Point const& center, size_t n_points);
 
     static bool segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out);
+
+    static double cross(Point const& O, Point const& A, Point const& B);
+    static Shape convex_hull(std::vector<Point> points);
 
     bool operator==(const Point& other) const;
 };
@@ -60,6 +71,7 @@ struct Bounds {
     Bounds(Point top_left_, Point bottom_right_) : top_left(top_left_), bottom_right(bottom_right_) {}
 
     [[nodiscard]] bool intersects(Bounds const& a) const;
+    [[nodiscard]] bool contains_point(Point const& p) const;
 
     Point top_left;
     Point bottom_right;

@@ -9,6 +9,7 @@
 
 #include "rlImGui.h"
 #include "imgui.h"
+#include "rlgl.h"
 
 #include "geometry/shapes.hh"
 #include "random/random.hh"
@@ -35,6 +36,7 @@ struct State {
     bool        show_connected_cities;
     bool        show_roads;
     int         quadrant_size;
+    int         number_of_cities[4];
 } state = {
     .map_type = State::MapType::Physical,
     .seed = (int) Random::random_seed(),
@@ -45,6 +47,7 @@ struct State {
     .show_connected_cities = false,
     .show_roads = true,
     .quadrant_size = 500,
+    .number_of_cities = { 6, 4, 3, 2 },
 };
 
                                          // Unknown, Ocean, Snow, Tundra, Desert, Grassland, Savannah, PineForest, Forest, RainForest };
@@ -71,9 +74,10 @@ static void draw_shape(geo::Shape const& shape, std::optional<Color> line_color=
     std::visit(overloaded {
             [&](geo::shape::Polygon const& p) {
                 if (bg_color) {
-                    for (size_t i = 0; i < p.size() - 1; i++)
-                        DrawTriangle(V(p.at(i+1)), V(p.at(i)), V(shape.center()), *bg_color);
-                    DrawTriangle(V(p.at(0)), V(p.at(p.size() - 1)), V(shape.center()), *bg_color);
+                    std::vector<Vector2> points = p
+                            | std::views::transform([](geo::Point const& p) { return V(p); })
+                            | std::ranges::to<std::vector>();
+                    DrawTriangleFan(points.data(), (int) points.size(), *bg_color);
                 }
                 if (line_color) {
                     for (size_t i = 0; i < p.size(); i++) {
@@ -145,16 +149,10 @@ static void draw_roads()
 
 static void draw_map_objects(map::PhysicalMap const& pmap_, std::vector<size_t> const& obj_ids)
 {
-    int ts = 6;
     for (auto const id: obj_ids) {
         map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
-        if (obj.type == map::PhysicalMap::Object::Type::Terrain) {
+        if (obj.type == map::PhysicalMap::Object::Type::Terrain)
             draw_shape(obj.shape, {}, biome_colors.at(obj.terrain_type));
-            for (auto const& [point, _]: obj.static_features) {
-                DrawTriangle({ point.x, point.y + ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
-                DrawTriangle({ point.x, point.y - ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
-            }
-        }
     }
 
     for (auto const id: obj_ids) {
@@ -165,8 +163,25 @@ static void draw_map_objects(map::PhysicalMap const& pmap_, std::vector<size_t> 
 
     for (auto const id: obj_ids) {
         map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
-        if (obj.type == map::PhysicalMap::Object::Type::UnpassableArea)
-            draw_shape(obj.shape, DARKGRAY, DARKGRAY, 4.f);
+        if (obj.type == map::PhysicalMap::Object::Type::Sensor)
+            draw_shape(obj.shape, PINK, PINK);
+    }
+
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
+        if (obj.type == map::PhysicalMap::Object::Type::UnpassableArea || obj.type == map::PhysicalMap::Object::Type::Wall)
+            draw_shape(obj.shape, DARKGRAY, DARKGRAY, 2.f);
+    }
+
+    int ts = 6;
+    for (auto const id: obj_ids) {
+        map::PhysicalMap::Object const& obj = pmap_.objects.at(id);
+        if (obj.type == map::PhysicalMap::Object::Type::Terrain) {
+            for (auto const& [point, _]: obj.static_features) {
+                DrawTriangle({ point.x, point.y + ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+                DrawTriangle({ point.x, point.y - ts }, { point.x - ts, point.y + ts }, { point.x + ts, point.y + ts }, BLACK);
+            }
+        }
     }
 }
 
@@ -247,8 +262,12 @@ void draw_ui()
             ImGui::SliderFloat("Ocean elevation", &map_config.ocean_elevation, 0.0f, 1.0f, "%.3f");
             ImGui::SliderFloat("Lake threshold", &map_config.lake_threshold, 0.0f, 1.0f, "%.3f");
 
-            ImGui::SeparatorText("Cities & Roads");
-            ImGui::SliderInt("Number of cities", &map_config.number_of_cities, 3, 50);
+            ImGui::SeparatorText("Cities");
+            ImGui::SliderInt("Number of trading posts", &state.number_of_cities[0], 0, 10);
+            ImGui::SliderInt("Number of villages", &state.number_of_cities[1], 0, 10);
+            ImGui::SliderInt("Number of towns", &state.number_of_cities[2], 0, 10);
+            ImGui::SliderInt("Number of cities", &state.number_of_cities[3], 0, 10);
+            ImGui::SeparatorText("Roads");
             ImGui::SliderFloat("Connected city distance", &map_config.connect_city_distance, 0.0f, 20000.0f, "%.0f");
             ImGui::SliderFloat("Road weight - Ocean", &map_config.road_weight_ocean, 0.f, 5.f, "%.1f");
             ImGui::SliderFloat("Road weight - Forest", &map_config.road_weight_forest, 0.f, 5.f, "%.1f");
@@ -346,6 +365,8 @@ int main()
 
         BeginDrawing();
         ClearBackground(WHITE);
+
+        rlDisableBackfaceCulling();
 
         BeginMode2D(camera);
         draw();

@@ -6,6 +6,7 @@
 
 #define TPH_POISSON_IMPLEMENTATION
 #include "tph_poisson.h"
+
 #include "shapes.hh"
 
 namespace geo {
@@ -13,6 +14,13 @@ namespace geo {
 Point::operator struct Size() const
 {
     return { x, y };
+}
+
+bool Point::operator<(Point const& o) const
+{
+    if (x < o.x) return true;
+    if (o.x < x) return false;
+    return y < o.y;
 }
 
 //
@@ -102,6 +110,11 @@ bool Bounds::intersects(Bounds const& a) const
     return true; // They overlap or touch
 }
 
+bool Bounds::contains_point(Point const& p) const
+{
+    return p.x >= top_left.x && p.y >= top_left.y && p.x < bottom_right.x && p.y < bottom_right.y;
+}
+
 std::vector<Point> Point::poisson(class Shape const& shape, float radius, uint64_t seed, uint32_t max_attemps)
 {
     Bounds bounds = shape.aabb();
@@ -155,10 +168,6 @@ std::vector<Point> Point::closest_points(std::vector<Point> const& points, Point
 
 float Point::angle(Point const& other) const
 {
-    /*
-    float det = (x * other.y) - (y * other.x);
-    return atan2(det, dot(other));
-    */
     return atan2(other.y - y, other.x - x);
 }
 
@@ -170,6 +179,16 @@ float Point::dot(Point const& other) const
 float Point::length_sq() const
 {
     return dot(*this);
+}
+
+float Point::length() const
+{
+    return sqrt(length_sq());
+}
+
+Point Point::normalize() const
+{
+    return *this * (1.0f / length());
 }
 
 bool Point::segment_intersection(Point const& p1, Point const& p2, Point const& q1, Point const& q2, Point* out)
@@ -202,6 +221,61 @@ bool Point::segment_intersection(Point const& p1, Point const& p2, Point const& 
     out->x = p1.x + t * r_x;
     out->y = p1.y + t * r_y;
     return true;
+}
+
+double Point::cross(Point const& O, Point const& A, Point const& B)
+{
+    return (A.x - O.x) * (B.y - O.y) - (A.y - O.y) * (B.x - O.x);
+}
+
+Shape Point::convex_hull(std::vector<Point> pts)
+{
+    if (pts.size() <= 1) return pts;
+
+    std::sort(pts.begin(), pts.end());
+    std::vector<Point> hull;
+
+    // Lower hull
+    for (auto const& p : pts) {
+        while (hull.size() >= 2 &&
+                cross(hull[hull.size()-2], hull.back(), p) <= 0)
+            hull.pop_back();
+        hull.push_back(p);
+    }
+
+    // Upper hull
+    size_t lower_size = hull.size();
+    for (int i = (int)pts.size() - 2; i >= 0; --i) {
+        auto const& p = pts[i];
+        while (hull.size() > lower_size &&
+                cross(hull[hull.size()-2], hull.back(), p) <= 0)
+            hull.pop_back();
+        hull.push_back(p);
+    }
+
+    hull.pop_back();
+    return Shape::Polygon(hull);
+}
+
+Point Point::point_at_distance(Point const& direction_point, float distance) const
+{
+    return *this + (direction_point - *this).normalize() * distance;
+}
+
+Point Point::perpendicular_endpoint(Point const& first_line_endpoint, float distance) const
+{
+    double dx = first_line_endpoint.x - x;
+    double dy = first_line_endpoint.y - y;
+
+    double mag = std::hypot(dx, dy);
+    if (mag == 0.0)
+        throw std::invalid_argument("Line has zero length");
+
+    // Unit direction
+    dx /= mag;
+    dy /= mag;
+
+    return { first_line_endpoint.x - dy * distance, first_line_endpoint.y + dx * distance };
 }
 
 }

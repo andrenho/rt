@@ -8,43 +8,45 @@
 #include "geometry/shapes.hh"
 #include "city/prepare.hh"
 
-#define BUILDING_SMALL  .w = 10, .h = 10
-#define BUILDING_MEDIUM .w = 15, .h = 12
-#define BUILDING_LARGE  .w = 20, .h = 15
-#define BUILDING_HUGE   .w = 25, .h = 18, .door_position = .8f
+#define BD_SMALL  { .id = id_counter++, .w = 10, .h = 10 }
+#define BD_MEDIUM { .id = id_counter++, .w = 15, .h = 12 }
+#define BD_LARGE  { .id = id_counter++, .w = 20, .h = 15 }
+#define BD_HUGE   { .id = id_counter++, .w = 25, .h = 18, .entrance = city::BuildingConfig::Entrance { .position = .8f } }
+
+static size_t id_counter = 0;
 
 static std::vector<city::BuildingConfig> city_size[] = {
     {
-        { BUILDING_SMALL,  .count = 3 },
-        { BUILDING_MEDIUM, .count = 2 },
-        { BUILDING_LARGE,  .count = 0 },
+        BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM
     },
     {
-        { BUILDING_SMALL,  .count = 5 },
-        { BUILDING_MEDIUM, .count = 3 },
-        { BUILDING_LARGE,  .count = 1 },
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE
     },
     {
-        { BUILDING_SMALL,  .count = 7 },
-        { BUILDING_MEDIUM, .count = 4 },
-        { BUILDING_LARGE,  .count = 2 },
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE, BD_LARGE,
     },
     {
-        { BUILDING_SMALL,  .count = 10 },
-        { BUILDING_MEDIUM, .count = 6 },
-        { BUILDING_LARGE,  .count = 3 },
-        { BUILDING_HUGE,   .count = 1 },
+        BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL, BD_SMALL,
+        BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM, BD_MEDIUM,
+        BD_LARGE, BD_LARGE, BD_LARGE,
+        BD_HUGE, BD_HUGE
     },
 };
 
 static city::CityConfig city_config {
-    .seed = 0,
+    .id = 0,
     .obstacles = {},
     .center = { 250, 250 },
     .buildings = city_size[1],
-    .max_size = 200,
+    .max_size = 300,
     .angle_variation = .7f,
     .city_direction = 0.f,
+    .boundary_size = 20.f,
 };
 static city::City my_city;
 
@@ -61,7 +63,9 @@ struct State {
     CitySize  city_size = CS_Medium;
     bool      draw_original_poisson_disks = false;
     bool      draw_poisson_disks = false;
+    bool      draw_building_shapes = false;
     bool      draw_buildings = true;
+    bool      draw_border = true;
     bool      orient_to_center = true;
 } state;
 
@@ -69,16 +73,16 @@ static Vector2 V(geo::Point const& p) { return { p.x, p.y }; }
 
 static void reset_map()
 {
-    std::mt19937 rng(city_config.seed);
+    Random random;
 
-    city_config.obstacles = create_road(rng, state.road_shape, (float) state.area_size, &city_config.center);
+    city_config.obstacles = create_road(state.road_shape, (float) state.area_size, &city_config.center, random);
     city_config.buildings = city_size[state.city_size];
     if (state.orient_to_center)
         city_config.city_direction = city_config.center;
     else
-        city_config.city_direction = std::uniform_real_distribution<float>(0, 2 * M_PI)(rng);
+        city_config.city_direction = float(random.next_ufloat(2 * M_PI));
 
-    my_city = city::generate_city(city_config);
+    my_city = city::generate_city(city_config, random);
 
     camera.zoom = (float) GetScreenHeight() / (float) state.area_size;
 }
@@ -142,13 +146,24 @@ static void draw()
     }
     if (state.draw_buildings) {
         for (auto const& building: my_city.buildings) {
-            draw_shape(building.shape, BLACK, SKYBLUE, 2.f);
+            for (auto const& shape: building.walls)
+                draw_shape(shape, BLACK, SKYBLUE, .5f);
+            if (building.sensor)
+                draw_shape(*building.sensor, BLUE, BLUE, .5f);
+        }
+    }
+    if (state.draw_building_shapes) {
+        for (auto const& building: my_city.buildings) {
+            draw_shape(building.shape, PURPLE, PURPLE, 2.f);
             draw_shape(geo::Shape::Circle(building.door_position, 3.f), PURPLE);
         }
     }
 
     // city center
     draw_shape(geo::Shape::Circle(city_config.center, 5.f), BLACK, MAGENTA);
+
+    if (state.draw_border)
+        draw_shape(my_city.boundary, PURPLE);
 }
 
 static void draw_ui()
@@ -175,10 +190,11 @@ static void draw_ui()
     ImGui::Checkbox("Original poisson disks", &state.draw_original_poisson_disks);
     ImGui::Checkbox("Poisson disks", &state.draw_poisson_disks);
     ImGui::Checkbox("Buildings", &state.draw_buildings);
+    ImGui::Checkbox("Building shapes", &state.draw_building_shapes);
+    ImGui::Checkbox("Border", &state.draw_border);
 
     ImGui::Separator();
     if (ImGui::Button("Generate map with new seed")) {
-        city_config.seed = rand();
         reset_map();
     }
     ImGui::SameLine();
@@ -196,7 +212,6 @@ static void draw_ui()
 int main()
 {
     srand((unsigned int) time(nullptr));
-    city_config.seed = rand();
 
     SetConfigFlags(FLAG_MSAA_4X_HINT);
     InitWindow(1600, 900, "rt-city-test");

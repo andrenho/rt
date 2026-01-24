@@ -1,5 +1,6 @@
 #include "map.hh"
 
+#include <numeric>
 #include <random>
 
 #include "jc_voronoi.h"
@@ -12,6 +13,11 @@
 #include "graaflib/algorithm/shortest_path/dijkstra_shortest_path.h"
 
 namespace map {
+
+size_t MapConfig::number_of_cities() const
+{
+    return std::accumulate(city_size.cbegin(), city_size.cend(), 0ULL);
+}
 
 //
 // POLYGONS GENERATION
@@ -138,7 +144,7 @@ static std::vector<std::unique_ptr<City>> create_cities_attempt(std::vector<std:
             if (biomes.at(i)->polygon.contains_point(p)) {
                 if (biomes.at(i)->type != Biome::Ocean) {
                     cities.emplace_back(std::make_unique<City>(biomes.at(i).get(), biomes.at(i)->polygon.center()));
-                    if (cities.size() >= cfg.number_of_cities)
+                    if (cities.size() >= cfg.number_of_cities())
                         goto done;
                 }
             }
@@ -149,23 +155,35 @@ done:
     return cities;
 }
 
-static std::vector<std::unique_ptr<City>> create_cities(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, Random& random)
+static std::vector<std::unique_ptr<City>> determine_city_locations(std::vector<std::unique_ptr<Biome>>& biomes, MapConfig const& cfg, Random& random)
 {
-    size_t city_count = cfg.number_of_cities + 10;
+    size_t city_count = cfg.number_of_cities() + 10;
     std::vector<std::unique_ptr<City>> cities;
 
     // create city list
     do {
         cities = create_cities_attempt(biomes, cfg, random, city_count);
         city_count += 10;
-        if (city_count > cfg.number_of_cities * 3)   // sanity check
+        if (city_count > cfg.number_of_cities() * 3)   // sanity check
             break;
-    } while (cities.size() < cfg.number_of_cities);  // if not enough cities were created, try again with more cities
+    } while (cities.size() < cfg.number_of_cities());  // if not enough cities were created, try again with more cities
 
     for (auto& city: cities)
         city->biome->contains_city = true;
 
     return cities;
+}
+
+static void determine_city_sizes(std::vector<std::unique_ptr<City>>& cities, MapConfig const& cfg, Random& random)
+{
+    std::vector<CitySize> sizes; sizes.reserve(cfg.number_of_cities());
+    for (size_t i = 0; i < 4; ++i)
+        sizes.insert(sizes.end(), cfg.city_size.at(i), (CitySize) i);
+    std::shuffle(sizes.begin(), sizes.end(), random.rng());
+
+    size_t i = 0;
+    for (auto& city: cities)
+        city->size = (i < sizes.size()) ? sizes.at(i++) : CitySize::TradingPost;
 }
 
 //
@@ -309,7 +327,8 @@ Map create(MapConfig const& cfg, Random& random)
 
     update_terrain_type(biomes);
 
-    auto cities = create_cities(biomes, cfg, random);
+    auto cities = determine_city_locations(biomes, cfg, random);
+    determine_city_sizes(cities, cfg, random);
     find_connected_cities(cities, cfg);
 
     std::vector<RoadSegment> road_segments = build_road_segments(biomes, cities, cfg);
