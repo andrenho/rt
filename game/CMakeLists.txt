@@ -14,6 +14,7 @@ include(../cmake/common.cmake)
 #------------------------
 
 include(../common/include-common-lib.cmake)
+include(../cmake/libs/fastecs.cmake)
 
 #-------------------------
 # Main build
@@ -25,7 +26,7 @@ add_library(rt-game STATIC
         game/game.hh
         game/game.cc
 )
-target_link_libraries(rt-game PUBLIC rt-common rt-map topdown)
+target_link_libraries(rt-game PUBLIC rt-common rt-map topdown fastecs)
 
 # test executable
 

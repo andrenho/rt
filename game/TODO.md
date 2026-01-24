@@ -1,9 +1,9 @@
 # Version 0
 
 ## Initial setup
-- [ ] Base cmake
-- [ ] Base UI
-- [ ] Bring and setup fastecs
+- [x] Base cmake
+- [x] Base UI
+- [x] Bring and setup fastecs
 - [ ] Create player
 
 ## Player movement
