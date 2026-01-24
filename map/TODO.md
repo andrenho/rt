@@ -23,7 +23,6 @@
     - [x] Doors
     - [x] Make sensor as large as the house
   - [x] Remove static features on top of roads/cities
-  - [ ] Partition impassable terrain
 - [ ] Improvements
   - [ ] Rivers
   - [ ] Noisy edges
